@@ -617,7 +617,14 @@ class _SignupPageState extends State<SignupPage> {
 
       await credential.user?.reload();
 
-      if (!mounted) return;
+if (!mounted) return;
+
+Navigator.of(context).pushAndRemoveUntil(
+  MaterialPageRoute<void>(
+    builder: (_) => const PartyNovaHome(),
+  ),
+  (route) => false,
+);
 
       // AuthGate opens the existing app after account creation.
     } on FirebaseAuthException catch (e) {
