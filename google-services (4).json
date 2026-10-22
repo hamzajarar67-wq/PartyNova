@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "640313881805",
+    "project_id": "partynova",
+    "storage_bucket": "partynova.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640313881805:android:5e07d5cf02f6dff2676584",
+        "android_client_info": {
+          "package_name": "com.partynova.partynova"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChRovcy5TvD4Borfc5EWAPxAqpuBoSLqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
