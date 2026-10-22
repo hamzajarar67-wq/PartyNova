@@ -88,11 +88,38 @@ Future<String> assignPartyNovaUserId(User user) async {
       email == null ? null : partyNovaReservedIds[email];
 
   if (reservedId != null) {
-    throw StateError(
-      'Owner/Admin ID setup is required in Firestore.',
-    );
-  }
+  final claimRef =
+      firestore.collection('userIdClaims').doc(reservedId);
 
+  return await firestore.runTransaction<String>((transaction) async {
+    final userSnapshot = await transaction.get(userRef);
+    final claimSnapshot = await transaction.get(claimRef);
+
+    final claimData = claimSnapshot.data();
+    final claimedUid = claimData?['uid'];
+
+    if (claimSnapshot.exists && claimedUid != user.uid) {
+      throw StateError(
+        'Reserved ID is already assigned to another account.',
+      );
+    }
+
+    transaction.set(
+      userRef,
+      {'userId': reservedId},
+      SetOptions(merge: true),
+    );
+
+    if (!claimSnapshot.exists) {
+      transaction.set(claimRef, {
+        'uid': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    }
+
+    return reservedId;
+  });
+}
   final random = Random.secure();
 
   for (var attempt = 0; attempt < 60; attempt++) {
