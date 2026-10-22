@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,7 +54,7 @@ class AuthGate extends StatelessWidget {
           return const PartyNovaHome();
         }
 
-        return const WelcomePage();
+        return const SplashGate();
       },
     );
   }
@@ -79,9 +80,47 @@ BoxDecoration partyNightDecoration() {
   );
 }
 
-// Welcome screen
-class WelcomePage extends StatelessWidget {
-  const WelcomePage({super.key});
+// Splash navigation
+class SplashGate extends StatefulWidget {
+  const SplashGate({super.key});
+
+  @override
+  State<SplashGate> createState() => _SplashGateState();
+}
+
+class _SplashGateState extends State<SplashGate> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _timer = Timer(const Duration(seconds: 5), () {
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => const LoginPage(),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const SplashPage();
+  }
+}
+
+// Splash screen
+class SplashPage extends StatelessWidget {
+  const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +130,7 @@ class WelcomePage extends StatelessWidget {
         width: double.infinity,
         decoration: partyNightDecoration(),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -127,13 +165,28 @@ class WelcomePage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 28),
-                const Text(
-                  'PartyNova',
-                  style: TextStyle(
-                    color: partyWhite,
-                    fontSize: 35,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                const Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'PARTY',
+                        style: TextStyle(
+                          color: partyPink,
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'NOVA',
+                        style: TextStyle(
+                          color: partyWhite,
+                          fontSize: 35,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -145,30 +198,14 @@ class WelcomePage extends StatelessWidget {
                     fontSize: 15,
                   ),
                 ),
-                const SizedBox(height: 55),
-                PartyButton(
-                  text: 'Login',
-                  icon: Icons.login_rounded,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const LoginPage(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 18),
-                PartyButton(
-                  text: 'Create Account',
-                  icon: Icons.person_add_alt_1_rounded,
-                  outlined: true,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SignupPage(),
-                      ),
-                    );
-                  },
+                const SizedBox(height: 45),
+                const SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    color: partyPink,
+                    strokeWidth: 3,
+                  ),
                 ),
               ],
             ),
