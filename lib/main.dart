@@ -240,7 +240,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
             elevation: 0,
             selectedItemColor: isProfile ? pink : gold,
             unselectedItemColor:
-                isProfile ? const Color(0xFF777777) : Colors.white,
+                isProfile ? const Color(0xFF777777) : white,
             selectedFontSize: 11,
             unselectedFontSize: 10,
             showUnselectedLabels: true,
@@ -464,65 +464,80 @@ class _GlossySettingsBox extends StatelessWidget {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFFFE9A8),
-                          Color(0xFFFFC94F),
-                          Color(0xFFB87919),
-                        ],
-                      ),
-                      border: Border.all(
-                        color: const Color(0xFFFFF0BD),
-                        width: 1.2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFFD780)
-                              .withValues(alpha: 0.28),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Icon(
-                      icon,
-                      color: const Color(0xFF5C2C15),
-                      size: 25,
-                    ),
+
+              // The full-height area keeps the icon and text vertically centered.
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 0,
+                    vertical: 0,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: Color(0x66000000),
-                            blurRadius: 5,
-                            offset: Offset(0, 2),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFFE9A8),
+                              Color(0xFFFFC94F),
+                              Color(0xFFB87919),
+                            ],
                           ),
-                        ],
+                          border: Border.all(
+                            color: const Color(0xFFFFF0BD),
+                            width: 1.2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFFD780)
+                                  .withValues(alpha: 0.28),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          icon,
+                          color: const Color(0xFF5C2C15),
+                          size: 25,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  color: Color(0x66000000),
+                                  blurRadius: 5,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.white,
+                        size: 17,
+                      ),
+                    ],
                   ),
-                  const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 17,
-                  ),
-                ],
+                ),
               ),
             ],
           ),
