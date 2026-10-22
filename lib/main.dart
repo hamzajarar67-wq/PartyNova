@@ -14,7 +14,7 @@ class PartyNovaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        scaffoldBackgroundColor: const Color(0xFF090909),
+        scaffoldBackgroundColor: const Color(0xFF09070B),
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFFFF1688),
           brightness: Brightness.dark,
@@ -36,7 +36,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   int _selectedIndex = 0;
 
   static const Color pink = Color(0xFFFF1688);
-  static const Color black = Color(0xFF090909);
+  static const Color black = Color(0xFF09070B);
   static const Color white = Color(0xFFFFFFFF);
 
   static const List<String> _pageTitles = [
@@ -57,7 +57,102 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   }
 
   Widget _buildEmptyPage() {
-    return const SizedBox.expand();
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment(0.0, -0.45),
+          radius: 1.25,
+          colors: [
+            Color(0xFF42152F),
+            Color(0xFF21101F),
+            Color(0xFF09070B),
+          ],
+          stops: [0.0, 0.48, 1.0],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 70,
+            left: -65,
+            child: Container(
+              width: 190,
+              height: 190,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFF1688).withValues(alpha: 0.08),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF1688)
+                        .withValues(alpha: 0.12),
+                    blurRadius: 100,
+                    spreadRadius: 25,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            right: -75,
+            bottom: 55,
+            child: Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFB52B76).withValues(alpha: 0.08),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFB52B76)
+                        .withValues(alpha: 0.12),
+                    blurRadius: 110,
+                    spreadRadius: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const Positioned(
+            top: 55,
+            right: 35,
+            child: Icon(
+              Icons.auto_awesome,
+              color: Color(0xFFCF789F),
+              size: 17,
+            ),
+          ),
+          const Positioned(
+            top: 165,
+            left: 38,
+            child: Icon(
+              Icons.star_rounded,
+              color: Color(0xFFB96A91),
+              size: 13,
+            ),
+          ),
+          const Positioned(
+            bottom: 115,
+            left: 75,
+            child: Icon(
+              Icons.favorite_rounded,
+              color: Color(0x55FF1688),
+              size: 18,
+            ),
+          ),
+          const Positioned(
+            bottom: 185,
+            right: 48,
+            child: Icon(
+              Icons.auto_awesome,
+              color: Color(0xFFB96A91),
+              size: 14,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildProfilePage() {
