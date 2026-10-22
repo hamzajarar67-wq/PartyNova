@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 
 const String partyNovaOwnerEmail = 'hamzajarar76@gmail.com';
 const String partyNovaAdminEmail = 'hamzajarar67@gmail.com';
@@ -21,13 +22,8 @@ const Color partyWhite = Color(0xFFFFFFFF);
 String partyNovaRoleForEmail(String? email) {
   final normalizedEmail = email?.trim().toLowerCase();
 
-  if (normalizedEmail == partyNovaOwnerEmail) {
-    return 'owner';
-  }
-
-  if (normalizedEmail == partyNovaAdminEmail) {
-    return 'admin';
-  }
+  if (normalizedEmail == partyNovaOwnerEmail) return 'owner';
+  if (normalizedEmail == partyNovaAdminEmail) return 'admin';
 
   return 'user';
 }
@@ -88,38 +84,43 @@ Future<String> assignPartyNovaUserId(User user) async {
       email == null ? null : partyNovaReservedIds[email];
 
   if (reservedId != null) {
-  final claimRef =
-      firestore.collection('userIdClaims').doc(reservedId);
+    final claimRef =
+        firestore.collection('userIdClaims').doc(reservedId);
 
-  return await firestore.runTransaction<String>((transaction) async {
-    final userSnapshot = await transaction.get(userRef);
-    final claimSnapshot = await transaction.get(claimRef);
+    return firestore.runTransaction<String>((transaction) async {
+      final userSnapshot = await transaction.get(userRef);
+      final claimSnapshot = await transaction.get(claimRef);
 
-    final claimData = claimSnapshot.data();
-    final claimedUid = claimData?['uid'];
+      final claimedUid = claimSnapshot.data()?['uid'];
 
-    if (claimSnapshot.exists && claimedUid != user.uid) {
-      throw StateError(
-        'Reserved ID is already assigned to another account.',
+      if (claimSnapshot.exists && claimedUid != user.uid) {
+        throw StateError(
+          'Reserved ID is already assigned to another account.',
+        );
+      }
+
+      transaction.set(
+        userRef,
+        {
+          'userId': reservedId,
+          'email': email,
+          'name': user.displayName ?? '',
+          'role': partyNovaRoleForEmail(email),
+        },
+        SetOptions(merge: true),
       );
-    }
 
-    transaction.set(
-      userRef,
-      {'userId': reservedId},
-      SetOptions(merge: true),
-    );
+      if (!claimSnapshot.exists) {
+        transaction.set(claimRef, {
+          'uid': user.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
 
-    if (!claimSnapshot.exists) {
-      transaction.set(claimRef, {
-        'uid': user.uid,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    }
+      return reservedId;
+    });
+  }
 
-    return reservedId;
-  });
-}
   final random = Random.secure();
 
   for (var attempt = 0; attempt < 60; attempt++) {
@@ -177,12 +178,9 @@ Future<String> assignPartyNovaUserId(User user) async {
         return id;
       });
 
-      if (assignedId != null) {
-        return assignedId;
-      }
+      if (assignedId != null) return assignedId;
     } catch (error) {
       if (error is StateError) rethrow;
-      // Retry if an ID claim could not be completed.
     }
   }
 
@@ -230,9 +228,7 @@ class AuthGate extends StatelessWidget {
           return const Scaffold(
             backgroundColor: partyBlack,
             body: Center(
-              child: CircularProgressIndicator(
-                color: partyPink,
-              ),
+              child: CircularProgressIndicator(color: partyPink),
             ),
           );
         }
@@ -246,7 +242,6 @@ class AuthGate extends StatelessWidget {
     );
   }
 }
-
 
 class SplashGate extends StatefulWidget {
   const SplashGate({super.key});
@@ -265,11 +260,19 @@ class _SplashGateState extends State<SplashGate> {
     _timer = Timer(const Duration(seconds: 5), () {
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => const LoginPage(),
-        ),
-      );
+      if (FirebaseAuth.instance.currentUser != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => const PartyNovaHome(),
+          ),
+        );
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (_) => const LoginPage(),
+          ),
+        );
+      }
     });
   }
 
@@ -312,10 +315,7 @@ class SplashPage extends StatelessWidget {
                         Color(0xFF9B1558),
                       ],
                     ),
-                    border: Border.all(
-                      color: partyGold,
-                      width: 2,
-                    ),
+                    border: Border.all(color: partyGold, width: 2),
                     boxShadow: [
                       BoxShadow(
                         color: partyPink.withValues(alpha: 0.35),
@@ -487,26 +487,16 @@ class _PartyTextFieldState extends State<PartyTextField> {
       textInputAction: widget.textInputAction,
       autocorrect: !widget.password,
       enableSuggestions: !widget.password,
-      style: const TextStyle(
-        color: partyWhite,
-        fontSize: 15,
-      ),
+      style: const TextStyle(color: partyWhite, fontSize: 15),
       decoration: InputDecoration(
         labelText: widget.label,
-        labelStyle: const TextStyle(
-          color: Color(0xFFFFC7E2),
-        ),
-        prefixIcon: Icon(
-          widget.icon,
-          color: partyGold,
-        ),
+        labelStyle: const TextStyle(color: Color(0xFFFFC7E2)),
+        prefixIcon: Icon(widget.icon, color: partyGold),
         suffixIcon: widget.password
             ? IconButton(
                 tooltip: _obscure ? 'Show password' : 'Hide password',
                 onPressed: () {
-                  setState(() {
-                    _obscure = !_obscure;
-                  });
+                  setState(() => _obscure = !_obscure);
                 },
                 icon: Icon(
                   _obscure
@@ -520,28 +510,20 @@ class _PartyTextFieldState extends State<PartyTextField> {
         fillColor: const Color(0xFF171017),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xFF654052),
-          ),
+          borderSide: const BorderSide(color: Color(0xFF654052)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: Color(0xFF654052),
-          ),
+          borderSide: const BorderSide(color: Color(0xFF654052)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(
-            color: partyPink,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: partyPink, width: 1.5),
         ),
       ),
     );
   }
 }
-
 
 
 class LoginPage extends StatefulWidget {
@@ -596,19 +578,19 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final credential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
-      final user = FirebaseAuth.instance.currentUser;
+      final user = credential.user;
 
       if (user == null) {
         throw StateError('User session is unavailable.');
       }
 
-      await assignPartyNovaUserId(user);
-
+      // Open Home after Firebase Authentication succeeds.
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
@@ -617,16 +599,23 @@ class _LoginPageState extends State<LoginPage> {
         ),
         (route) => false,
       );
+
+      // Set up the profile ID separately so it cannot block login.
+      try {
+        await assignPartyNovaUserId(user);
+      } catch (e) {
+        debugPrint('PartyNova profile ID setup failed: $e');
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _error = _friendlyError(e));
       }
     } catch (e) {
+      debugPrint('PartyNova login failed: $e');
+
       if (mounted) {
         setState(() {
-          _error = e is StateError
-              ? e.message
-              : 'Could not load your profile. Please try again.';
+          _error = 'Login failed. Please try again.';
         });
       }
     } finally {
@@ -732,7 +721,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -796,7 +784,9 @@ class _SignupPageState extends State<SignupPage> {
       final user = credential.user;
 
       if (user == null) {
-        throw StateError('Account created, but user session is unavailable.');
+        throw StateError(
+          'Account created, but user session is unavailable.',
+        );
       }
 
       await user.updateDisplayName(_nameController.text.trim());
@@ -808,8 +798,7 @@ class _SignupPageState extends State<SignupPage> {
         throw StateError('User session is unavailable.');
       }
 
-      await assignPartyNovaUserId(currentUser);
-
+      // Open Home after the account is created.
       if (!mounted) return;
 
       Navigator.of(context).pushAndRemoveUntil(
@@ -818,16 +807,24 @@ class _SignupPageState extends State<SignupPage> {
         ),
         (route) => false,
       );
+
+      // Profile ID creation is handled separately.
+      try {
+        await assignPartyNovaUserId(currentUser);
+      } catch (e) {
+        debugPrint('PartyNova signup profile setup failed: $e');
+      }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _error = _friendlyError(e));
       }
     } catch (e) {
+      debugPrint('PartyNova signup failed: $e');
+
       if (mounted) {
         setState(() {
-          _error = e is StateError
-              ? e.message
-              : 'Account created, but profile setup failed. Please try logging in again.';
+          _error =
+              'Account creation failed. Please try again.';
         });
       }
     } finally {
@@ -957,12 +954,7 @@ class PartyNovaHome extends StatefulWidget {
 class _PartyNovaHomeState extends State<PartyNovaHome> {
   int _selectedIndex = 0;
 
-  static const Color pink = Color(0xFFFF1688);
-  static const Color black = Color(0xFF09070B);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color gold = Color(0xFFFFD780);
-
-  static const List<String> _pageTitles = [
+  static const List<String> _titles = [
     'Home',
     'Rooms',
     'Games',
@@ -971,765 +963,459 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     'Profile',
   ];
 
-  void _openSettings() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const SettingsPage(),
-      ),
-    );
-  }
-
-  Widget _buildEmptyPage() {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment(0.0, -0.45),
-          radius: 1.25,
-          colors: [
-            Color(0xFF42152F),
-            Color(0xFF21101F),
-            Color(0xFF09070B),
-          ],
-          stops: [0.0, 0.48, 1.0],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 70,
-            left: -65,
-            child: Container(
-              width: 190,
-              height: 190,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: pink.withValues(alpha: 0.08),
-                boxShadow: [
-                  BoxShadow(
-                    color: pink.withValues(alpha: 0.12),
-                    blurRadius: 100,
-                    spreadRadius: 25,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            right: -75,
-            bottom: 55,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFFB52B76)
-                    .withValues(alpha: 0.08),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFB52B76)
-                        .withValues(alpha: 0.12),
-                    blurRadius: 110,
-                    spreadRadius: 20,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Positioned(
-            top: 55,
-            right: 35,
-            child: Icon(
-              Icons.auto_awesome,
-              color: Color(0xFFCF789F),
-              size: 17,
-            ),
-          ),
-          const Positioned(
-            top: 165,
-            left: 38,
-            child: Icon(
-              Icons.star_rounded,
-              color: Color(0xFFB96A91),
-              size: 13,
-            ),
-          ),
-          const Positioned(
-            bottom: 115,
-            left: 75,
-            child: Icon(
-              Icons.favorite_rounded,
-              color: Color(0x55FF1688),
-              size: 18,
-            ),
-          ),
-          const Positioned(
-            bottom: 185,
-            right: 48,
-            child: Icon(
-              Icons.auto_awesome,
-              color: Color(0xFFB96A91),
-              size: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfilePage() {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      return const ColoredBox(
-        color: white,
-        child: Center(
-          child: Text(
-            'Please log in to view your profile.',
-            style: TextStyle(color: black),
-          ),
-        ),
-      );
-    }
-
-    return ColoredBox(
-      color: white,
-      child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text(
-                'Could not load your profile.',
-                style: TextStyle(color: black),
-              ),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(color: pink),
-            );
-          }
-
-          final data = snapshot.data?.data() ??
-              <String, dynamic>{};
-
-          final name = (data['name'] as String?)?.trim().isNotEmpty ==
-                  true
-              ? (data['name'] as String).trim()
-              : (user.displayName?.trim().isNotEmpty == true
-                  ? user.displayName!.trim()
-                  : 'PartyNova User');
-
-          final email = user.email?.trim().toLowerCase();
-          final role = partyNovaRoleForEmail(email);
-          final userId = data['userId'] is String
-              ? data['userId'] as String
-              : '';
-
-          final photoUrl = data['photoURL'] is String
-              ? data['photoURL'] as String
-              : user.photoURL;
-
-          return SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(18, 24, 18, 30),
-              children: [
-                Center(
-                  child: Container(
-                    width: 104,
-                    height: 104,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: partyGold,
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: partyPink.withValues(alpha: 0.15),
-                          blurRadius: 18,
-                        ),
-                      ],
-                    ),
-                    child: ClipOval(
-                      child: photoUrl != null &&
-                              photoUrl.trim().isNotEmpty
-                          ? Image.network(
-                              photoUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
-                                  const Icon(
-                                Icons.person_rounded,
-                                size: 62,
-                                color: pink,
-                              ),
-                            )
-                          : const Icon(
-                              Icons.person_rounded,
-                              size: 62,
-                              color: pink,
-                            ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: black,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 17,
-                      vertical: 7,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFFE8A0),
-                          Color(0xFFFFC94F),
-                          Color(0xFFB87919),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFF9A681A),
-                      ),
-                    ),
-                    child: Text(
-                      partyNovaRoleLabel(role),
-                      style: const TextStyle(
-                        color: Color(0xFF5C2C15),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.4,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 28),
-                const Text(
-                  'YOUR PARTY NOVA ID',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF6B5360),
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                if (userId.isEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFF8E7),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: partyGold),
-                    ),
-                    child: const Text(
-                      'Your ID is being set up. Please sign in again later if it does not appear.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: black,
-                        fontSize: 13,
-                      ),
-                    ),
-                  )
-                else
-                  PartyNovaGoldenIdCard(
-                    userId: userId,
-                    role: role,
-                  ),
-                const SizedBox(height: 18),
-                if (userId.isNotEmpty)
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      await showDialog<void>(
-                        context: context,
-                        builder: (dialogContext) => AlertDialog(
-                          backgroundColor: const Color(0xFFFFF8E7),
-                          title: const Text(
-                            'PartyNova ID',
-                            style: TextStyle(color: black),
-                          ),
-                          content: SelectableText(
-                            userId,
-                            style: const TextStyle(
-                              color: black,
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 3,
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(dialogContext),
-                              child: const Text(
-                                'Close',
-                                style: TextStyle(color: pink),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.copy_rounded),
-                    label: const Text('View / Copy ID'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: pink,
-                      side: const BorderSide(color: pink),
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFF8FB),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: const Color(0xFFFFD5E8),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Account Information',
-                        style: TextStyle(
-                          color: black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Email',
-                        style: TextStyle(
-                          color: Color(0xFF806B77),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SelectableText(
-                        user.email ?? 'No email available',
-                        style: const TextStyle(
-                          color: black,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildNavigationIcon(IconData icon, bool selected) {
-    return Icon(
-      icon,
-      size: 25,
-      color: selected ? gold : const Color(0xFFC9A66B),
-      shadows: [
-        Shadow(
-          color: selected
-              ? gold.withValues(alpha: 0.35)
-              : Colors.transparent,
-          blurRadius: selected ? 10 : 0,
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final bool isProfile = _selectedIndex == 5;
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: isProfile ? white : black,
+      backgroundColor: const Color(0xFF09070D),
       appBar: AppBar(
-        backgroundColor: isProfile ? white : black,
-        foregroundColor: isProfile ? pink : white,
+        backgroundColor: const Color(0xFF110B19),
         elevation: 0,
-        centerTitle: false,
         title: Text(
-          _pageTitles[_selectedIndex],
-          style: TextStyle(
-            color: isProfile ? pink : white,
-            fontSize: 22,
+          _titles[_selectedIndex],
+          style: const TextStyle(
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          if (_selectedIndex == 0)
+          if (_selectedIndex == 5)
             IconButton(
-              onPressed: _openSettings,
-              tooltip: 'Settings',
-              icon: const Icon(
-                Icons.settings_rounded,
-                color: gold,
-                size: 27,
-              ),
+              icon: const Icon(Icons.settings, color: Color(0xFFFFD700)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SettingsPage(),
+                  ),
+                );
+              },
             ),
         ],
       ),
-      body: _selectedIndex == 5
-          ? _buildProfilePage()
-          : _buildEmptyPage(),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildHomeTab(),
+          _buildPlaceholderTab(Icons.meeting_room, 'Rooms'),
+          _buildPlaceholderTab(Icons.sports_esports, 'Games'),
+          _buildPlaceholderTab(Icons.account_balance_wallet, 'Wallet'),
+          _buildPlaceholderTab(Icons.people, 'Social'),
+          _buildProfileTab(user),
+        ],
+      ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isProfile ? white : const Color(0xFF111014),
+        decoration: const BoxDecoration(
+          color: Color(0xFF110B19),
           border: Border(
-            top: BorderSide(
-              color: isProfile
-                  ? const Color(0xFFFFD5E8)
-                  : const Color(0xFF49313F),
-              width: 1,
-            ),
+            top: BorderSide(color: Color(0xFF3B2448)),
           ),
         ),
         child: SafeArea(
-          top: false,
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            selectedItemColor: isProfile ? pink : gold,
-            unselectedItemColor:
-                isProfile ? const Color(0xFF777777) : white,
-            selectedFontSize: 11,
-            unselectedFontSize: 10,
-            showUnselectedLabels: true,
-            items: [
-              BottomNavigationBarItem(
-                icon: _buildNavigationIcon(
-                  Icons.home_rounded,
-                  _selectedIndex == 0,
+          child: Row(
+            children: List.generate(_titles.length, (index) {
+              final selected = _selectedIndex == index;
+              final icons = [
+                Icons.home_rounded,
+                Icons.meeting_room_rounded,
+                Icons.sports_esports_rounded,
+                Icons.account_balance_wallet_rounded,
+                Icons.people_alt_rounded,
+                Icons.person_rounded,
+              ];
+
+              return Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _selectedIndex = index),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icons[index],
+                          color: selected
+                              ? const Color(0xFFFFD700)
+                              : Colors.white54,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _titles[index],
+                          maxLines: 1,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: selected
+                                ? const Color(0xFFFFD700)
+                                : Colors.white54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                label: 'Home',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildNavigationIcon(
-                  Icons.meeting_room_rounded,
-                  _selectedIndex == 1,
-                ),
-                label: 'Rooms',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildNavigationIcon(
-                  Icons.sports_esports_rounded,
-                  _selectedIndex == 2,
-                ),
-                label: 'Games',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildNavigationIcon(
-                  Icons.account_balance_wallet_rounded,
-                  _selectedIndex == 3,
-                ),
-                label: 'Wallet',
-              ),
-              BottomNavigationBarItem(
-                icon: _buildNavigationIcon(
-                  Icons.people_alt_rounded,
-                  _selectedIndex == 4,
-                ),
-                label: 'Social',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.person_rounded,
-                  color: isProfile ? pink : const Color(0xFFC9A66B),
-                  size: 25,
-                ),
-                label: 'Profile',
-              ),
-            ],
+              );
+            }),
           ),
         ),
       ),
     );
   }
-}
 
+  Widget _buildHomeTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF28123C),
+                  Color(0xFF120B1B),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFFFD700).withValues(alpha: 0.55),
+              ),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome to PartyNova',
+                  style: TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Connect, play and enjoy together.',
+                  style: TextStyle(color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          _GlossySettingsBox(
+            icon: Icons.campaign_rounded,
+            title: 'New Update',
+            subtitle: 'Check the latest updates',
+            onTap: () => _showMessage('No new updates yet.'),
+          ),
+          _GlossySettingsBox(
+            icon: Icons.event_rounded,
+            title: 'Event',
+            subtitle: 'Discover upcoming events',
+            onTap: () => _showMessage('Events will be available soon.'),
+          ),
+          _GlossySettingsBox(
+            icon: Icons.card_giftcard_rounded,
+            title: 'Daily Free Reward',
+            subtitle: 'Your daily reward',
+            onTap: () => _showMessage('Daily rewards will be available soon.'),
+          ),
+          _GlossySettingsBox(
+            icon: Icons.task_alt_rounded,
+            title: 'Daily Task',
+            subtitle: 'View your daily tasks',
+            onTap: () => _showMessage('Daily tasks will be available soon.'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderTab(IconData icon, String title) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 64, color: const Color(0xFFFFD700)),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Coming soon',
+            style: TextStyle(color: Colors.white54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileTab(User? user) {
+    if (user == null) {
+      return const Center(
+        child: Text(
+          'Please log in again.',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Could not load your profile. Please check your connection and Firestore rules.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFFFD700),
+            ),
+          );
+        }
+
+        final data = snapshot.data!.data() ?? {};
+        final name = (data['name'] ?? user.displayName ?? 'PartyNova User')
+            .toString();
+        final email = (data['email'] ?? user.email ?? '').toString();
+        final role = (data['role'] ?? 'user').toString();
+        final userId = (data['userId'] ?? '').toString();
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                width: 104,
+                height: 104,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFFFFD700),
+                    width: 2,
+                  ),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF7028A0),
+                      Color(0xFF21102F),
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 58,
+                  color: Color(0xFFFFD700),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 23,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                email,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white60),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2A1736),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFFFD700),
+                  ),
+                ),
+                child: Text(
+                  role.toUpperCase(),
+                  style: const TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              PartyNovaGoldenIdCard(userId: userId),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+}
 
 class PartyNovaGoldenIdCard extends StatelessWidget {
   final String userId;
-  final String role;
 
   const PartyNovaGoldenIdCard({
     super.key,
     required this.userId,
-    required this.role,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 2.65,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF0A8),
-              Color(0xFFB87916),
-              Color(0xFFFFD966),
-              Color(0xFF70420C),
-            ],
-          ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 12,
-              offset: Offset(0, 7),
-            ),
-            BoxShadow(
-              color: Color(0x66FFD700),
-              blurRadius: 12,
-              spreadRadius: 1,
-            ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFFE9A6),
+            Color(0xFFD6A83C),
+            Color(0xFF8A5A12),
           ],
         ),
-        padding: const EdgeInsets.all(4),
-        child: Container(
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFFFFE9A0),
-              width: 1.5,
-            ),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF3A1731),
-                Color(0xFF170D20),
-                Color(0xFF492817),
-              ],
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFFFFF1BD),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFFD700).withValues(alpha: 0.20),
+            blurRadius: 18,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.diamond_rounded, color: Color(0xFF281A08)),
+              SizedBox(width: 8),
+              Text(
+                'PARTYNOVA',
+                style: TextStyle(
+                  color: Color(0xFF281A08),
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2,
+                ),
+              ),
+              Spacer(),
+              Icon(Icons.verified_rounded, color: Color(0xFF281A08)),
+            ],
+          ),
+          const SizedBox(height: 22),
+          const Text(
+            'YOUR GOLDEN ID',
+            style: TextStyle(
+              color: Color(0xFF422B0A),
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
             ),
           ),
-          child: Stack(
+          const SizedBox(height: 8),
+          Text(
+            userId.isEmpty ? 'ID not assigned' : userId,
+            style: const TextStyle(
+              color: Color(0xFF211506),
+              fontSize: 30,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 3,
+            ),
+          ),
+          const SizedBox(height: 18),
+          Row(
             children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: PartyNovaDiamondPainter(),
-                ),
-              ),
-              Positioned(
-                top: 8,
-                right: 12,
-                child: Icon(
-                  Icons.auto_awesome,
-                  color: const Color(0xFFFFE8A0).withValues(alpha: 0.8),
-                  size: 19,
-                ),
-              ),
-              Positioned(
-                left: 10,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFFFFE9A0),
-                          Color(0xFFB47718),
-                          Color(0xFFFFD966),
-                        ],
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x99000000),
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFFD91F36),
-                            Color(0xFF720A21),
-                          ],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'ID',
-                          style: TextStyle(
-                            color: Color(0xFFFFE7A0),
-                            fontSize: 19,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black,
-                                blurRadius: 3,
-                                offset: Offset(1, 2),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: userId.isEmpty
+                      ? null
+                      : () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: userId),
+                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User ID copied.'),
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                            );
+                          }
+                        },
+                  icon: const Icon(Icons.copy_rounded),
+                  label: const Text('Copy ID'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF211506),
+                    side: const BorderSide(color: Color(0xFF422B0A)),
                   ),
                 ),
               ),
-              Positioned(
-                left: 76,
-                right: 8,
-                top: 8,
-                bottom: 7,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'PARTYNOVA',
-                      maxLines: 1,
-                      style: TextStyle(
-                        color: Color(0xFFFFE7A0),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.2,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: ShaderMask(
-                        shaderCallback: (bounds) {
-                          return const LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0xFFFFFFFF),
-                              Color(0xFFFFEAA0),
-                              Color(0xFFFFB51B),
-                              Color(0xFFB86C0B),
-                            ],
-                          ).createShader(bounds);
-                        },
-                        child: Text(
-                          userId,
-                          maxLines: 1,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2,
-                            height: 1.0,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black,
-                                blurRadius: 2,
-                                offset: Offset(2, 3),
-                              ),
-                              Shadow(
-                                color: Color(0xFFFFD75E),
-                                blurRadius: 5,
-                                offset: Offset(0, -1),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      role.toUpperCase(),
-                      maxLines: 1,
-                      style: const TextStyle(
-                        color: Color(0xFFFFE9B0),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.7,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Positioned(
-                right: 8,
-                bottom: 5,
-                child: Icon(
-                  Icons.diamond_rounded,
-                  size: 15,
-                  color: const Color(0xFFFFD65A).withValues(alpha: 0.9),
-                ),
-              ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
 class PartyNovaDiamondPainter extends CustomPainter {
+  final Color color;
+
+  PartyNovaDiamondPainter({
+    this.color = const Color(0xFFFFD700),
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFFFD76A).withValues(alpha: 0.10)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
+      ..color = color
+      ..style = PaintingStyle.fill;
 
-    const spacing = 18.0;
-    const radius = 6.0;
+    final path = Path()
+      ..moveTo(size.width * 0.5, 0)
+      ..lineTo(size.width, size.height * 0.35)
+      ..lineTo(size.width * 0.5, size.height)
+      ..lineTo(0, size.height * 0.35)
+      ..close();
 
-    for (double y = -spacing; y < size.height + spacing; y += spacing) {
-      for (double x = -spacing; x < size.width + spacing; x += spacing) {
-        final path = Path()
-          ..moveTo(x, y - radius)
-          ..lineTo(x + radius, y)
-          ..lineTo(x, y + radius)
-          ..lineTo(x - radius, y)
-          ..close();
-
-        canvas.drawPath(path, paint);
-      }
-    }
+    canvas.drawPath(path, paint);
   }
 
   @override
-  bool shouldRepaint(covariant PartyNovaDiamondPainter oldDelegate) => false;
+  bool shouldRepaint(covariant PartyNovaDiamondPainter oldDelegate) {
+    return oldDelegate.color != color;
+  }
 }
 
 class SettingsPage extends StatelessWidget {
@@ -1738,135 +1424,98 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF100B16),
+      backgroundColor: const Color(0xFF09070D),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF110B19),
         title: const Text(
           'Settings',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color(0xFF24112F),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Container(
-        decoration: partyNightDecoration(),
-        child: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.all(18),
-            children: [
-              const SizedBox(height: 8),
-              _GlossySettingsBox(
-                child: Column(
-                  children: [
-                    _SettingsOption(
-                      icon: Icons.lock_outline_rounded,
-                      title: 'Privacy',
-                      onTap: () {
-                        _showSettingsMessage(
-                          context,
-                          'Privacy settings will be available here.',
-                        );
-                      },
-                    ),
-                    const Divider(color: Color(0x33FFD700)),
-                    _SettingsOption(
-                      icon: Icons.manage_accounts_rounded,
-                      title: 'Account',
-                      onTap: () {
-                        _showSettingsMessage(
-                          context,
-                          'Account settings will be available here.',
-                        );
-                      },
-                    ),
-                    const Divider(color: Color(0x33FFD700)),
-                    _SettingsOption(
-                      icon: Icons.help_outline_rounded,
-                      title: 'Help Center',
-                      onTap: () {
-                        _showSettingsMessage(
-                          context,
-                          'Help Center will be available here.',
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              _GlossySettingsBox(
-                child: _SettingsOption(
-                  icon: Icons.logout_rounded,
-                  title: 'Log Out',
-                  color: const Color(0xFFFFD76A),
-                  onTap: () async {
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        backgroundColor: const Color(0xFF24112F),
-                        title: const Text(
-                          'Log Out',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        content: const Text(
-                          'Are you sure you want to log out?',
-                          style: TextStyle(color: Colors.white70),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(dialogContext, false);
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(dialogContext, true);
-                            },
-                            child: const Text('Log Out'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirm == true) {
-                      await FirebaseAuth.instance.signOut();
-
-                      if (context.mounted) {
-                        Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
-                        );
-                      }
-                    }
-                  },
-                ),
-              ),
-              const SizedBox(height: 18),
-              _GlossySettingsBox(
-                child: _SettingsOption(
-                  icon: Icons.delete_outline_rounded,
-                  title: 'Delete Account',
-                  color: Colors.redAccent,
-                  onTap: () {
-                    _showSettingsMessage(
-                      context,
-                      'Contact support to request account deletion.',
-                    );
-                  },
-                ),
-              ),
-            ],
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          _SettingsOption(
+            icon: Icons.lock_outline_rounded,
+            title: 'Privacy',
+            subtitle: 'Privacy settings',
+            onTap: () => _showInfo(context, 'Privacy settings coming soon.'),
           ),
-        ),
+          _SettingsOption(
+            icon: Icons.manage_accounts_rounded,
+            title: 'Account',
+            subtitle: 'Manage your account',
+            onTap: () => _showInfo(context, 'Account settings coming soon.'),
+          ),
+          _SettingsOption(
+            icon: Icons.help_outline_rounded,
+            title: 'Help & Support',
+            subtitle: 'Get help with PartyNova',
+            onTap: () => _showInfo(context, 'Help & support coming soon.'),
+          ),
+          _SettingsOption(
+            icon: Icons.info_outline_rounded,
+            title: 'About PartyNova',
+            subtitle: 'App information',
+            onTap: () => _showInfo(context, 'PartyNova'),
+          ),
+          const SizedBox(height: 14),
+          _SettingsOption(
+            icon: Icons.logout_rounded,
+            title: 'Log Out',
+            subtitle: 'Sign out of your account',
+            onTap: () => _confirmLogout(context),
+          ),
+        ],
       ),
     );
   }
 
-  void _showSettingsMessage(BuildContext context, String message) {
+  void _showInfo(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1022),
+        title: const Text(
+          'Log Out?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to log out?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(color: Color(0xFFFFD700)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    await FirebaseAuth.instance.signOut();
+
+    if (!context.mounted) return;
+
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthGate()),
+      (route) => false,
     );
   }
 }
@@ -1874,72 +1523,88 @@ class SettingsPage extends StatelessWidget {
 class _SettingsOption extends StatelessWidget {
   final IconData icon;
   final String title;
+  final String subtitle;
   final VoidCallback onTap;
-  final Color color;
 
   const _SettingsOption({
     required this.icon,
     required this.title,
+    required this.subtitle,
     required this.onTap,
-    this.color = Colors.white,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    return _GlossySettingsBox(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
       onTap: onTap,
-      leading: Icon(icon, color: color, size: 25),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: color,
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      trailing: const Icon(
-        Icons.chevron_right_rounded,
-        color: Color(0xFFFFD76A),
-      ),
     );
   }
 }
 
 class _GlossySettingsBox extends StatelessWidget {
-  final Widget child;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
 
-  const _GlossySettingsBox({required this.child});
+  const _GlossySettingsBox({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
           colors: [
-            Color(0xFF3A173E),
-            Color(0xFF1A1022),
-            Color(0xFF48223C),
+            Color(0xFF21122D),
+            Color(0xFF120B19),
           ],
         ),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0x66FFD76A),
-          width: 1,
+          color: const Color(0xFF7D4B91).withValues(alpha: 0.55),
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x33000000),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
       ),
-      child: child,
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 5,
+        ),
+        leading: Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: const Color(0xFF321C43),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(icon, color: const Color(0xFFFFD700)),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: Colors.white60),
+        ),
+        trailing: const Icon(
+          Icons.chevron_right_rounded,
+          color: Colors.white54,
+        ),
+      ),
     );
   }
 }
-
-
-
