@@ -19,65 +19,80 @@ Future<String> assignPartyNovaUserId(User user) async {
   final userRef = firestore.collection('users').doc(user.uid);
   final email = user.email?.trim().toLowerCase();
 
-  return firestore.runTransaction<String>((transaction) async {
-    final userSnapshot = await transaction.get(userRef);
+  final existingSnapshot = await userRef.get();
 
-    // Keep the existing ID permanently.
-    if (userSnapshot.exists) {
-      final existingId = userSnapshot.data()?['userId'];
-
-      if (existingId is String && existingId.isNotEmpty) {
-        return existingId;
-      }
+  if (existingSnapshot.exists) {
+    final existingId = existingSnapshot.data()?['userId'];
+    if (existingId is String && existingId.isNotEmpty) {
+      return existingId;
     }
+  }
 
-    // Reserved IDs must be provisioned securely by the app owner.
-    if (email != null && partyNovaReservedIds.containsKey(email)) {
-      throw StateError(
-        'This account needs secure reserved-ID setup before continuing.',
-      );
-    }
+  if (email != null && partyNovaReservedIds.containsKey(email)) {
+    throw StateError(
+      'Reserved ID setup is required for this account.',
+    );
+  }
 
-    // Try random 8-digit IDs, then 10-digit IDs if needed.
-    for (final length in [8, 10]) {
-      final min = length == 8 ? 10000000 : 1000000000;
-      final max = length == 8 ? 99999999 : 9999999999;
+  final random = Random.secure();
 
-      for (var attempt = 0; attempt < 30; attempt++) {
-        final randomPart =
-            DateTime.now().microsecondsSinceEpoch + attempt;
-        final id = min + (randomPart.abs() % (max - min + 1));
-        final idString = id.toString();
+  for (var attempt = 0; attempt < 60; attempt++) {
+    final length = attempt < 30 ? 8 : 10;
+    final id = length == 8
+        ? (10000000 + random.nextInt(90000000)).toString()
+        : List.generate(
+            10,
+            (index) => index == 0
+                ? (1 + random.nextInt(9)).toString()
+                : random.nextInt(10).toString(),
+          ).join();
 
-        final claimRef =
-            firestore.collection('userIdClaims').doc(idString);
+    final claimRef = firestore.collection('userIdClaims').doc(id);
+
+    try {
+      return await firestore.runTransaction<String>((transaction) async {
         final claimSnapshot = await transaction.get(claimRef);
+        final userSnapshot = await transaction.get(userRef);
 
-        if (!claimSnapshot.exists) {
-          transaction.set(claimRef, {
-            'uid': user.uid,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-
-          transaction.set(
-            userRef,
-            {
-              'userId': idString,
-              'email': email,
-              'name': user.displayName ?? '',
-              'role': 'user',
-              'createdAt': FieldValue.serverTimestamp(),
-            },
-            SetOptions(merge: true),
-          );
-
-          return idString;
+        if (userSnapshot.exists) {
+          final savedId = userSnapshot.data()?['userId'];
+          if (savedId is String && savedId.isNotEmpty) {
+            return savedId;
+          }
         }
-      }
-    }
 
-    throw StateError('Could not reserve a unique ID. Please try again.');
-  });
+        if (claimSnapshot.exists) {
+          throw StateError('ID already claimed.');
+        }
+
+        transaction.set(claimRef, {
+          'uid': user.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        transaction.set(
+          userRef,
+          {
+            'userId': id,
+            'email': email,
+            'name': user.displayName ?? '',
+            'role': 'user',
+            'createdAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true),
+        );
+
+        return id;
+      });
+    } on StateError {
+      rethrow;
+    } catch (_) {
+      // Try another ID if the claim conflicts.
+      continue;
+    }
+  }
+
+  throw StateError('Could not assign a unique ID. Please try again.');
 }
 
 
@@ -698,6 +713,14 @@ class _SignupPageState extends State<SignupPage> {
       );
 
       await credential.user?.reload();
+
+final currentUser = FirebaseAuth.instance.currentUser;
+
+if (currentUser == null) {
+  throw StateError('Account created, but user session is unavailable.');
+}
+
+await assignPartyNovaUserId(currentUser);
 
 if (!mounted) return;
 
