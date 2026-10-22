@@ -2,6 +2,88 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+
+
+const String partyNovaOwnerEmail = 'hamzajarar76@gmail.com';
+const String partyNovaAdminEmail = 'hamzajarar67@gmail.com';
+
+const Map<String, String> partyNovaReservedIds = {
+  'hamzajarar76@gmail.com': '111111',
+  'hamzajarar67@gmail.com': '111112',
+};
+
+Future<String> assignPartyNovaUserId(User user) async {
+  final firestore = FirebaseFirestore.instance;
+  final userRef = firestore.collection('users').doc(user.uid);
+  final email = user.email?.trim().toLowerCase();
+
+  return firestore.runTransaction<String>((transaction) async {
+    final userSnapshot = await transaction.get(userRef);
+
+    // Keep the existing ID permanently.
+    if (userSnapshot.exists) {
+      final existingId = userSnapshot.data()?['userId'];
+
+      if (existingId is String && existingId.isNotEmpty) {
+        return existingId;
+      }
+    }
+
+    // Reserved IDs must be provisioned securely by the app owner.
+    if (email != null && partyNovaReservedIds.containsKey(email)) {
+      throw StateError(
+        'This account needs secure reserved-ID setup before continuing.',
+      );
+    }
+
+    // Try random 8-digit IDs, then 10-digit IDs if needed.
+    for (final length in [8, 10]) {
+      final min = length == 8 ? 10000000 : 1000000000;
+      final max = length == 8 ? 99999999 : 9999999999;
+
+      for (var attempt = 0; attempt < 30; attempt++) {
+        final randomPart =
+            DateTime.now().microsecondsSinceEpoch + attempt;
+        final id = min + (randomPart.abs() % (max - min + 1));
+        final idString = id.toString();
+
+        final claimRef =
+            firestore.collection('userIdClaims').doc(idString);
+        final claimSnapshot = await transaction.get(claimRef);
+
+        if (!claimSnapshot.exists) {
+          transaction.set(claimRef, {
+            'uid': user.uid,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+
+          transaction.set(
+            userRef,
+            {
+              'userId': idString,
+              'email': email,
+              'name': user.displayName ?? '',
+              'role': 'user',
+              'createdAt': FieldValue.serverTimestamp(),
+            },
+            SetOptions(merge: true),
+          );
+
+          return idString;
+        }
+      }
+    }
+
+    throw StateError('Could not reserve a unique ID. Please try again.');
+  });
+}
+
+
+
+
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
