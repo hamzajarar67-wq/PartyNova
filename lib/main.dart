@@ -5,6 +5,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 
 const String partyNovaOwnerEmail = 'hamzajarar76@gmail.com';
 const String partyNovaAdminEmail = 'hamzajarar67@gmail.com';
@@ -1228,9 +1230,11 @@ Widget _buildProfileTab(User? user) {
                       context,
                       MaterialPageRoute(
                         builder: (_) => EditProfilePage(
-                          name: name,
-                          bio: bio == 'No bio added yet.' ? '' : bio,
-                        ),
+  name: name,
+  bio: bio == 'No bio added yet.' ? '' : bio,
+  uid: user.uid,
+  photoBase64: (data['photoBase64'] ?? '').toString(),
+),
                       ),
                     );
                   },
@@ -1499,12 +1503,16 @@ Widget _profileStatCard({
 class EditProfilePage extends StatefulWidget {
   final String name;
   final String bio;
+  final String uid;
+  final String photoBase64;
 
   const EditProfilePage({
-    super.key,
-    required this.name,
-    required this.bio,
-  });
+  super.key,
+  required this.name,
+  required this.bio,
+  required this.uid,
+  required this.photoBase64,
+});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -1765,9 +1773,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: const Color(0xFFFF1688)),
-      counterStyle: const TextStyle(color: Colors.white54),
+      hintStyle: const TextStyle(color: Colors.white),
+prefixIcon: Icon(icon, color: const Color(0xFFFF1688)),
+counterStyle: const TextStyle(color: Colors.white),
       filled: true,
       fillColor: const Color(0xFF17121D),
       enabledBorder: OutlineInputBorder(
@@ -1829,8 +1837,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         subtitle: Text(
           subtitle,
           style: const TextStyle(
-            color: Colors.white60,
-            fontSize: 12,
+  color: Colors.white,
+  fontSize: 12,
           ),
         ),
         trailing: const Icon(
