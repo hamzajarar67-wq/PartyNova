@@ -1157,54 +1157,56 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   }
 
   Widget _buildProfileTab(User? user) {
-    if (user == null) {
-      return const Center(
-        child: Text(
-          'Please log in again.',
-          style: TextStyle(color: Colors.white),
-        ),
-      );
-    }
+  if (user == null) {
+    return const Center(
+      child: Text(
+        'Please log in again.',
+        style: TextStyle(color: Colors.white),
+      ),
+    );
+  }
 
-    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(24),
-              child: Text(
-                'Could not load your profile. Please check your connection and Firestore rules.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70),
-              ),
-            ),
-          );
-        }
+  return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+    stream: FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .snapshots(),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return const Center(
+          child: Text(
+            'Could not load your profile.',
+            style: TextStyle(color: Colors.white),
+          ),
+        );
+      }
 
-        if (!snapshot.hasData) {
-          return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFFFFD700),
-            ),
-          );
-        }
+      if (!snapshot.hasData) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFFFFD700),
+          ),
+        );
+      }
 
-        final data = snapshot.data!.data() ?? {};
-        final name = (data['name'] ?? user.displayName ?? 'PartyNova User')
-            .toString();
-        final role = (data['role'] ?? partyNovaRoleForEmail(user.email)).toString();
-        final userId = (data['userId'] ?? '').toString();
+      final data = snapshot.data!.data() ?? {};
+      final name =
+          (data['name'] ?? user.displayName ?? 'PartyNova User')
+              .toString();
+      final role =
+          (data['role'] ?? partyNovaRoleForEmail(user.email))
+              .toString()
+              .toLowerCase();
+      final userId = (data['userId'] ?? '').toString();
 
-        return Container(
-          color: Colors.white,
-          width: double.infinity,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
+      final isOwnerOrAdmin = role == 'owner' || role == 'admin';
+
+      return Container(
+        color: Colors.white,
+        width: double.infinity,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
             children: [
               Container(
                 width: 104,
@@ -1238,36 +1240,64 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFE1EF),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFFFD700),
-                  ),
-                ),
-                child: Text(
-                  role.toUpperCase(),
+              const SizedBox(height: 8),
+
+              if (!isOwnerOrAdmin) ...[
+                Text(
+                  userId,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Color(0xFF9B1558),
-                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF21102F),
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              PartyNovaGoldenIdCard(userId: userId),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFFFE9A6),
+                        Color(0xFFD6A83C),
+                        Color(0xFF8A5A12),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFFFD700),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFD700)
+                            .withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    role.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xFF422B0A),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                PartyNovaGoldenIdCard(userId: userId),
+              ],
             ],
           ),
-          ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
