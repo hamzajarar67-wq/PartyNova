@@ -1197,7 +1197,11 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
           (data['role'] ?? partyNovaRoleForEmail(user.email))
               .toString()
               .toLowerCase();
-      final userId = (data['userId'] ?? '').toString();
+      final userId = (data['userId'] ?? '').toString().trim().isNotEmpty
+    ? data['userId'].toString().trim()
+    : (user.email?.trim().toLowerCase() == partyNovaOwnerEmail
+        ? '111111'
+        : '');
       debugPrint('PROFILE USER ID: ${data['userId']}');
 
       final isOwnerOrAdmin = role == 'owner' || role == 'admin';
