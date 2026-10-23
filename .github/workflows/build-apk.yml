@@ -50,31 +50,35 @@ jobs:
           patterns = [
               (
                   r'compileSdk\s*=\s*flutter\.compileSdkVersion',
-                  'compileSdk = 35'
+                  'compileSdk = 36'
               ),
               (
                   r'compileSdk\s*=\s*flutter\.compileSdk',
-                  'compileSdk = 35'
-              ),
-              (
-                  r'compileSdk\s+flutter\.compileSdkVersion',
-                  'compileSdk 35'
+                  'compileSdk = 36'
               ),
               (
                   r'compileSdkVersion\s+flutter\.compileSdkVersion',
-                  'compileSdkVersion 35'
+                  'compileSdkVersion 36'
+              ),
+              (
+                  r'compileSdk\s+flutter\.compileSdkVersion',
+                  'compileSdk 36'
               ),
               (
                   r'compileSdk\s*=\s*\d+',
-                  'compileSdk = 35'
+                  'compileSdk = 36'
               ),
               (
-                  r'compileSdk\s+\d+',
-                  'compileSdk 35'
+                  r'compileSdkVersion\s*=\s*\d+',
+                  'compileSdkVersion = 36'
               ),
               (
                   r'compileSdkVersion\s+\d+',
-                  'compileSdkVersion 35'
+                  'compileSdkVersion 36'
+              ),
+              (
+                  r'compileSdk\s+\d+',
+                  'compileSdk 36'
               ),
           ]
 
@@ -88,7 +92,7 @@ jobs:
 
               if count:
                   app.write_text(updated)
-                  print("Android compile SDK set to 35.")
+                  print("Android compile SDK set to 36.")
                   print("Updated file:", app)
                   break
           else:
@@ -238,10 +242,12 @@ jobs:
           version = int(match.group(1))
           print("Detected compile SDK:", version)
 
-          if version < 34:
+          if version < 36:
               raise SystemExit(
-                  "ERROR: compileSdk must be at least 34."
+                  "ERROR: compileSdk must be at least 36."
               )
+
+          print("Android compile SDK verification passed.")
           PY
 
       - name: Get dependencies
