@@ -28,6 +28,20 @@ jobs:
       - name: Create Android project
         run: flutter create --platforms=android --org com.partynova .
 
+      - name: Install Android SDK and NDK
+        shell: bash
+        run: |
+          set -e
+
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+
+          "$SDKMANAGER" --uninstall "ndk;28.2.13676358" || true
+          rm -rf "$ANDROID_SDK_ROOT/ndk/28.2.13676358"
+
+          "$SDKMANAGER" --install "ndk;28.2.13676358"
+
       - name: Set Android compile SDK
         shell: bash
         run: |
