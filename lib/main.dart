@@ -1549,6 +1549,68 @@ void initState() {
     );
   }
 
+
+Future<void> _pickDP() async {
+  if (_pickingPhoto || _saving) return;
+
+  setState(() => _pickingPhoto = true);
+
+  try {
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 256,
+      maxHeight: 256,
+      imageQuality: 35,
+    );
+
+    if (picked == null) return;
+
+    final bytes = await picked.readAsBytes();
+
+    if (bytes.length > 450 * 1024) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo is too large. Please choose another photo.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _photoBase64 = base64Encode(bytes);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Photo selected. Tap Save Changes to save it.'),
+      ),
+    );
+  } catch (e) {
+    debugPrint('DP selection failed: $e');
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not select photo. Please try again.'),
+        ),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(() => _pickingPhoto = false);
+    }
+  }
+}
+
+
+
+
+
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1612,28 +1674,28 @@ void initState() {
 
             const SizedBox(height: 26),
 
-            _sectionTitle('Basic Information'),
+_sectionTitle('Basic Information'),
 
-            _editOption(
-              icon: Icons.camera_alt_rounded,
-              title: 'Change DP',
-              subtitle: 'Update your profile picture',
-              onTap: () => _showComingSoon('Change DP'),
-            ),
+_editOption(
+  icon: Icons.camera_alt_rounded,
+  title: 'Change DP',
+  subtitle: 'Update your profile picture',
+  onTap: _pickDP,
+),
 
-            const SizedBox(height: 16),
+const SizedBox(height: 16),
 
-            _inputLabel('Change Name'),
+_inputLabel('Change Name'),
 
-            TextField(
-              controller: _nameController,
-              maxLength: 20,
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration(
-                hint: 'Enter your name',
-                icon: Icons.person_outline_rounded,
-              ),
-            ),
+TextField(
+  controller: _nameController,
+  maxLength: 20,
+  style: const TextStyle(color: Colors.white),
+  decoration: _inputDecoration(
+    hint: 'Enter your name',
+    icon: Icons.person_outline_rounded,
+  ),
+),
 
             const SizedBox(height: 8),
 
