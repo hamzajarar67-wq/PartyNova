@@ -1526,14 +1526,13 @@ String _photoBase64 = '';
 bool _saving = false;
 bool _pickingPhoto = false;
 
-  
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.name);
-    _bioController = TextEditingController(text: widget.bio);
-  }
-
+void initState() {
+  super.initState();
+  _nameController = TextEditingController(text: widget.name);
+  _bioController = TextEditingController(text: widget.bio);
+  _photoBase64 = widget.photoBase64;
+}
   @override
   void dispose() {
     _nameController.dispose();
