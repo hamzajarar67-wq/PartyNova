@@ -1645,9 +1645,9 @@ Future<void> _saveProfile() async {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Save failed: $e'),
-        ),
+        SnackBar(
+  content: Text('Save failed: $e'),
+),
       );
     }
   } finally {
