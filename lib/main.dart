@@ -1607,7 +1607,53 @@ Future<void> _pickDP() async {
 }
 
 
+Future<void> _saveProfile() async {
+  if (_saving || _pickingPhoto) return;
 
+  final name = _nameController.text.trim();
+  final bio = _bioController.text.trim();
+
+  if (name.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Name cannot be empty.')),
+    );
+    return;
+  }
+
+  setState(() => _saving = true);
+
+  try {
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.uid)
+        .set({
+      'name': name,
+      'bio': bio,
+      'photoBase64': _photoBase64,
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully.')),
+    );
+
+    Navigator.of(context).pop();
+  } catch (e) {
+    debugPrint('Profile save failed: $e');
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not save profile. Please try again.'),
+        ),
+      );
+    }
+  } finally {
+    if (mounted) setState(() => _saving = false);
+  }
+}
 
 
   
@@ -1731,26 +1777,35 @@ TextField(
             const SizedBox(height: 8),
 
             SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _showComingSoon('Profile editing'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF1688),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: const Text(
-                  'Save Changes',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+  width: double.infinity,
+  child: ElevatedButton(
+    onPressed: _saving ? null : _saveProfile,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: const Color(0xFFFF1688),
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+    ),
+    child: _saving
+        ? const SizedBox(
+            width: 22,
+            height: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
             ),
+          )
+        : const Text(
+            'Save Changes',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+  ),
+),
 
             const SizedBox(height: 28),
 
