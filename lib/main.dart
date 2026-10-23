@@ -1650,11 +1650,27 @@ Future<void> _pickDP() async {
                     width: 3,
                   ),
                 ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  size: 58,
-                  color: Colors.white,
-                ),
+                child: _photoBase64.isNotEmpty
+    ? ClipOval(
+        child: Image.memory(
+          base64Decode(_photoBase64),
+          width: 116,
+          height: 116,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person_rounded,
+              size: 58,
+              color: Colors.white,
+            );
+          },
+        ),
+      )
+    : const Icon(
+        Icons.person_rounded,
+        size: 58,
+        color: Colors.white,
+      ),
               ),
             ),
 
