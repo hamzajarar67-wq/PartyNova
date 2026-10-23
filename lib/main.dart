@@ -45,8 +45,8 @@ BoxDecoration partyNightDecoration() {
       center: Alignment(0.0, -0.45),
       radius: 1.25,
       colors: [
-        Color(0xFF42152F),
-        Color(0xFF21101F),
+        Color(0xFF7A174A),
+        Color(0xFF321024),
         Color(0xFF09070B),
       ],
       stops: [0.0, 0.48, 1.0],
@@ -968,9 +968,9 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF09070D),
+      backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF110B19),
+        backgroundColor: const Color(0xFF21101F),
         elevation: 0,
         title: Text(
           _titles[_selectedIndex],
@@ -980,7 +980,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
           ),
         ),
         actions: [
-          if (_selectedIndex == 5)
+          if (_selectedIndex == 0)
             IconButton(
               icon: const Icon(Icons.settings, color: Color(0xFFFFD700)),
               onPressed: () {
@@ -1196,13 +1196,15 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
         final data = snapshot.data!.data() ?? {};
         final name = (data['name'] ?? user.displayName ?? 'PartyNova User')
             .toString();
-        final email = (data['email'] ?? user.email ?? '').toString();
-        final role = (data['role'] ?? 'user').toString();
+        final role = (data['role'] ?? partyNovaRoleForEmail(user.email)).toString();
         final userId = (data['userId'] ?? '').toString();
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+        return Container(
+          color: Colors.white,
+          width: double.infinity,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
             children: [
               Container(
                 width: 104,
@@ -1231,16 +1233,10 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                 name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Color(0xFF21102F),
                   fontSize: 23,
                   fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                email,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white60),
               ),
               const SizedBox(height: 10),
               Container(
@@ -1249,7 +1245,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2A1736),
+                  color: const Color(0xFFFFE1EF),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: const Color(0xFFFFD700),
@@ -1258,7 +1254,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                 child: Text(
                   role.toUpperCase(),
                   style: const TextStyle(
-                    color: Color(0xFFFFD700),
+                    color: Color(0xFF9B1558),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1266,6 +1262,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
               const SizedBox(height: 24),
               PartyNovaGoldenIdCard(userId: userId),
             ],
+          ),
           ),
         );
       },
@@ -1424,9 +1421,9 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09070D),
+      backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF110B19),
+        backgroundColor: const Color(0xFF21101F),
         title: const Text(
           'Settings',
           style: TextStyle(color: Colors.white),
@@ -1443,12 +1440,6 @@ class SettingsPage extends StatelessWidget {
             onTap: () => _showInfo(context, 'Privacy settings coming soon.'),
           ),
           _SettingsOption(
-            icon: Icons.manage_accounts_rounded,
-            title: 'Account',
-            subtitle: 'Manage your account',
-            onTap: () => _showInfo(context, 'Account settings coming soon.'),
-          ),
-          _SettingsOption(
             icon: Icons.help_outline_rounded,
             title: 'Help & Support',
             subtitle: 'Get help with PartyNova',
@@ -1461,6 +1452,12 @@ class SettingsPage extends StatelessWidget {
             onTap: () => _showInfo(context, 'PartyNova'),
           ),
           const SizedBox(height: 14),
+          _SettingsOption(
+            icon: Icons.delete_forever_rounded,
+            title: 'Delete Account',
+            subtitle: 'Permanently delete your account',
+            onTap: () => _confirmDeleteAccount(context),
+          ),
           _SettingsOption(
             icon: Icons.logout_rounded,
             title: 'Log Out',
@@ -1476,6 +1473,65 @@ class SettingsPage extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF21101F),
+        title: const Text(
+          'Delete Account?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'This permanently deletes your account. This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Color(0xFFFF1688)),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !context.mounted) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+      await user.delete();
+
+      if (!context.mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthGate()),
+        (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
+      final message = e.code == 'requires-recent-login'
+          ? 'Please log out and log in again, then delete your account.'
+          : 'Could not delete account. Please try again.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not delete account. Please try again.')),
+      );
+    }
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -1565,13 +1621,13 @@ class _GlossySettingsBox extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF21122D),
-            Color(0xFF120B19),
+            Color(0xFF6F1648),
+            Color(0xFF21101F),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF7D4B91).withValues(alpha: 0.55),
+          color: const Color(0xFFFF9BC8).withValues(alpha: 0.75),
         ),
       ),
       child: ListTile(
@@ -1584,7 +1640,7 @@ class _GlossySettingsBox extends StatelessWidget {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: const Color(0xFF321C43),
+            color: const Color(0xFF9B1558),
             borderRadius: BorderRadius.circular(13),
           ),
           child: Icon(icon, color: const Color(0xFFFFD700)),
