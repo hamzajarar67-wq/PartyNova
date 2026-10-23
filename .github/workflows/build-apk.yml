@@ -28,6 +28,53 @@ jobs:
       - name: Create Android project
         run: flutter create --platforms=android --org com.partynova .
 
+      - name: Set Android compile SDK
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          candidates = [
+              Path("android/app/build.gradle.kts"),
+              Path("android/app/build.gradle"),
+          ]
+
+          app = next((p for p in candidates if p.exists()), None)
+
+          if app is None:
+              raise SystemExit(
+                  "ERROR: Android Gradle file not found."
+              )
+
+          text = app.read_text()
+
+          if app.name.endswith(".kts"):
+              pattern = r'compileSdk\s*=\s*\d+'
+              replacement = 'compileSdk = 35'
+          else:
+              pattern = r'compileSdk(?:Version)?\s+\d+'
+              replacement = 'compileSdk 35'
+
+          updated, count = re.subn(
+              pattern,
+              replacement,
+              text,
+              count=1
+          )
+
+          if count == 0:
+              raise SystemExit(
+                  "ERROR: compileSdk setting not found in "
+                  + str(app)
+              )
+
+          app.write_text(updated)
+
+          print("Android compile SDK set to 35.")
+          print("Updated file:", app)
+          PY
+
       - name: Configure Firebase
         shell: bash
         run: |
@@ -39,65 +86,113 @@ jobs:
           fi
 
           mkdir -p android/app
-          cp "google-services (4).json" android/app/google-services.json
+          cp "google-services (4).json" \
+            android/app/google-services.json
 
           python3 <<'PY'
           from pathlib import Path
           import re
 
           android = Path("android")
+
           settings = next(
-              (p for p in [android / "settings.gradle.kts",
-                           android / "settings.gradle"] if p.exists()),
+              (
+                  p for p in [
+                      android / "settings.gradle.kts",
+                      android / "settings.gradle"
+                  ] if p.exists()
+              ),
               None
           )
+
           app = next(
-              (p for p in [android / "app" / "build.gradle.kts",
-                           android / "app" / "build.gradle"] if p.exists()),
+              (
+                  p for p in [
+                      android / "app" / "build.gradle.kts",
+                      android / "app" / "build.gradle"
+                  ] if p.exists()
+              ),
               None
           )
 
           if settings is None or app is None:
-              raise SystemExit("ERROR: Could not find Android Gradle files.")
+              raise SystemExit(
+                  "ERROR: Could not find Android Gradle files."
+              )
 
-          kotlin = settings.name.endswith(".kts")
           declaration = (
-              'id("com.google.gms.google-services") version "4.4.2" apply false'
-              if kotlin else
-              'id "com.google.gms.google-services" version "4.4.2" apply false'
+              'id("com.google.gms.google-services") '
+              'version "4.4.2" apply false'
+              if settings.name.endswith(".kts")
+              else
+              'id "com.google.gms.google-services" '
+              'version "4.4.2" apply false'
           )
+
           application = (
               'id("com.google.gms.google-services")'
-              if app.name.endswith(".kts") else
+              if app.name.endswith(".kts")
+              else
               'id "com.google.gms.google-services"'
           )
 
           text = settings.read_text()
+
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
+
               if not match:
                   raise SystemExit(
-                      "ERROR: No plugins block found in " + str(settings)
+                      "ERROR: No plugins block found in "
+                      + str(settings)
                   )
+
               pos = match.end()
-              text = text[:pos] + "\n    " + declaration + text[pos:]
+              text = (
+                  text[:pos]
+                  + "\n    "
+                  + declaration
+                  + text[pos:]
+              )
+
               settings.write_text(text)
 
           text = app.read_text()
+
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
+
               if not match:
                   raise SystemExit(
-                      "ERROR: No plugins block found in " + str(app)
+                      "ERROR: No plugins block found in "
+                      + str(app)
                   )
+
               pos = match.end()
-              text = text[:pos] + "\n    " + application + text[pos:]
+              text = (
+                  text[:pos]
+                  + "\n    "
+                  + application
+                  + text[pos:]
+              )
+
               app.write_text(text)
 
           print("Firebase Gradle plugin configured.")
           print("Settings file:", settings)
           print("App Gradle file:", app)
           PY
+
+      - name: Verify Android compile SDK
+        shell: bash
+        run: |
+          grep -nE 'compileSdk(Version)?[[:space:]]*(=)?[[:space:]]*35' \
+            android/app/build.gradle.kts \
+            android/app/build.gradle 2>/dev/null \
+            || {
+              echo "ERROR: compileSdk 35 was not applied."
+              exit 1
+            }
 
       - name: Get dependencies
         run: flutter pub get
