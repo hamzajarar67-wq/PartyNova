@@ -43,36 +43,59 @@ jobs:
           app = next((p for p in candidates if p.exists()), None)
 
           if app is None:
-              raise SystemExit(
-                  "ERROR: Android Gradle file not found."
-              )
+              raise SystemExit("ERROR: Android Gradle file not found.")
 
           text = app.read_text()
 
-          if app.name.endswith(".kts"):
-              pattern = r'compileSdk\s*=\s*\d+'
-              replacement = 'compileSdk = 35'
-          else:
-              pattern = r'compileSdk(?:Version)?\s+\d+'
-              replacement = 'compileSdk 35'
+          patterns = [
+              (
+                  r'compileSdk\s*=\s*flutter\.compileSdkVersion',
+                  'compileSdk = 35'
+              ),
+              (
+                  r'compileSdk\s*=\s*flutter\.compileSdk',
+                  'compileSdk = 35'
+              ),
+              (
+                  r'compileSdk\s+flutter\.compileSdkVersion',
+                  'compileSdk 35'
+              ),
+              (
+                  r'compileSdkVersion\s+flutter\.compileSdkVersion',
+                  'compileSdkVersion 35'
+              ),
+              (
+                  r'compileSdk\s*=\s*\d+',
+                  'compileSdk = 35'
+              ),
+              (
+                  r'compileSdk\s+\d+',
+                  'compileSdk 35'
+              ),
+              (
+                  r'compileSdkVersion\s+\d+',
+                  'compileSdkVersion 35'
+              ),
+          ]
 
-          updated, count = re.subn(
-              pattern,
-              replacement,
-              text,
-              count=1
-          )
-
-          if count == 0:
-              raise SystemExit(
-                  "ERROR: compileSdk setting not found in "
-                  + str(app)
+          for pattern, replacement in patterns:
+              updated, count = re.subn(
+                  pattern,
+                  replacement,
+                  text,
+                  count=1
               )
 
-          app.write_text(updated)
-
-          print("Android compile SDK set to 35.")
-          print("Updated file:", app)
+              if count:
+                  app.write_text(updated)
+                  print("Android compile SDK set to 35.")
+                  print("Updated file:", app)
+                  break
+          else:
+              print("ERROR: Could not detect compileSdk format.")
+              print("Gradle file:", app)
+              print(text)
+              raise SystemExit(1)
           PY
 
       - name: Configure Firebase
@@ -86,6 +109,7 @@ jobs:
           fi
 
           mkdir -p android/app
+
           cp "google-services (4).json" \
             android/app/google-services.json
 
@@ -99,7 +123,7 @@ jobs:
               (
                   p for p in [
                       android / "settings.gradle.kts",
-                      android / "settings.gradle"
+                      android / "settings.gradle",
                   ] if p.exists()
               ),
               None
@@ -109,7 +133,7 @@ jobs:
               (
                   p for p in [
                       android / "app" / "build.gradle.kts",
-                      android / "app" / "build.gradle"
+                      android / "app" / "build.gradle",
                   ] if p.exists()
               ),
               None
@@ -186,13 +210,39 @@ jobs:
       - name: Verify Android compile SDK
         shell: bash
         run: |
-          grep -nE 'compileSdk(Version)?[[:space:]]*(=)?[[:space:]]*35' \
-            android/app/build.gradle.kts \
-            android/app/build.gradle 2>/dev/null \
-            || {
-              echo "ERROR: compileSdk 35 was not applied."
-              exit 1
-            }
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          candidates = [
+              Path("android/app/build.gradle.kts"),
+              Path("android/app/build.gradle"),
+          ]
+
+          app = next((p for p in candidates if p.exists()), None)
+
+          if app is None:
+              raise SystemExit("ERROR: Android Gradle file not found.")
+
+          text = app.read_text()
+
+          match = re.search(
+              r'compileSdk(?:Version)?\s*(?:=\s*)?(\d+)',
+              text
+          )
+
+          if not match:
+              print(text)
+              raise SystemExit("ERROR: compileSdk could not be verified.")
+
+          version = int(match.group(1))
+          print("Detected compile SDK:", version)
+
+          if version < 34:
+              raise SystemExit(
+                  "ERROR: compileSdk must be at least 34."
+              )
+          PY
 
       - name: Get dependencies
         run: flutter pub get
