@@ -1156,7 +1156,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     );
   }
 
-  Widget _buildProfileTab(User? user) {
+Widget _buildProfileTab(User? user) {
   if (user == null) {
     return const Center(
       child: Text(
@@ -1184,85 +1184,147 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
       if (!snapshot.hasData) {
         return const Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFFFD700),
+            color: Color(0xFFFFD780),
           ),
         );
       }
 
       final data = snapshot.data!.data() ?? {};
+
       final name =
           (data['name'] ?? user.displayName ?? 'PartyNova User')
               .toString();
+
       final role =
           (data['role'] ?? partyNovaRoleForEmail(user.email))
               .toString()
               .toLowerCase();
+
       final userId = (data['userId'] ?? '').toString().trim().isNotEmpty
-    ? data['userId'].toString().trim()
-    : (user.email?.trim().toLowerCase() == partyNovaOwnerEmail
-        ? '111111'
-        : '');
-      debugPrint('PROFILE USER ID: ${data['userId']}');
+          ? data['userId'].toString().trim()
+          : (user.email?.trim().toLowerCase() == partyNovaOwnerEmail
+              ? '111111'
+              : '');
+
+      final bio = (data['bio'] ?? 'No bio added yet.').toString();
 
       final isOwnerOrAdmin = role == 'owner' || role == 'admin';
 
       return Container(
-        color: Colors.white,
+        color: const Color(0xFF09070B),
         width: double.infinity,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Edit option
+              Align(
+                alignment: Alignment.centerRight,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditProfilePage(
+                          name: name,
+                          bio: bio == 'No bio added yet.' ? '' : bio,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 17,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF1688).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: const Color(0xFFFF1688),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.edit_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        SizedBox(width: 7),
+                        Text(
+                          'Edit',
+                          style: TextStyle(
+                            color: Color(0xFFFF1688),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              // Profile picture placeholder
               Container(
-                width: 104,
-                height: 104,
+                width: 112,
+                height: 112,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFFFD700),
-                    width: 2,
-                  ),
                   gradient: const LinearGradient(
                     colors: [
+                      Color(0xFFFF1688),
                       Color(0xFF7028A0),
                       Color(0xFF21102F),
                     ],
                   ),
+                  border: Border.all(
+                    color: const Color(0xFFFFD780),
+                    width: 3,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF1688)
+                          .withValues(alpha: 0.25),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   Icons.person_rounded,
-                  size: 58,
-                  color: Color(0xFFFFD700),
+                  size: 64,
+                  color: Colors.white,
                 ),
               ),
+
               const SizedBox(height: 14),
+
+              // Name
               Text(
                 name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Color(0xFF21102F),
-                  fontSize: 23,
+                  color: Colors.white,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
 
-              if (!isOwnerOrAdmin) ...[
-                Text(
-                  userId,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Color(0xFF21102F),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ] else ...[
+              const SizedBox(height: 10),
+
+              // Owner / Admin badge or regular user's ID
+              if (isOwnerOrAdmin) ...[
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
+                    horizontal: 16,
+                    vertical: 7,
                   ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
@@ -1274,16 +1336,8 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFFFD700),
+                      color: const Color(0xFFFFD780),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFFD700)
-                            .withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        spreadRadius: 1,
-                      ),
-                    ],
                   ),
                   child: Text(
                     role.toUpperCase(),
@@ -1293,6 +1347,88 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                     ),
                   ),
                 ),
+              ] else ...[
+                Text(
+                  'ID: $userId',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD780),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 18),
+
+              // Bio
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF17121D),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFFF1688).withValues(alpha: 0.45),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Bio',
+                      style: TextStyle(
+                        color: Color(0xFFFFD780),
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      bio,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Profile statistics
+              Row(
+                children: [
+                  Expanded(
+                    child: _profileStatCard(
+                      icon: Icons.people_alt_rounded,
+                      title: 'Followers',
+                      value: '0',
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _profileStatCard(
+                      icon: Icons.person_add_alt_1_rounded,
+                      title: 'Following',
+                      value: '0',
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _profileStatCard(
+                      icon: Icons.card_giftcard_rounded,
+                      title: 'Received Gifts',
+                      value: '0',
+                    ),
+                  ),
+                ],
+              ),
+
+              // Preserve the existing Owner/Admin Golden ID Card.
+              if (isOwnerOrAdmin) ...[
                 const SizedBox(height: 24),
                 PartyNovaGoldenIdCard(userId: userId),
               ],
@@ -1304,12 +1440,416 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   );
 }
 
+Widget _profileStatCard({
+  required IconData icon,
+  required String title,
+  required String value,
+}) {
+  return Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 6,
+      vertical: 15,
+    ),
+    decoration: BoxDecoration(
+      color: const Color(0xFF17121D),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(
+        color: const Color(0xFFFFD780).withValues(alpha: 0.45),
+      ),
+    ),
+    child: Column(
+      children: [
+        Icon(
+          icon,
+          color: const Color(0xFFFF1688),
+          size: 23,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 19,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFFFFD780),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+                    
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
 }
+
+
+
+
+class EditProfilePage extends StatefulWidget {
+  final String name;
+  final String bio;
+
+  const EditProfilePage({
+    super.key,
+    required this.name,
+    required this.bio,
+  });
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _bioController;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.name);
+    _bioController = TextEditingController(text: widget.bio);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  void _showComingSoon(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature functionality will be added later.'),
+        backgroundColor: const Color(0xFF7028A0),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF09070B),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF09070B),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFFF1688),
+                      Color(0xFF7028A0),
+                      Color(0xFF21102F),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: const Color(0xFFFFD780),
+                    width: 3,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.person_rounded,
+                  size: 58,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Center(
+              child: Text(
+                widget.name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 26),
+
+            _sectionTitle('Basic Information'),
+
+            _editOption(
+              icon: Icons.camera_alt_rounded,
+              title: 'Change DP',
+              subtitle: 'Update your profile picture',
+              onTap: () => _showComingSoon('Change DP'),
+            ),
+
+            const SizedBox(height: 16),
+
+            _inputLabel('Change Name'),
+
+            TextField(
+              controller: _nameController,
+              maxLength: 20,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration(
+                hint: 'Enter your name',
+                icon: Icons.person_outline_rounded,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            _inputLabel('Change Bio'),
+
+            TextField(
+              controller: _bioController,
+              maxLength: 50,
+              maxLines: 2,
+              style: const TextStyle(color: Colors.white),
+              decoration: _inputDecoration(
+                hint: 'Write something about yourself',
+                icon: Icons.edit_note_rounded,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _showComingSoon('Profile editing'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF1688),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Save Changes',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 28),
+
+            _sectionTitle('Personalization'),
+
+            _editOption(
+              icon: Icons.crop_square_rounded,
+              title: 'Frames',
+              subtitle: 'Decorate your profile picture',
+              onTap: () => _showComingSoon('Frames'),
+            ),
+
+            _editOption(
+              icon: Icons.palette_rounded,
+              title: 'Themes',
+              subtitle: 'Customize your profile theme',
+              onTap: () => _showComingSoon('Themes'),
+            ),
+
+            _editOption(
+              icon: Icons.auto_awesome_rounded,
+              title: 'Ornaments',
+              subtitle: 'Explore profile ornaments',
+              onTap: () => _showComingSoon('Ornaments'),
+            ),
+
+            const SizedBox(height: 22),
+
+            _sectionTitle('Badges & Effects'),
+
+            _editOption(
+              icon: Icons.flash_on_rounded,
+              title: 'Entry',
+              subtitle: 'Entry effects',
+              onTap: () => _showComingSoon('Entry'),
+            ),
+
+            _editOption(
+              icon: Icons.workspace_premium_rounded,
+              title: 'VIP',
+              subtitle: 'VIP level and effects',
+              onTap: () => _showComingSoon('VIP'),
+            ),
+
+            _editOption(
+              icon: Icons.verified_rounded,
+              title: 'Royal Badge',
+              subtitle: 'Royal profile badge',
+              onTap: () => _showComingSoon('Royal Badge'),
+            ),
+
+            _editOption(
+              icon: Icons.sports_esports_rounded,
+              title: 'Game Badge',
+              subtitle: 'Your gaming badge',
+              onTap: () => _showComingSoon('Game Badge'),
+            ),
+
+            _editOption(
+              icon: Icons.diamond_rounded,
+              title: 'Money Badge',
+              subtitle: 'Your money badge',
+              onTap: () => _showComingSoon('Money Badge'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Color(0xFFFFD780),
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _inputLabel(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData icon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white54),
+      prefixIcon: Icon(icon, color: const Color(0xFFFF1688)),
+      counterStyle: const TextStyle(color: Colors.white54),
+      filled: true,
+      fillColor: const Color(0xFF17121D),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(
+          color: const Color(0xFFFF1688).withValues(alpha: 0.4),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(
+          color: Color(0xFFFFD780),
+          width: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _editOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 11),
+      decoration: BoxDecoration(
+        color: const Color(0xFF17121D),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFFF1688).withValues(alpha: 0.35),
+        ),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 15,
+          vertical: 5,
+        ),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF1688).withValues(alpha: 0.13),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            color: const Color(0xFFFFD780),
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(
+            color: Colors.white60,
+            fontSize: 12,
+          ),
+        ),
+        trailing: const Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: Color(0xFFFF1688),
+          size: 17,
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
 
 class PartyNovaGoldenIdCard extends StatelessWidget {
   final String userId;
