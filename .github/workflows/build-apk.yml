@@ -37,83 +37,138 @@ jobs:
 
           yes | "$SDKMANAGER" --licenses >/dev/null || true
 
-          "$SDKMANAGER" --uninstall "ndk;28.2.13676358" || true
-          rm -rf "$ANDROID_SDK_ROOT/ndk/28.2.13676358"
-
-          "$SDKMANAGER" --install "ndk;28.2.13676358"
+          "$SDKMANAGER" --install \
+            "platforms;android-36" \
+            "ndk;28.2.13676358"
 
       - name: Set Android compile SDK
         shell: bash
         run: |
+          set -e
+
           python3 <<'PY'
           from pathlib import Path
           import re
 
-          candidates = [
-              Path("android/app/build.gradle.kts"),
-              Path("android/app/build.gradle"),
-          ]
-
-          app = next((p for p in candidates if p.exists()), None)
+          app = next(
+              (p for p in [
+                  Path("android/app/build.gradle.kts"),
+                  Path("android/app/build.gradle"),
+              ] if p.exists()),
+              None
+          )
 
           if app is None:
-              raise SystemExit("ERROR: Android Gradle file not found.")
+              raise SystemExit("ERROR: Android app Gradle file not found.")
 
           text = app.read_text()
 
           patterns = [
-              (
-                  r'compileSdk\s*=\s*flutter\.compileSdkVersion',
-                  'compileSdk = 36'
-              ),
-              (
-                  r'compileSdk\s*=\s*flutter\.compileSdk',
-                  'compileSdk = 36'
-              ),
-              (
-                  r'compileSdkVersion\s+flutter\.compileSdkVersion',
-                  'compileSdkVersion 36'
-              ),
-              (
-                  r'compileSdk\s+flutter\.compileSdkVersion',
-                  'compileSdk 36'
-              ),
-              (
-                  r'compileSdk\s*=\s*\d+',
-                  'compileSdk = 36'
-              ),
-              (
-                  r'compileSdkVersion\s*=\s*\d+',
-                  'compileSdkVersion = 36'
-              ),
-              (
-                  r'compileSdkVersion\s+\d+',
-                  'compileSdkVersion 36'
-              ),
-              (
-                  r'compileSdk\s+\d+',
-                  'compileSdk 36'
-              ),
+              (r'compileSdk\s*=\s*flutter\.compileSdkVersion',
+               'compileSdk = 36'),
+              (r'compileSdk\s*=\s*flutter\.compileSdk',
+               'compileSdk = 36'),
+              (r'compileSdkVersion\s+flutter\.compileSdkVersion',
+               'compileSdkVersion 36'),
+              (r'compileSdk\s+flutter\.compileSdkVersion',
+               'compileSdk 36'),
+              (r'compileSdkVersion\s*=\s*\d+',
+               'compileSdkVersion = 36'),
+              (r'compileSdkVersion\s+\d+',
+               'compileSdkVersion 36'),
+              (r'compileSdk\s*=\s*\d+',
+               'compileSdk = 36'),
+              (r'compileSdk\s+\d+',
+               'compileSdk 36'),
           ]
 
           for pattern, replacement in patterns:
-              updated, count = re.subn(
-                  pattern,
-                  replacement,
-                  text,
-                  count=1
-              )
-
+              updated, count = re.subn(pattern, replacement, text, count=1)
               if count:
                   app.write_text(updated)
-                  print("Android compile SDK set to 36.")
-                  print("Updated file:", app)
+                  print(f"App compile SDK set to 36: {app}")
                   break
           else:
-              print("ERROR: Could not detect compileSdk format.")
-              print("Gradle file:", app)
-              print(text)
-              raise SystemExit(1)
+              raise SystemExit("ERROR: Could not update app compile SDK.")
+
+          PY
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Set Android plugin compile SDK
+        shell: bash
+        run: |
+          set -e
+
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path.home() / ".pub-cache" / "hosted" / "pub.dev"
+
+          plugin_names = [
+              "image_cropper-*",
+              "image_picker_android-*",
+              "shared_preferences_android-*",
+              "flutter_plugin_android_lifecycle-*",
+          ]
+
+          updated_files = []
+
+          for pattern in plugin_names:
+              for plugin in root.glob(pattern):
+                  for gradle in [
+                      plugin / "android" / "build.gradle",
+                      plugin / "android" / "build.gradle.kts",
+                  ]:
+                      if not gradle.exists():
+                          continue
+
+                      text = gradle.read_text()
+
+                      patterns = [
+                          (r'compileSdk\s*=\s*flutter\.compileSdkVersion',
+                           'compileSdk = 36'),
+                          (r'compileSdk\s*=\s*flutter\.compileSdk',
+                           'compileSdk = 36'),
+                          (r'compileSdkVersion\s+flutter\.compileSdkVersion',
+                           'compileSdkVersion 36'),
+                          (r'compileSdk\s+flutter\.compileSdkVersion',
+                           'compileSdk 36'),
+                          (r'compileSdkVersion\s*=\s*\d+',
+                           'compileSdkVersion = 36'),
+                          (r'compileSdkVersion\s+\d+',
+                           'compileSdkVersion 36'),
+                          (r'compileSdk\s*=\s*\d+',
+                           'compileSdk = 36'),
+                          (r'compileSdk\s+\d+',
+                           'compileSdk 36'),
+                      ]
+
+                      for pattern, replacement in patterns:
+                          updated, count = re.subn(
+                              pattern, replacement, text, count=1
+                          )
+                          if count:
+                              gradle.write_text(updated)
+                              updated_files.append(str(gradle))
+                              break
+
+          for file in updated_files:
+              print("Updated plugin compile SDK:", file)
+
+          cropper_files = [
+              p for p in root.glob("image_cropper-*/android/*")
+              if p.name in ("build.gradle", "build.gradle.kts")
+          ]
+
+          if not cropper_files:
+              raise SystemExit(
+                  "ERROR: image_cropper Gradle file was not found."
+              )
+
+          print("Android plugin compile SDK adjustment completed.")
           PY
 
       - name: Configure Firebase
@@ -138,91 +193,59 @@ jobs:
           android = Path("android")
 
           settings = next(
-              (
-                  p for p in [
-                      android / "settings.gradle.kts",
-                      android / "settings.gradle",
-                  ] if p.exists()
-              ),
+              (p for p in [
+                  android / "settings.gradle.kts",
+                  android / "settings.gradle",
+              ] if p.exists()),
               None
           )
 
           app = next(
-              (
-                  p for p in [
-                      android / "app" / "build.gradle.kts",
-                      android / "app" / "build.gradle",
-                  ] if p.exists()
-              ),
+              (p for p in [
+                  android / "app" / "build.gradle.kts",
+                  android / "app" / "build.gradle",
+              ] if p.exists()),
               None
           )
 
           if settings is None or app is None:
-              raise SystemExit(
-                  "ERROR: Could not find Android Gradle files."
-              )
+              raise SystemExit("ERROR: Android Gradle files not found.")
 
           declaration = (
-              'id("com.google.gms.google-services") '
-              'version "4.4.2" apply false'
+              'id("com.google.gms.google-services") version "4.4.2" apply false'
               if settings.name.endswith(".kts")
-              else
-              'id "com.google.gms.google-services" '
-              'version "4.4.2" apply false'
+              else 'id "com.google.gms.google-services" version "4.4.2" apply false'
           )
 
           application = (
               'id("com.google.gms.google-services")'
               if app.name.endswith(".kts")
-              else
-              'id "com.google.gms.google-services"'
+              else 'id "com.google.gms.google-services"'
           )
 
           text = settings.read_text()
 
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
-
               if not match:
-                  raise SystemExit(
-                      "ERROR: No plugins block found in "
-                      + str(settings)
-                  )
+                  raise SystemExit("ERROR: Settings plugins block not found.")
 
               pos = match.end()
-              text = (
-                  text[:pos]
-                  + "\n    "
-                  + declaration
-                  + text[pos:]
-              )
-
+              text = text[:pos] + "\n    " + declaration + text[pos:]
               settings.write_text(text)
 
           text = app.read_text()
 
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
-
               if not match:
-                  raise SystemExit(
-                      "ERROR: No plugins block found in "
-                      + str(app)
-                  )
+                  raise SystemExit("ERROR: App plugins block not found.")
 
               pos = match.end()
-              text = (
-                  text[:pos]
-                  + "\n    "
-                  + application
-                  + text[pos:]
-              )
-
+              text = text[:pos] + "\n    " + application + text[pos:]
               app.write_text(text)
 
           print("Firebase Gradle plugin configured.")
-          print("Settings file:", settings)
-          print("App Gradle file:", app)
           PY
 
       - name: Verify Android compile SDK
@@ -232,15 +255,16 @@ jobs:
           from pathlib import Path
           import re
 
-          candidates = [
-              Path("android/app/build.gradle.kts"),
-              Path("android/app/build.gradle"),
-          ]
-
-          app = next((p for p in candidates if p.exists()), None)
+          app = next(
+              (p for p in [
+                  Path("android/app/build.gradle.kts"),
+                  Path("android/app/build.gradle"),
+              ] if p.exists()),
+              None
+          )
 
           if app is None:
-              raise SystemExit("ERROR: Android Gradle file not found.")
+              raise SystemExit("ERROR: App Gradle file not found.")
 
           text = app.read_text()
 
@@ -250,22 +274,16 @@ jobs:
           )
 
           if not match:
-              print(text)
               raise SystemExit("ERROR: compileSdk could not be verified.")
 
           version = int(match.group(1))
-          print("Detected compile SDK:", version)
+          print("Detected app compile SDK:", version)
 
           if version < 36:
-              raise SystemExit(
-                  "ERROR: compileSdk must be at least 36."
-              )
+              raise SystemExit("ERROR: App compile SDK must be at least 36.")
 
-          print("Android compile SDK verification passed.")
+          print("Compile SDK verification passed.")
           PY
-
-      - name: Get dependencies
-        run: flutter pub get
 
       - name: Build APK
         run: flutter build apk --release
