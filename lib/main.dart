@@ -1520,8 +1520,13 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _nameController;
-  late final TextEditingController _bioController;
+late final TextEditingController _bioController;
 
+String _photoBase64 = '';
+bool _saving = false;
+bool _pickingPhoto = false;
+
+  
   @override
   void initState() {
     super.initState();
