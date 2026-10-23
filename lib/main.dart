@@ -1363,69 +1363,67 @@ Widget _buildProfileTab(User? user) {
               const SizedBox(height: 18),
 
               // Bio
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF17121D),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFFF1688).withValues(alpha: 0.45),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Bio',
-                      style: TextStyle(
-                        color: Color(0xFFFFD780),
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      bio,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // Bio
+if (bio.trim().isNotEmpty) ...[
+  const SizedBox(height: 8),
+  Text(
+    bio,
+    textAlign: TextAlign.center,
+    style: const TextStyle(
+      color: Colors.white70,
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+    ),
+  ),
+],
 
-              const SizedBox(height: 20),
+const SizedBox(height: 20),
 
+              
               // Profile statistics
-              Row(
-                children: [
-                  Expanded(
-                    child: _profileStatCard(
-                      icon: Icons.people_alt_rounded,
-                      title: 'Followers',
-                      value: '0',
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _profileStatCard(
-                      icon: Icons.person_add_alt_1_rounded,
-                      title: 'Following',
-                      value: '0',
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _profileStatCard(
-                      icon: Icons.card_giftcard_rounded,
-                      title: 'Received Gifts',
-                      value: '0',
-                    ),
-                  ),
-                ],
-              ),
+Container(
+  width: double.infinity,
+  padding: const EdgeInsets.symmetric(
+    vertical: 14,
+    horizontal: 6,
+  ),
+  decoration: const BoxDecoration(
+    border: Border.symmetric(
+      horizontal: BorderSide(
+        color: Color(0xFFFFD780),
+        width: 0.7,
+      ),
+    ),
+  ),
+  child: const Row(
+    children: [
+      Expanded(
+        child: _ProfileCountItem(
+          title: 'Follower',
+          value: '0',
+        ),
+      ),
+      Expanded(
+        child: _ProfileCountItem(
+          title: 'Following',
+          value: '0',
+        ),
+      ),
+      Expanded(
+        child: _ProfileCountItem(
+          title: 'Send Gift',
+          value: '0',
+        ),
+      ),
+      Expanded(
+        child: _ProfileCountItem(
+          title: 'Gift Received',
+          value: '0',
+        ),
+      ),
+    ],
+  ),
+),
 
               // Preserve the existing Owner/Admin Golden ID Card.
               if (isOwnerOrAdmin) ...[
@@ -1846,7 +1844,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
 }
 
 
+class _ProfileCountItem extends StatelessWidget {
+  final String title;
+  final String value;
 
+  const _ProfileCountItem({
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFFFFD780),
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 
 
