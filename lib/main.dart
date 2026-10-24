@@ -1936,11 +1936,20 @@ TextField(
   },
 ),
             _editOption(
-              icon: Icons.auto_awesome_rounded,
-              title: 'Ornaments',
-              subtitle: 'Explore profile ornaments',
-              onTap: () => _showComingSoon('Ornaments'),
-            ),
+  icon: Icons.auto_awesome_rounded,
+  title: 'Ornaments',
+  subtitle: 'Explore profile decorations',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => OrnamentsGalleryPage(
+          photoBase64: _photoBase64,
+          userName: _nameController.text.trim(),
+        ),
+      ),
+    );
+  },
+),
 
             const SizedBox(height: 22),
 
@@ -3086,6 +3095,450 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
     );
   }
 }
+
+
+class OrnamentsGalleryPage extends StatefulWidget {
+  final String? photoBase64;
+  final String userName;
+
+  const OrnamentsGalleryPage({
+    super.key,
+    required this.photoBase64,
+    required this.userName,
+  });
+
+  @override
+  State<OrnamentsGalleryPage> createState() =>
+      _OrnamentsGalleryPageState();
+}
+
+class _OrnamentsGalleryPageState
+    extends State<OrnamentsGalleryPage> {
+  final Color darkBlue = const Color(0xFF071426);
+  final Color boxBlue = const Color(0xFF102746);
+  final Color gold = const Color(0xFFFFC857);
+
+  int selectedIndex = 0;
+
+  final List<Map<String, dynamic>> ornaments = [
+    {'name': 'Golden Crown', 'emoji': '👑', 'color': Color(0xFFFFC857)},
+    {'name': 'Angel Wings', 'emoji': '🪽', 'color': Color(0xFFE8EAF6)},
+    {'name': 'Butterfly Dreams', 'emoji': '🦋', 'color': Color(0xFFB388FF)},
+    {'name': 'Rose Garden', 'emoji': '🌹', 'color': Color(0xFFFF6688)},
+    {'name': 'Diamond Aura', 'emoji': '💎', 'color': Color(0xFF80DEEA)},
+    {'name': 'Love Hearts', 'emoji': '💖', 'color': Color(0xFFFF4081)},
+    {'name': 'Star Sparkles', 'emoji': '✨', 'color': Color(0xFFFFD54F)},
+    {'name': 'Moonlight', 'emoji': '🌙', 'color': Color(0xFF90CAF9)},
+    {'name': 'Rainbow Glow', 'emoji': '🌈', 'color': Color(0xFFCE93D8)},
+    {'name': 'Flame Aura', 'emoji': '🔥', 'color': Color(0xFFFF7043)},
+    {'name': 'Royal Tiara', 'emoji': '👸', 'color': Color(0xFFFFD700)},
+    {'name': 'Crystal Halo', 'emoji': '💠', 'color': Color(0xFF80CBC4)},
+    {'name': 'Cherry Blossom', 'emoji': '🌸', 'color': Color(0xFFF48FB1)},
+    {'name': 'Golden Butterfly', 'emoji': '🦋', 'color': Color(0xFFFFD54F)},
+    {'name': 'Silver Wings', 'emoji': '🪽', 'color': Color(0xFFCFD8DC)},
+    {'name': 'Royal Jewels', 'emoji': '💎', 'color': Color(0xFFFFC857)},
+    {'name': 'Pink Aura', 'emoji': '💗', 'color': Color(0xFFF06292)},
+    {'name': 'Blue Aura', 'emoji': '🩵', 'color': Color(0xFF4FC3F7)},
+    {'name': 'Purple Aura', 'emoji': '💜', 'color': Color(0xFFBA68C8)},
+    {'name': 'Golden Aura', 'emoji': '🌟', 'color': Color(0xFFFFD54F)},
+    {'name': 'Rose Crown', 'emoji': '🌹', 'color': Color(0xFFEF5350)},
+    {'name': 'Flower Crown', 'emoji': '🌺', 'color': Color(0xFFF06292)},
+    {'name': 'Daisy Dreams', 'emoji': '🌼', 'color': Color(0xFFFFEE58)},
+    {'name': 'Lavender Wings', 'emoji': '🦋', 'color': Color(0xFFCE93D8)},
+    {'name': 'Crystal Wings', 'emoji': '🪽', 'color': Color(0xFF80DEEA)},
+    {'name': 'Love Angel', 'emoji': '😇', 'color': Color(0xFFFFD180)},
+    {'name': 'Heart Halo', 'emoji': '💞', 'color': Color(0xFFFF80AB)},
+    {'name': 'Pearl Crown', 'emoji': '👑', 'color': Color(0xFFE0E0E0)},
+    {'name': 'Emerald Crown', 'emoji': '👑', 'color': Color(0xFF66BB6A)},
+    {'name': 'Ruby Crown', 'emoji': '👑', 'color': Color(0xFFEF5350)},
+    {'name': 'Sapphire Crown', 'emoji': '👑', 'color': Color(0xFF42A5F5)},
+    {'name': 'Golden Roses', 'emoji': '🌹', 'color': Color(0xFFFFC857)},
+    {'name': 'Pink Roses', 'emoji': '🌹', 'color': Color(0xFFF48FB1)},
+    {'name': 'White Roses', 'emoji': '🥀', 'color': Color(0xFFECEFF1)},
+    {'name': 'Magic Stars', 'emoji': '🌟', 'color': Color(0xFFFFEE58)},
+    {'name': 'Shooting Star', 'emoji': '🌠', 'color': Color(0xFFFFD54F)},
+    {'name': 'Cosmic Aura', 'emoji': '🌌', 'color': Color(0xFF9575CD)},
+    {'name': 'Galaxy Wings', 'emoji': '🦋', 'color': Color(0xFF7E57C2)},
+    {'name': 'Snowflake Halo', 'emoji': '❄️', 'color': Color(0xFF81D4FA)},
+    {'name': 'Ice Crystal', 'emoji': '💎', 'color': Color(0xFF80DEEA)},
+    {'name': 'Sunshine Aura', 'emoji': '☀️', 'color': Color(0xFFFFCA28)},
+    {'name': 'Moon Crown', 'emoji': '🌙', 'color': Color(0xFFB0BEC5)},
+    {'name': 'Royal Phoenix', 'emoji': '🔥', 'color': Color(0xFFFF8A65)},
+    {'name': 'Golden Phoenix', 'emoji': '🪶', 'color': Color(0xFFFFD54F)},
+    {'name': 'Feather Wings', 'emoji': '🪽', 'color': Color(0xFFB0BEC5)},
+    {'name': 'Dream Catcher', 'emoji': '🪬', 'color': Color(0xFF80CBC4)},
+    {'name': 'Magic Orb', 'emoji': '🔮', 'color': Color(0xFF9575CD)},
+    {'name': 'Enchanted Rose', 'emoji': '🌹', 'color': Color(0xFFEC407A)},
+    {'name': 'Crystal Rose', 'emoji': '💎', 'color': Color(0xFF80DEEA)},
+    {'name': 'Royal Butterfly', 'emoji': '🦋', 'color': Color(0xFFFFCA28)},
+    {'name': 'Fairy Dust', 'emoji': '🧚', 'color': Color(0xFFCE93D8)},
+    {'name': 'Fairy Wings', 'emoji': '🧚', 'color': Color(0xFFF48FB1)},
+    {'name': 'Unicorn Magic', 'emoji': '🦄', 'color': Color(0xFFCE93D8)},
+    {'name': 'Golden Horn', 'emoji': '✨', 'color': Color(0xFFFFD54F)},
+    {'name': 'Ocean Pearls', 'emoji': '🫧', 'color': Color(0xFF4FC3F7)},
+    {'name': 'Sea Shell Halo', 'emoji': '🐚', 'color': Color(0xFFFFCCBC)},
+    {'name': 'Ocean Aura', 'emoji': '🌊', 'color': Color(0xFF29B6F6)},
+    {'name': 'Coral Crown', 'emoji': '🪸', 'color': Color(0xFFFF8A65)},
+    {'name': 'Golden Leaves', 'emoji': '🍂', 'color': Color(0xFFFFB74D)},
+    {'name': 'Autumn Aura', 'emoji': '🍁', 'color': Color(0xFFFF8A65)},
+    {'name': 'Spring Flowers', 'emoji': '🌷', 'color': Color(0xFFF48FB1)},
+    {'name': 'Lotus Halo', 'emoji': '🪷', 'color': Color(0xFFF8BBD0)},
+    {'name': 'Jasmine Crown', 'emoji': '🌼', 'color': Color(0xFFFFF59D)},
+    {'name': 'Orchid Aura', 'emoji': '🌺', 'color': Color(0xFFCE93D8)},
+    {'name': 'Floral Wings', 'emoji': '🌸', 'color': Color(0xFFF48FB1)},
+    {'name': 'Golden Petals', 'emoji': '🌼', 'color': Color(0xFFFFD54F)},
+    {'name': 'Crystal Butterfly', 'emoji': '🦋', 'color': Color(0xFF80DEEA)},
+    {'name': 'Glitter Halo', 'emoji': '✨', 'color': Color(0xFFFFD54F)},
+    {'name': 'Stardust Aura', 'emoji': '🌟', 'color': Color(0xFFFFCA28)},
+    {'name': 'Diamond Halo', 'emoji': '💎', 'color': Color(0xFF80DEEA)},
+    {'name': 'Heart Wings', 'emoji': '💞', 'color': Color(0xFFFF80AB)},
+    {'name': 'Cupid Aura', 'emoji': '💘', 'color': Color(0xFFEC407A)},
+    {'name': 'Love Angel Wings', 'emoji': '🪽', 'color': Color(0xFFF8BBD0)},
+    {'name': 'Royal Hearts', 'emoji': '💖', 'color': Color(0xFFFFC857)},
+    {'name': 'Pink Diamonds', 'emoji': '💎', 'color': Color(0xFFF48FB1)},
+    {'name': 'Blue Diamonds', 'emoji': '💎', 'color': Color(0xFF4FC3F7)},
+    {'name': 'Purple Diamonds', 'emoji': '💎', 'color': Color(0xFFBA68C8)},
+    {'name': 'Emerald Aura', 'emoji': '💚', 'color': Color(0xFF66BB6A)},
+    {'name': 'Ruby Aura', 'emoji': '❤️', 'color': Color(0xFFEF5350)},
+    {'name': 'Sapphire Aura', 'emoji': '💙', 'color': Color(0xFF42A5F5)},
+    {'name': 'Silver Sparkles', 'emoji': '✨', 'color': Color(0xFFCFD8DC)},
+    {'name': 'Golden Sparkles', 'emoji': '✨', 'color': Color(0xFFFFD54F)},
+    {'name': 'Pink Sparkles', 'emoji': '✨', 'color': Color(0xFFF48FB1)},
+    {'name': 'Blue Sparkles', 'emoji': '✨', 'color': Color(0xFF4FC3F7)},
+    {'name': 'Purple Sparkles', 'emoji': '✨', 'color': Color(0xFFBA68C8)},
+    {'name': 'Royal Flame', 'emoji': '🔥', 'color': Color(0xFFFF7043)},
+    {'name': 'Golden Flame', 'emoji': '🔥', 'color': Color(0xFFFFCA28)},
+    {'name': 'Electric Aura', 'emoji': '⚡', 'color': Color(0xFFFFEE58)},
+    {'name': 'Thunder Crown', 'emoji': '⚡', 'color': Color(0xFF90CAF9)},
+    {'name': 'Mystic Halo', 'emoji': '🔮', 'color': Color(0xFF9575CD)},
+    {'name': 'Royal Eclipse', 'emoji': '🌘', 'color': Color(0xFF7986CB)},
+    {'name': 'Solar Crown', 'emoji': '☀️', 'color': Color(0xFFFFCA28)},
+    {'name': 'Celestial Wings', 'emoji': '🪽', 'color': Color(0xFFB39DDB)},
+    {'name': 'Midnight Stars', 'emoji': '🌌', 'color': Color(0xFF7986CB)},
+    {'name': 'Aurora Halo', 'emoji': '🌈', 'color': Color(0xFF80CBC4)},
+    {'name': 'Royal Glow', 'emoji': '👑', 'color': Color(0xFFFFD54F)},
+    {'name': 'Dreamy Hearts', 'emoji': '💕', 'color': Color(0xFFF48FB1)},
+    {'name': 'Magic Butterflies', 'emoji': '🦋', 'color': Color(0xFFCE93D8)},
+    {'name': 'Eternal Bloom', 'emoji': '🌸', 'color': Color(0xFFF48FB1)},
+    {'name': 'Heavenly Aura', 'emoji': '😇', 'color': Color(0xFFFFD180)},
+    {'name': 'Imperial Crown', 'emoji': '👑', 'color': Color(0xFFFFC857)},
+  ];
+
+  ImageProvider? _avatarImage() {
+    final data = widget.photoBase64;
+
+    if (data == null || data.isEmpty) {
+      return null;
+    }
+
+    try {
+      return MemoryImage(base64Decode(data));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Widget _avatar({
+    required double size,
+    required int ornamentIndex,
+  }) {
+    final ornament = ornaments[ornamentIndex];
+    final color = ornament['color'] as Color;
+    final image = _avatarImage();
+
+    return SizedBox(
+      width: size + 36,
+      height: size + 42,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: size + 18,
+            height: size + 18,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: color,
+                width: 3,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.45),
+                  blurRadius: 15,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+          CircleAvatar(
+            radius: size / 2,
+            backgroundColor: boxBlue,
+            backgroundImage: image,
+            child: image == null
+                ? Icon(
+                    Icons.person_rounded,
+                    size: size * 0.55,
+                    color: gold,
+                  )
+                : null,
+          ),
+          Positioned(
+            top: 0,
+            child: Text(
+              ornament['emoji'] as String,
+              style: TextStyle(
+                fontSize: size * 0.38,
+                shadows: [
+                  Shadow(
+                    color: color.withValues(alpha: 0.7),
+                    blurRadius: 12,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: Text(
+              ornament['emoji'] as String,
+              style: TextStyle(
+                fontSize: size * 0.25,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: color,
+              size: size * 0.22,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ornamentCard(int index) {
+    final ornament = ornaments[index];
+    final color = ornament['color'] as Color;
+    final isSelected = selectedIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedIndex = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 14,
+        ),
+        decoration: BoxDecoration(
+          color: boxBlue,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? gold : color.withValues(alpha: 0.55),
+            width: isSelected ? 2.2 : 1.2,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: gold.withValues(alpha: 0.16),
+                    blurRadius: 12,
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _avatar(
+              size: 64,
+              ornamentIndex: index,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              ornament['name'] as String,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: isSelected ? gold : Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (isSelected) ...[
+              const SizedBox(height: 7),
+              Icon(
+                Icons.check_circle_rounded,
+                color: gold,
+                size: 19,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = ornaments[selectedIndex];
+    final selectedColor = selected['color'] as Color;
+
+    return Scaffold(
+      backgroundColor: darkBlue,
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        foregroundColor: gold,
+        elevation: 0,
+        title: const Text(
+          'ORNAMENTS',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: boxBlue,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: gold,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'SELECTED PREVIEW',
+                        style: TextStyle(
+                          color: gold,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        width: 190,
+                        height: 190,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              selectedColor.withValues(alpha: 0.30),
+                              darkBlue,
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: _avatar(
+                            size: 112,
+                            ornamentIndex: selectedIndex,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        selected['name'] as String,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: gold,
+                          fontSize: 19,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        widget.userName.isEmpty
+                            ? 'Your Profile'
+                            : widget.userName,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: darkBlue,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: selectedColor,
+                          ),
+                        ),
+                        child: Text(
+                          'Preview Only',
+                          style: TextStyle(
+                            color: selectedColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              sliver: SliverToBoxAdapter(
+                child: Text(
+                  'EXPLORE ORNAMENTS',
+                  style: TextStyle(
+                    color: gold,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+              sliver: SliverGrid(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _ornamentCard(index),
+                  childCount: ornaments.length,
+                ),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  mainAxisExtent: 180,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
 
 
 
