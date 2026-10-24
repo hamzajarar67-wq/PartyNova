@@ -118,7 +118,6 @@ jobs:
               )
 
           text = manifest.read_text()
-
           activity_name = "com.yalantis.ucrop.UCropActivity"
 
           activity_pattern = re.compile(
@@ -136,35 +135,44 @@ jobs:
           if activity_tag:
               tag = activity_tag.group(0)
 
-              if re.search(r'\bandroid:name\s*=', tag):
-                  if re.search(r'\bandroid:theme\s*=', tag):
-                      tag = re.sub(
-                          r'android:theme\s*=\s*["\'][^"\']*["\']',
-                          'android:theme="@style/Ucrop.CropTheme"',
-                          tag
-                      )
-                  else:
-                      tag = tag[:-1].rstrip()
-                      if tag.endswith("/"):
-                          tag = tag[:-1].rstrip()
-                      tag += ' android:theme="@style/Ucrop.CropTheme"/>'
-
-                  if not re.search(
-                      r'\bandroid:screenOrientation\s*=',
+              if re.search(r'\bandroid:theme\s*=', tag):
+                  tag = re.sub(
+                      r'android:theme\s*=\s*["\'][^"\']*["\']',
+                      'android:theme="@style/Ucrop.CropTheme"',
                       tag
-                  ):
-                      tag = tag.replace(
-                          'android:theme="@style/Ucrop.CropTheme"',
-                          'android:screenOrientation="portrait" '
-                          'android:theme="@style/Ucrop.CropTheme"'
+                  )
+              else:
+                  tag = tag.rstrip()
+
+                  if tag.endswith("/>"):
+                      tag = (
+                          tag[:-2].rstrip()
+                          + ' android:theme="@style/Ucrop.CropTheme" />'
+                      )
+                  elif tag.endswith(">"):
+                      tag = (
+                          tag[:-1].rstrip()
+                          + ' android:theme="@style/Ucrop.CropTheme">'
                       )
 
-                  text = (
-                      text[:activity_tag.start()]
-                      + tag
-                      + text[activity_tag.end():]
+              if not re.search(
+                  r'\bandroid:screenOrientation\s*=',
+                  tag
+              ):
+                  tag = tag.replace(
+                      'android:theme="@style/Ucrop.CropTheme"',
+                      'android:screenOrientation="portrait" '
+                      'android:theme="@style/Ucrop.CropTheme"'
                   )
-                  print("Updated existing UCropActivity.")
+
+              text = (
+                  text[:activity_tag.start()]
+                  + tag
+                  + text[activity_tag.end():]
+              )
+
+              print("Updated existing UCropActivity.")
+
           else:
               application_end = text.rfind("</application>")
 
@@ -191,78 +199,66 @@ jobs:
 
           manifest.write_text(text)
 
-          def ensure_style(path, style_xml):
-              path.parent.mkdir(parents=True, exist_ok=True)
+          styles = Path(
+              "android/app/src/main/res/values/styles.xml"
+          )
+          styles.parent.mkdir(parents=True, exist_ok=True)
 
-              if not path.exists():
-                  path.write_text(
-                      '<?xml version="1.0" encoding="utf-8"?>\n'
-                      '<resources>\n'
-                      + style_xml
-                      + '\n</resources>\n'
-                  )
-                  print("Created:", path)
-                  return
-
-              content = path.read_text()
-
-              style_name = "Ucrop.CropTheme"
-
-              style_pattern = re.compile(
-                  r'<style\b(?=[^>]*\bname=["\']'
-                  + re.escape(style_name)
-                  + r'["\'])[^>]*>.*?</style>',
-                  re.DOTALL
+          if styles.exists():
+              content = styles.read_text()
+          else:
+              content = (
+                  '<?xml version="1.0" encoding="utf-8"?>\n'
+                  '<resources>\n'
+                  '</resources>\n'
               )
 
-              if style_pattern.search(content):
-                  content = style_pattern.sub(
-                      style_xml.strip(),
-                      content,
-                      count=1
-                  )
-              else:
-                  end = content.rfind("</resources>")
-
-                  if end == -1:
-                      raise SystemExit(
-                          f"ERROR: Invalid resources file: {path}"
-                      )
-
-                  content = (
-                      content[:end]
-                      + "\n"
-                      + style_xml
-                      + "\n"
-                      + content[end:]
-                  )
-
-              path.write_text(content)
-              print("Configured:", path)
-
-          normal_style = """
+          style_xml = """
               <style name="Ucrop.CropTheme"
                      parent="Theme.AppCompat.Light.NoActionBar" />
           """
 
-          android15_style = """
-              <style name="Ucrop.CropTheme"
-                     parent="Theme.AppCompat.Light.NoActionBar">
-                  <item name="android:windowOptOutEdgeToEdgeEnforcement">
-                      true
-                  </item>
-              </style>
-          """
-
-          ensure_style(
-              Path("android/app/src/main/res/values/styles.xml"),
-              normal_style
+          style_pattern = re.compile(
+              r'<style\b(?=[^>]*\bname=["\']Ucrop\.CropTheme["\'])'
+              r'[^>]*>.*?</style>|'
+              r'<style\b(?=[^>]*\bname=["\']Ucrop\.CropTheme["\'])'
+              r'[^>]*/>',
+              re.DOTALL
           )
 
-          ensure_style(
-              Path("android/app/src/main/res/values-v35/styles.xml"),
-              android15_style
+          if style_pattern.search(content):
+              content = style_pattern.sub(
+                  style_xml.strip(),
+                  content,
+                  count=1
+              )
+          else:
+              end = content.rfind("</resources>")
+
+              if end == -1:
+                  raise SystemExit(
+                      "ERROR: Invalid styles.xml resources file."
+                  )
+
+              content = (
+                  content[:end]
+                  + "\n"
+                  + style_xml
+                  + "\n"
+                  + content[end:]
+              )
+
+          styles.write_text(content)
+          print("Configured:", styles)
+
+          # Remove the old Android 15 workaround for image_cropper 10+.
+          old_style = Path(
+              "android/app/src/main/res/values-v35/styles.xml"
           )
+
+          if old_style.exists():
+              old_style.unlink()
+              print("Removed old values-v35/styles.xml workaround.")
 
           print("Image cropper Android configuration completed.")
           PY
