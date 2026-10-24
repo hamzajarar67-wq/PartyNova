@@ -1921,12 +1921,20 @@ TextField(
 ),
 
             _editOption(
-              icon: Icons.palette_rounded,
-              title: 'Themes',
-              subtitle: 'Customize your profile theme',
-              onTap: () => _showComingSoon('Themes'),
-            ),
-
+  icon: Icons.palette_rounded,
+  title: 'Themes',
+  subtitle: 'Explore 100 profile themes',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ThemesGalleryPage(
+          photoBase64: _photoBase64,
+          userName: _nameController.text.trim(),
+        ),
+      ),
+    );
+  },
+),
             _editOption(
               icon: Icons.auto_awesome_rounded,
               title: 'Ornaments',
@@ -2556,6 +2564,522 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
 
             // Preview appears below the complete gallery.
             _previewSection(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+class ThemesGalleryPage extends StatefulWidget {
+  final String photoBase64;
+  final String userName;
+
+  const ThemesGalleryPage({
+    super.key,
+    required this.photoBase64,
+    required this.userName,
+  });
+
+  @override
+  State<ThemesGalleryPage> createState() =>
+      _ThemesGalleryPageState();
+}
+
+class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
+  int _selectedTheme = 1;
+
+  static const Color _background = Color(0xFF09070B);
+  static const Color _pink = Color(0xFFFF1688);
+  static const Color _gold = Color(0xFFFFD780);
+  static const Color _panel = Color(0xFF17121D);
+
+  static const List<String> _names = [
+    'Midnight Galaxy',
+    'Ocean Breeze',
+    'Sunset Dreams',
+    'Rose Garden',
+    'Arctic Aurora',
+    'Emerald Forest',
+    'Crimson Storm',
+    'Lavender Mist',
+    'Neon City',
+    'Sakura Blossom',
+    'Moonlit Ocean',
+    'Desert Mirage',
+    'Cosmic Nebula',
+    'Cherry Blossom',
+    'Frozen Horizon',
+    'Tropical Paradise',
+    'Shadow Realm',
+    'Rainbow Valley',
+    'Starlight Dreams',
+    'Velvet Night',
+    'Coral Reef',
+    'Silver Rain',
+    'Golden Horizon',
+    'Purple Haze',
+    'Blue Lagoon',
+    'Autumn Leaves',
+    'Spring Meadow',
+    'Winter Palace',
+    'Summer Glow',
+    'Mystic Waterfall',
+    'Cloud Nine',
+    'Electric Dreams',
+    'Candy World',
+    'Peach Paradise',
+    'Ruby Sunset',
+    'Polar Lights',
+    'Jade Garden',
+    'Indigo Skies',
+    'Amber Waves',
+    'Cotton Candy',
+    'Galaxy Waves',
+    'Crystal Lake',
+    'Flaming Sunset',
+    'Secret Garden',
+    'Aurora Fields',
+    'Velvet Rose',
+    'Ocean Pearl',
+    'Blue Mirage',
+    'Pink Horizon',
+    'Golden Sands',
+    'Thunder Sky',
+    'Rainy Evening',
+    'Starry Path',
+    'Dreamy Clouds',
+    'Lunar Eclipse',
+    'Solar Flare',
+    'Wild Orchid',
+    'Misty Mountains',
+    'Cobalt Dreams',
+    'Peacock Garden',
+    'Blossom Rain',
+    'Northern Lights',
+    'Marble Dreams',
+    'Silk Sunset',
+    'Electric Ocean',
+    'Deep Space',
+    'Opal Skies',
+    'Cinnamon Glow',
+    'Velvet Sky',
+    'Blue Symphony',
+    'Pink Stardust',
+    'Green Oasis',
+    'Amber Twilight',
+    'Purple Paradise',
+    'Scarlet Horizon',
+    'Soft Serenity',
+    'Mystic Garden',
+    'Celestial Waves',
+    'Dreamscape',
+    'Enchanted Forest',
+    'Ocean Twilight',
+    'Golden Autumn',
+    'Crystal Winter',
+    'Pastel Dreams',
+    'Nightfall City',
+    'Stardust Valley',
+    'Blush Heaven',
+    'Moonstone Glow',
+    'Deep Emerald',
+    'Coral Sunset',
+    'Indigo Dreams',
+    'Silver Horizon',
+    'Rainforest Glow',
+    'Lavender Skies',
+    'Cosmic Garden',
+    'Velvet Sunset',
+    'Eternal Spring',
+    'PartyNova Signature',
+  ];
+
+  static const List<List<Color>> _palettes = [
+    [Color(0xFF160E38), Color(0xFF692D91), Color(0xFFEA3C91)],
+    [Color(0xFF063B55), Color(0xFF087E8B), Color(0xFF50C9CE)],
+    [Color(0xFF812D45), Color(0xFFE66A52), Color(0xFFFFC477)],
+    [Color(0xFF56164C), Color(0xFFB52D73), Color(0xFFFFA3B8)],
+    [Color(0xFF183B65), Color(0xFF478BC2), Color(0xFFB8E7F5)],
+    [Color(0xFF123E31), Color(0xFF21865E), Color(0xFF9FD68C)],
+    [Color(0xFF511525), Color(0xFFB32743), Color(0xFFFF795E)],
+    [Color(0xFF39215E), Color(0xFF8064B7), Color(0xFFD8B8F2)],
+    [Color(0xFF101B36), Color(0xFF176B87), Color(0xFF2CE5D2)],
+    [Color(0xFF6A244F), Color(0xFFC85C91), Color(0xFFFFC8D9)],
+    [Color(0xFF092A49), Color(0xFF225E89), Color(0xFF9ACDEB)],
+    [Color(0xFF57301E), Color(0xFFAE6A36), Color(0xFFE8C17A)],
+    [Color(0xFF17113D), Color(0xFF413C91), Color(0xFFB8A0FF)],
+    [Color(0xFF672B50), Color(0xFFCF6D91), Color(0xFFFFD0D8)],
+    [Color(0xFF1C3455), Color(0xFF668EB6), Color(0xFFD7EBF8)],
+    [Color(0xFF145044), Color(0xFF39A987), Color(0xFFA8E5B5)],
+    [Color(0xFF100F20), Color(0xFF363044), Color(0xFF81718F)],
+    [Color(0xFF3D2169), Color(0xFF9A4DAA), Color(0xFFF3A5C9)],
+    [Color(0xFF101B43), Color(0xFF345AA3), Color(0xFFFFD67D)],
+    [Color(0xFF35172D), Color(0xFF743B63), Color(0xFFD9A5C7)],
+  ];
+
+  List<Color> _colors(int number) {
+    return _palettes[(number - 1) % _palettes.length];
+  }
+
+  Widget _avatar(double size) {
+    if (widget.photoBase64.isNotEmpty) {
+      try {
+        return ClipOval(
+          child: Image.memory(
+            base64Decode(widget.photoBase64),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (_, __, ___) => _defaultAvatar(size),
+          ),
+        );
+      } catch (_) {
+        return _defaultAvatar(size);
+      }
+    }
+
+    return _defaultAvatar(size);
+  }
+
+  Widget _defaultAvatar(double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFF30243B),
+      ),
+      child: Icon(
+        Icons.person_rounded,
+        color: Colors.white,
+        size: size * 0.62,
+      ),
+    );
+  }
+
+  Widget _themeCard(int number) {
+    final colors = _colors(number);
+    final selected = number == _selectedTheme;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(15),
+      onTap: () {
+        setState(() {
+          _selectedTheme = number;
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: selected ? _gold : colors[2].withValues(alpha: 0.8),
+            width: selected ? 2 : 1,
+          ),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: colors,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -18,
+                right: -16,
+                child: Container(
+                  width: 75,
+                  height: 75,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.09),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 45,
+                left: -20,
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.13),
+                      width: 9,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 10,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'THEME $number',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          width: 2,
+                        ),
+                      ),
+                      child: _avatar(48),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      widget.userName.isEmpty
+                          ? 'Your Name'
+                          : widget.userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      height: 1,
+                      color: Colors.white.withValues(alpha: 0.45),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      _names[number - 1],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    if (selected)
+                      const Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.white,
+                        size: 19,
+                      )
+                    else
+                      const SizedBox(height: 19),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _largePreview() {
+    final colors = _colors(_selectedTheme);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 24),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _gold.withValues(alpha: 0.7)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'SELECTED THEME PREVIEW',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: _gold,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.3,
+            ),
+          ),
+          const SizedBox(height: 17),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 28,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
+              ),
+            ),
+            child: Column(
+              children: [
+                _avatar(94),
+                const SizedBox(height: 13),
+                Text(
+                  widget.userName.isEmpty
+                      ? 'Your Name'
+                      : widget.userName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _names[_selectedTheme - 1],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 13),
+          Text(
+            'Theme $_selectedTheme of 100',
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 13),
+          const Text(
+            'Preview only — not applied to your profile.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _background,
+      appBar: AppBar(
+        backgroundColor: _background,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Themes Gallery',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(17),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF35123F),
+                    Color(0xFF17121D),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _pink.withValues(alpha: 0.65),
+                ),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Find Your Theme',
+                    style: TextStyle(
+                      color: _gold,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    '100 unique looks for your profile.',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'ALL THEMES',
+                    style: TextStyle(
+                      color: _gold,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                Text(
+                  '${_names.length} Themes',
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 13),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _names.length,
+              gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 11,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.72,
+              ),
+              itemBuilder: (context, index) {
+                return _themeCard(index + 1);
+              },
+            ),
+            _largePreview(),
           ],
         ),
       ),
