@@ -1693,8 +1693,6 @@ Future<void> _pickDP() async {
 }
 
   
-
-Future<void> _saveProfile() async {
 Future<void> _saveProfile() async {
   if (_saving || _pickingPhoto) return;
 
