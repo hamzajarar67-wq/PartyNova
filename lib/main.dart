@@ -1357,8 +1357,9 @@ Widget _buildProfileTab(User? user) {
         },
       ),
     );
-  },
+    },
 ),
+              ),
 
 const SizedBox(height: 14),
 
