@@ -1606,7 +1606,7 @@ void initState() {
 Future<void> _pickDP() async {
   if (_pickingPhoto || _saving) return;
 
-  setState(() => _pickingPhoto = true);
+  _pickingPhoto = true;
 
   try {
     final picked = await ImagePicker().pickImage(
@@ -1624,7 +1624,9 @@ Future<void> _pickDP() async {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Photo is too large. Please choose another photo.'),
+            content: Text(
+              'Photo is too large. Please choose another photo.',
+            ),
           ),
         );
       }
@@ -1639,7 +1641,9 @@ Future<void> _pickDP() async {
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Photo selected. Tap Save Changes to save it.'),
+        content: Text(
+          'Photo selected. Tap Save Changes to save it.',
+        ),
       ),
     );
   } catch (e) {
@@ -1648,14 +1652,14 @@ Future<void> _pickDP() async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Could not select photo. Please try again.'),
+          content: Text(
+            'Could not select photo. Please try again.',
+          ),
         ),
       );
     }
   } finally {
-    if (mounted) {
-      setState(() => _pickingPhoto = false);
-    }
+    _pickingPhoto = false;
   }
 }
 
@@ -1668,15 +1672,18 @@ Future<void> _saveProfile() async {
 
   if (name.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Name cannot be empty.')),
+      const SnackBar(
+        content: Text('Name cannot be empty.'),
+      ),
     );
     return;
   }
 
-  setState(() => _saving = true);
+  _saving = true;
 
   try {
     debugPrint('PROFILE SAVE UID: ${widget.uid}');
+
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -1690,7 +1697,9 @@ Future<void> _saveProfile() async {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Profile updated successfully.')),
+      const SnackBar(
+        content: Text('Profile updated successfully.'),
+      ),
     );
 
     Navigator.of(context).pop();
@@ -1700,12 +1709,12 @@ Future<void> _saveProfile() async {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-  content: Text('Save failed: $e'),
-),
+          content: Text('Save failed: $e'),
+        ),
       );
     }
   } finally {
-    if (mounted) setState(() => _saving = false);
+    _saving = false;
   }
 }
 
