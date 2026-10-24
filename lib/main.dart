@@ -7,6 +7,30 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
+import 'dart:typed_data';
+
+
+String _cachedProfilePhotoBase64 = '';
+Uint8List? _cachedProfilePhotoBytes;
+
+Uint8List? getCachedProfilePhoto(String encoded) {
+  if (encoded.isEmpty) return null;
+
+  if (_cachedProfilePhotoBase64 != encoded) {
+    _cachedProfilePhotoBase64 = encoded;
+
+    try {
+      _cachedProfilePhotoBytes = base64Decode(encoded);
+    } catch (e) {
+      debugPrint('Profile photo decode failed: $e');
+      _cachedProfilePhotoBytes = null;
+    }
+  }
+
+  return _cachedProfilePhotoBytes;
+}
+
+
 
 const String partyNovaOwnerEmail = 'hamzajarar76@gmail.com';
 const String partyNovaAdminEmail = 'hamzajarar67@gmail.com';
@@ -1301,33 +1325,42 @@ Widget _buildProfileTab(User? user) {
                     ),
                   ],
                 ),
-                child: (data['photoBase64'] ?? '').toString().isNotEmpty
-    ? ClipOval(
-        child: Image.memory(
-          base64Decode(
-            (data['photoBase64'] ?? '').toString(),
-          ),
-          width: 112,
-          height: 112,
-          fit: BoxFit.cover,
-          cacheWidth: 224,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(
-              Icons.person_rounded,
-              size: 64,
-              color: Colors.white,
-            );
-          },
-        ),
-      )
-    : const Icon(
+                child: Builder(
+  builder: (context) {
+    final photoBase64 =
+        (data['photoBase64'] ?? '').toString();
+
+    final photoBytes = getCachedProfilePhoto(photoBase64);
+
+    if (photoBytes == null) {
+      return const Icon(
         Icons.person_rounded,
         size: 64,
         color: Colors.white,
-    ),
-  ),
+      );
+    }
 
-              const SizedBox(height: 14),
+    return ClipOval(
+      child: Image.memory(
+        photoBytes,
+        width: 112,
+        height: 112,
+        fit: BoxFit.cover,
+        cacheWidth: 224,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) {
+          return const Icon(
+            Icons.person_rounded,
+            size: 64,
+            color: Colors.white,
+          );
+        },
+      ),
+    );
+  },
+),
+
+const SizedBox(height: 14),
 
               // Name
               Text(
