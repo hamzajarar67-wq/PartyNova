@@ -1301,12 +1301,30 @@ Widget _buildProfileTab(User? user) {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  size: 64,
-                  color: Colors.white,
-                ),
-              ),
+                child: (data['photoBase64'] ?? '').toString().isNotEmpty
+    ? ClipOval(
+        child: Image.memory(
+          base64Decode(
+            (data['photoBase64'] ?? '').toString(),
+          ),
+          width: 112,
+          height: 112,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.person_rounded,
+              size: 64,
+              color: Colors.white,
+            );
+          },
+        ),
+      )
+    : const Icon(
+        Icons.person_rounded,
+        size: 64,
+        color: Colors.white,
+    ),
+  ),
 
               const SizedBox(height: 14),
 
