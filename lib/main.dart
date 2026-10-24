@@ -1956,11 +1956,20 @@ TextField(
             _sectionTitle('Badges & Effects'),
 
             _editOption(
-              icon: Icons.flash_on_rounded,
-              title: 'Entry',
-              subtitle: 'Entry effects',
-              onTap: () => _showComingSoon('Entry'),
-            ),
+  icon: Icons.flash_on_rounded,
+  title: 'Entry',
+  subtitle: 'Entry effects',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => EntryGalleryPage(
+          photoBase64: _photoBase64,
+          userName: _nameController.text.trim(),
+        ),
+      ),
+    );
+  },
+),
 
             _editOption(
               icon: Icons.workspace_premium_rounded,
@@ -2106,7 +2115,6 @@ counterStyle: const TextStyle(color: Colors.white),
     );
   }
 }
-
 
 
 class FramesGalleryPage extends StatefulWidget {
@@ -2303,9 +2311,7 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
           ],
         ),
         border: Border.all(
-          color: frameNumber == _selectedFrame
-              ? _gold
-              : color,
+          color: frameNumber == _selectedFrame ? _gold : color,
           width: 2,
         ),
         boxShadow: [
@@ -2346,22 +2352,15 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
           color: _panel,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? _gold : color.withValues(alpha: 0.45),
+            color: selected
+                ? _gold
+                : color.withValues(alpha: 0.45),
             width: selected ? 2 : 1,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              '#$number',
-              style: TextStyle(
-                color: selected ? _gold : Colors.white70,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
             _profileAvatar(
               frameNumber: number,
               size: 43,
@@ -2378,18 +2377,6 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 5),
-            if (number > 40)
-              const Text(
-                'VIP',
-                style: TextStyle(
-                  color: Color(0xFFFF1688),
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            else
-              const SizedBox(height: 11),
           ],
         ),
       ),
@@ -2401,7 +2388,7 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 22),
+      margin: const EdgeInsets.only(bottom: 22),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: _panel,
@@ -2440,7 +2427,7 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
           ),
           const SizedBox(height: 7),
           Text(
-            '#$_selectedFrame  •  ${_frameNames[_selectedFrame - 1]}',
+            _frameNames[_selectedFrame - 1],
             textAlign: TextAlign.center,
             style: TextStyle(
               color: color,
@@ -2532,6 +2519,10 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Preview moved above the gallery.
+            _previewSection(),
+
             Row(
               children: [
                 const Expanded(
@@ -2570,15 +2561,13 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
                 return _frameCard(index + 1);
               },
             ),
-
-            // Preview appears below the complete gallery.
-            _previewSection(),
           ],
         ),
       ),
     );
   }
 }
+
 
 
 
@@ -2707,26 +2696,106 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
   ];
 
   static const List<List<Color>> _palettes = [
-    [Color(0xFF160E38), Color(0xFF692D91), Color(0xFFEA3C91)],
-    [Color(0xFF063B55), Color(0xFF087E8B), Color(0xFF50C9CE)],
-    [Color(0xFF812D45), Color(0xFFE66A52), Color(0xFFFFC477)],
-    [Color(0xFF56164C), Color(0xFFB52D73), Color(0xFFFFA3B8)],
-    [Color(0xFF183B65), Color(0xFF478BC2), Color(0xFFB8E7F5)],
-    [Color(0xFF123E31), Color(0xFF21865E), Color(0xFF9FD68C)],
-    [Color(0xFF511525), Color(0xFFB32743), Color(0xFFFF795E)],
-    [Color(0xFF39215E), Color(0xFF8064B7), Color(0xFFD8B8F2)],
-    [Color(0xFF101B36), Color(0xFF176B87), Color(0xFF2CE5D2)],
-    [Color(0xFF6A244F), Color(0xFFC85C91), Color(0xFFFFC8D9)],
-    [Color(0xFF092A49), Color(0xFF225E89), Color(0xFF9ACDEB)],
-    [Color(0xFF57301E), Color(0xFFAE6A36), Color(0xFFE8C17A)],
-    [Color(0xFF17113D), Color(0xFF413C91), Color(0xFFB8A0FF)],
-    [Color(0xFF672B50), Color(0xFFCF6D91), Color(0xFFFFD0D8)],
-    [Color(0xFF1C3455), Color(0xFF668EB6), Color(0xFFD7EBF8)],
-    [Color(0xFF145044), Color(0xFF39A987), Color(0xFFA8E5B5)],
-    [Color(0xFF100F20), Color(0xFF363044), Color(0xFF81718F)],
-    [Color(0xFF3D2169), Color(0xFF9A4DAA), Color(0xFFF3A5C9)],
-    [Color(0xFF101B43), Color(0xFF345AA3), Color(0xFFFFD67D)],
-    [Color(0xFF35172D), Color(0xFF743B63), Color(0xFFD9A5C7)],
+    [
+      Color(0xFF160E38),
+      Color(0xFF692D91),
+      Color(0xFFEA3C91),
+    ],
+    [
+      Color(0xFF063B55),
+      Color(0xFF087E8B),
+      Color(0xFF50C9CE),
+    ],
+    [
+      Color(0xFF812D45),
+      Color(0xFFE66A52),
+      Color(0xFFFFC477),
+    ],
+    [
+      Color(0xFF56164C),
+      Color(0xFFB52D73),
+      Color(0xFFFFA3B8),
+    ],
+    [
+      Color(0xFF183B65),
+      Color(0xFF478BC2),
+      Color(0xFFB8E7F5),
+    ],
+    [
+      Color(0xFF123E31),
+      Color(0xFF21865E),
+      Color(0xFF9FD68C),
+    ],
+    [
+      Color(0xFF511525),
+      Color(0xFFB32743),
+      Color(0xFFFF795E),
+    ],
+    [
+      Color(0xFF39215E),
+      Color(0xFF8064B7),
+      Color(0xFFD8B8F2),
+    ],
+    [
+      Color(0xFF101B36),
+      Color(0xFF176B87),
+      Color(0xFF2CE5D2),
+    ],
+    [
+      Color(0xFF6A244F),
+      Color(0xFFC85C91),
+      Color(0xFFFFC8D9),
+    ],
+    [
+      Color(0xFF092A49),
+      Color(0xFF225E89),
+      Color(0xFF9ACDEB),
+    ],
+    [
+      Color(0xFF57301E),
+      Color(0xFFAE6A36),
+      Color(0xFFE8C17A),
+    ],
+    [
+      Color(0xFF17113D),
+      Color(0xFF413C91),
+      Color(0xFFB8A0FF),
+    ],
+    [
+      Color(0xFF672B50),
+      Color(0xFFCF6D91),
+      Color(0xFFFFD0D8),
+    ],
+    [
+      Color(0xFF1C3455),
+      Color(0xFF668EB6),
+      Color(0xFFD7EBF8),
+    ],
+    [
+      Color(0xFF145044),
+      Color(0xFF39A987),
+      Color(0xFFA8E5B5),
+    ],
+    [
+      Color(0xFF100F20),
+      Color(0xFF363044),
+      Color(0xFF81718F),
+    ],
+    [
+      Color(0xFF3D2169),
+      Color(0xFF9A4DAA),
+      Color(0xFFF3A5C9),
+    ],
+    [
+      Color(0xFF101B43),
+      Color(0xFF345AA3),
+      Color(0xFFFFD67D),
+    ],
+    [
+      Color(0xFF35172D),
+      Color(0xFF743B63),
+      Color(0xFFD9A5C7),
+    ],
   ];
 
   List<Color> _colors(int number) {
@@ -2743,7 +2812,8 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
             height: size,
             fit: BoxFit.cover,
             gaplessPlayback: true,
-            errorBuilder: (_, __, ___) => _defaultAvatar(size),
+            errorBuilder: (_, __, ___) =>
+                _defaultAvatar(size),
           ),
         );
       } catch (_) {
@@ -2785,7 +2855,9 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(15),
           border: Border.all(
-            color: selected ? _gold : colors[2].withValues(alpha: 0.8),
+            color: selected
+                ? _gold
+                : colors[2].withValues(alpha: 0.8),
             width: selected ? 2 : 1,
           ),
           gradient: LinearGradient(
@@ -2806,7 +2878,9 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   height: 75,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.09),
+                    color: Colors.white.withValues(
+                      alpha: 0.09,
+                    ),
                   ),
                 ),
               ),
@@ -2819,7 +2893,9 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.13),
+                      color: Colors.white.withValues(
+                        alpha: 0.13,
+                      ),
                       width: 9,
                     ),
                   ),
@@ -2833,23 +2909,14 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'THEME $number',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Colors.white.withValues(
+                            alpha: 0.9,
+                          ),
                           width: 2,
                         ),
                       ),
@@ -2873,7 +2940,9 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                     Container(
                       width: double.infinity,
                       height: 1,
-                      color: Colors.white.withValues(alpha: 0.45),
+                      color: Colors.white.withValues(
+                        alpha: 0.45,
+                      ),
                     ),
                     const SizedBox(height: 9),
                     Text(
@@ -2911,12 +2980,14 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 24),
+      margin: const EdgeInsets.only(bottom: 24),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: _panel,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _gold.withValues(alpha: 0.7)),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.7),
+        ),
       ),
       child: Column(
         children: [
@@ -2974,14 +3045,6 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
             ),
           ),
           const SizedBox(height: 13),
-          Text(
-            'Theme $_selectedTheme of 100',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 13),
           const Text(
             'Preview only — not applied to your profile.',
             textAlign: TextAlign.center,
@@ -3005,11 +3068,18 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
         elevation: 0,
         title: const Text(
           'Themes Gallery',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
+        padding: const EdgeInsets.fromLTRB(
+          14,
+          12,
+          14,
+          30,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -3051,6 +3121,10 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
               ),
             ),
             const SizedBox(height: 22),
+
+            // Preview moved above the gallery.
+            _largePreview(),
+
             Row(
               children: [
                 const Expanded(
@@ -3088,7 +3162,6 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                 return _themeCard(index + 1);
               },
             ),
-            _largePreview(),
           ],
         ),
       ),
@@ -3119,6 +3192,10 @@ class _OrnamentsGalleryPageState
   final Color gold = const Color(0xFFFFC857);
 
   int selectedIndex = 0;
+
+  // Cache the profile image to prevent repeated decoding.
+  ImageProvider? _cachedAvatarImage;
+  bool _avatarImageInitialized = false;
 
   final List<Map<String, dynamic>> ornaments = [
     {'name': 'Golden Crown', 'emoji': '👑', 'color': Color(0xFFFFC857)},
@@ -3224,7 +3301,14 @@ class _OrnamentsGalleryPageState
     {'name': 'Imperial Crown', 'emoji': '👑', 'color': Color(0xFFFFC857)},
   ];
 
+  // Create the image provider once and reuse it across rebuilds.
   ImageProvider? _avatarImage() {
+    if (_avatarImageInitialized) {
+      return _cachedAvatarImage;
+    }
+
+    _avatarImageInitialized = true;
+
     final data = widget.photoBase64;
 
     if (data == null || data.isEmpty) {
@@ -3232,9 +3316,22 @@ class _OrnamentsGalleryPageState
     }
 
     try {
-      return MemoryImage(base64Decode(data));
+      _cachedAvatarImage = MemoryImage(base64Decode(data));
     } catch (_) {
-      return null;
+      _cachedAvatarImage = null;
+    }
+
+    return _cachedAvatarImage;
+  }
+
+  // Refresh the cached image only if the profile photo changes.
+  @override
+  void didUpdateWidget(covariant OrnamentsGalleryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.photoBase64 != widget.photoBase64) {
+      _cachedAvatarImage = null;
+      _avatarImageInitialized = false;
     }
   }
 
@@ -3343,7 +3440,9 @@ class _OrnamentsGalleryPageState
           color: boxBlue,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? gold : color.withValues(alpha: 0.55),
+            color: isSelected
+                ? gold
+                : color.withValues(alpha: 0.55),
             width: isSelected ? 2.2 : 1.2,
           ),
           boxShadow: isSelected
@@ -3412,7 +3511,12 @@ class _OrnamentsGalleryPageState
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 22),
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  10,
+                  16,
+                  22,
+                ),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
@@ -3502,7 +3606,12 @@ class _OrnamentsGalleryPageState
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                24,
+              ),
               sliver: SliverToBoxAdapter(
                 child: Text(
                   'EXPLORE ORNAMENTS',
@@ -3516,7 +3625,12 @@ class _OrnamentsGalleryPageState
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                28,
+              ),
               sliver: SliverGrid(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => _ornamentCard(index),
@@ -3537,6 +3651,517 @@ class _OrnamentsGalleryPageState
     );
   }
 }
+
+
+
+
+
+class EntryGalleryPage extends StatefulWidget {
+  final String? photoBase64;
+  final String userName;
+
+  const EntryGalleryPage({
+    super.key,
+    required this.photoBase64,
+    required this.userName,
+  });
+
+  @override
+  State<EntryGalleryPage> createState() => _EntryGalleryPageState();
+}
+
+class _EntryGalleryPageState extends State<EntryGalleryPage> {
+  static const Color _background = Color(0xFF09070B);
+  static const Color _card = Color(0xFF17121F);
+  static const Color _gold = Color(0xFFFFC857);
+  static const Color _purple = Color(0xFF8B5CF6);
+
+  int _selectedIndex = 0;
+
+  static const List<Map<String, dynamic>> _entries = [
+    {
+      'name': 'Tiger Entry',
+      'emoji': '🐅',
+      'color': Color(0xFFFF8A00),
+      'description': 'Wild Tiger',
+    },
+    {
+      'name': 'Lion Entry',
+      'emoji': '🦁',
+      'color': Color(0xFFFFC857),
+      'description': 'King of the Jungle',
+    },
+    {
+      'name': 'Cheetah Entry',
+      'emoji': '🐆',
+      'color': Color(0xFFFFD166),
+      'description': 'Speed Legend',
+    },
+    {
+      'name': 'Horse Entry',
+      'emoji': '🐎',
+      'color': Color(0xFFB77946),
+      'description': 'Royal Horse',
+    },
+    {
+      'name': 'Wolf Entry',
+      'emoji': '🐺',
+      'color': Color(0xFF94A3B8),
+      'description': 'Shadow Wolf',
+    },
+    {
+      'name': 'Dragon Entry',
+      'emoji': '🐉',
+      'color': Color(0xFF22C55E),
+      'description': 'Mystic Dragon',
+    },
+    {
+      'name': 'Eagle Entry',
+      'emoji': '🦅',
+      'color': Color(0xFF38BDF8),
+      'description': 'Sky Legend',
+    },
+    {
+      'name': 'Bear Entry',
+      'emoji': '🐻',
+      'color': Color(0xFFB45309),
+      'description': 'Power Bear',
+    },
+    {
+      'name': 'Crocodile Entry',
+      'emoji': '🐊',
+      'color': Color(0xFF65A30D),
+      'description': 'Swamp Hunter',
+    },
+    {
+      'name': 'Shark Entry',
+      'emoji': '🦈',
+      'color': Color(0xFF38BDF8),
+      'description': 'Ocean Predator',
+    },
+    {
+      'name': 'Supercar Entry',
+      'emoji': '🏎️',
+      'color': Color(0xFFEF4444),
+      'description': 'Racing Legend',
+    },
+    {
+      'name': 'Luxury Car Entry',
+      'emoji': '🚘',
+      'color': Color(0xFFE5E7EB),
+      'description': 'Luxury Arrival',
+    },
+    {
+      'name': 'Police Car Entry',
+      'emoji': '🚔',
+      'color': Color(0xFF60A5FA),
+      'description': 'Police Arrival',
+    },
+    {
+      'name': 'Superbike Entry',
+      'emoji': '🏍️',
+      'color': Color(0xFFF97316),
+      'description': 'Superbike Rider',
+    },
+    {
+      'name': 'Monster Truck Entry',
+      'emoji': '🚛',
+      'color': Color(0xFFA78BFA),
+      'description': 'Monster Power',
+    },
+    {
+      'name': 'Super Bus Entry',
+      'emoji': '🚌',
+      'color': Color(0xFFFACC15),
+      'description': 'Royal Transport',
+    },
+    {
+      'name': 'Super Flight Entry',
+      'emoji': '✈️',
+      'color': Color(0xFF38BDF8),
+      'description': 'Sky Arrival',
+    },
+    {
+      'name': 'Fighter Jet Entry',
+      'emoji': '🛩️',
+      'color': Color(0xFF94A3B8),
+      'description': 'Jet Arrival',
+    },
+    {
+      'name': 'Rocket Entry',
+      'emoji': '🚀',
+      'color': Color(0xFFF97316),
+      'description': 'Rocket Launch',
+    },
+    {
+      'name': 'UFO Entry',
+      'emoji': '🛸',
+      'color': Color(0xFF34D399),
+      'description': 'Galaxy Arrival',
+    },
+    {
+      'name': 'Golden Dragon Entry',
+      'emoji': '🐲',
+      'color': Color(0xFFFFC857),
+      'description': 'Golden Dragon',
+    },
+    {
+      'name': 'Angel Entry',
+      'emoji': '👼',
+      'color': Color(0xFFE0F2FE),
+      'description': 'Heavenly Arrival',
+    },
+    {
+      'name': 'Dark Demon Entry',
+      'emoji': '😈',
+      'color': Color(0xFFDC2626),
+      'description': 'Dark Power',
+    },
+    {
+      'name': 'King Entry',
+      'emoji': '👑',
+      'color': Color(0xFFFFC857),
+      'description': 'Royal King',
+    },
+    {
+      'name': 'Thunder Entry',
+      'emoji': '⚡',
+      'color': Color(0xFFFDE047),
+      'description': 'Thunder Power',
+    },
+    {
+      'name': 'Fire Dragon Entry',
+      'emoji': '🔥',
+      'color': Color(0xFFFB923C),
+      'description': 'Fire Dragon',
+    },
+    {
+      'name': 'Galaxy Dragon Entry',
+      'emoji': '🌌',
+      'color': Color(0xFFA78BFA),
+      'description': 'Galaxy Dragon',
+    },
+    {
+      'name': 'Angel Wings Entry',
+      'emoji': '🪽',
+      'color': Color(0xFFE0E7FF),
+      'description': 'Angel Wings',
+    },
+    {
+      'name': 'Champion Entry',
+      'emoji': '🏆',
+      'color': Color(0xFFFFC857),
+      'description': 'Champion Arrival',
+    },
+    {
+      'name': 'Diamond King Entry',
+      'emoji': '💎',
+      'color': Color(0xFF67E8F9),
+      'description': 'Diamond Royal',
+    },
+  ];
+
+  ImageProvider? _cachedAvatar;
+  String? _cachedPhotoBase64;
+
+  @override
+  void initState() {
+    super.initState();
+    _prepareAvatar();
+  }
+
+  @override
+  void didUpdateWidget(covariant EntryGalleryPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.photoBase64 != widget.photoBase64) {
+      _cachedAvatar = null;
+      _cachedPhotoBase64 = null;
+      _prepareAvatar();
+    }
+  }
+
+  void _prepareAvatar() {
+    final data = widget.photoBase64;
+
+    if (data == null || data.isEmpty) return;
+
+    try {
+      final cleanData = data.contains(',')
+          ? data.substring(data.indexOf(',') + 1)
+          : data;
+
+      _cachedAvatar = MemoryImage(base64Decode(cleanData));
+      _cachedPhotoBase64 = data;
+    } catch (_) {
+      _cachedAvatar = null;
+      _cachedPhotoBase64 = null;
+    }
+  }
+
+  ImageProvider? _avatarImage() {
+    if (_cachedPhotoBase64 != widget.photoBase64) {
+      _prepareAvatar();
+    }
+
+    return _cachedAvatar;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = _entries[_selectedIndex];
+    final selectedColor = selected['color'] as Color;
+
+    return Scaffold(
+      backgroundColor: _background,
+      appBar: AppBar(
+        backgroundColor: _background,
+        foregroundColor: _gold,
+        elevation: 0,
+        title: const Text(
+          'ENTRY GALLERY',
+          style: TextStyle(
+            color: _gold,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.5,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: _card,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: selectedColor.withValues(alpha: 0.9),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: selectedColor.withValues(alpha: 0.12),
+                            border: Border.all(
+                              color: selectedColor,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: selectedColor.withValues(alpha: 0.3),
+                                blurRadius: 25,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          width: 108,
+                          height: 108,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _background,
+                            border: Border.all(
+                              color: _gold,
+                              width: 2,
+                            ),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: _avatarImage() != null
+                              ? Image(
+                                  image: _avatarImage()!,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.person_rounded,
+                                  color: Colors.white70,
+                                  size: 62,
+                                ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: selectedColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              selected['emoji'] as String,
+                              style: const TextStyle(fontSize: 22),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      widget.userName.isEmpty
+                          ? 'Your Entry Preview'
+                          : widget.userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      selected['name'] as String,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: selectedColor,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      selected['description'] as String,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: _gold,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 9),
+                  const Text(
+                    'Choose Your Entry',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                itemCount: _entries.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.12,
+                ),
+                itemBuilder: (context, index) {
+                  final entry = _entries[index];
+                  final color = entry['color'] as Color;
+                  final isSelected = index == _selectedIndex;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        setState(() {
+                          _selectedIndex = index;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        decoration: BoxDecoration(
+                          color: _card,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? color : Colors.white12,
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 62,
+                              height: 62,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: color.withValues(alpha: 0.12),
+                                border: Border.all(
+                                  color: color.withValues(alpha: 0.75),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                entry['emoji'] as String,
+                                style: const TextStyle(fontSize: 34),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 6),
+                              child: Text(
+                                entry['name'] as String,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: isSelected ? color : Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: color,
+                                size: 19,
+                              )
+                            else
+                              const SizedBox(height: 19),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 
 
