@@ -83,18 +83,189 @@ jobs:
           ]
 
           for pattern, replacement in patterns:
-              updated, count = re.subn(pattern, replacement, text, count=1)
+              updated, count = re.subn(
+                  pattern, replacement, text, count=1
+              )
               if count:
                   app.write_text(updated)
                   print(f"App compile SDK set to 36: {app}")
                   break
           else:
-              raise SystemExit("ERROR: Could not update app compile SDK.")
-
+              raise SystemExit(
+                  "ERROR: Could not update app compile SDK."
+              )
           PY
 
       - name: Get dependencies
         run: flutter pub get
+
+      - name: Configure image cropper Android UI
+        shell: bash
+        run: |
+          set -e
+
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          manifest = Path(
+              "android/app/src/main/AndroidManifest.xml"
+          )
+
+          if not manifest.exists():
+              raise SystemExit(
+                  "ERROR: AndroidManifest.xml not found."
+              )
+
+          text = manifest.read_text()
+
+          activity_name = "com.yalantis.ucrop.UCropActivity"
+
+          activity_pattern = re.compile(
+              r'<activity\b[^>]*>',
+              re.DOTALL
+          )
+
+          activity_tag = None
+
+          for match in activity_pattern.finditer(text):
+              if activity_name in match.group(0):
+                  activity_tag = match
+                  break
+
+          if activity_tag:
+              tag = activity_tag.group(0)
+
+              if re.search(r'\bandroid:name\s*=', tag):
+                  if re.search(r'\bandroid:theme\s*=', tag):
+                      tag = re.sub(
+                          r'android:theme\s*=\s*["\'][^"\']*["\']',
+                          'android:theme="@style/Ucrop.CropTheme"',
+                          tag
+                      )
+                  else:
+                      tag = tag[:-1].rstrip()
+                      if tag.endswith("/"):
+                          tag = tag[:-1].rstrip()
+                      tag += ' android:theme="@style/Ucrop.CropTheme"/>'
+
+                  if not re.search(
+                      r'\bandroid:screenOrientation\s*=',
+                      tag
+                  ):
+                      tag = tag.replace(
+                          'android:theme="@style/Ucrop.CropTheme"',
+                          'android:screenOrientation="portrait" '
+                          'android:theme="@style/Ucrop.CropTheme"'
+                      )
+
+                  text = (
+                      text[:activity_tag.start()]
+                      + tag
+                      + text[activity_tag.end():]
+                  )
+                  print("Updated existing UCropActivity.")
+          else:
+              application_end = text.rfind("</application>")
+
+              if application_end == -1:
+                  raise SystemExit(
+                      "ERROR: Application tag not found."
+                  )
+
+              activity = """
+                  <activity
+                      android:name="com.yalantis.ucrop.UCropActivity"
+                      android:screenOrientation="portrait"
+                      android:theme="@style/Ucrop.CropTheme" />
+              """
+
+              text = (
+                  text[:application_end]
+                  + activity
+                  + "\n"
+                  + text[application_end:]
+              )
+
+              print("Added UCropActivity.")
+
+          manifest.write_text(text)
+
+          def ensure_style(path, style_xml):
+              path.parent.mkdir(parents=True, exist_ok=True)
+
+              if not path.exists():
+                  path.write_text(
+                      '<?xml version="1.0" encoding="utf-8"?>\n'
+                      '<resources>\n'
+                      + style_xml
+                      + '\n</resources>\n'
+                  )
+                  print("Created:", path)
+                  return
+
+              content = path.read_text()
+
+              style_name = "Ucrop.CropTheme"
+
+              style_pattern = re.compile(
+                  r'<style\b(?=[^>]*\bname=["\']'
+                  + re.escape(style_name)
+                  + r'["\'])[^>]*>.*?</style>',
+                  re.DOTALL
+              )
+
+              if style_pattern.search(content):
+                  content = style_pattern.sub(
+                      style_xml.strip(),
+                      content,
+                      count=1
+                  )
+              else:
+                  end = content.rfind("</resources>")
+
+                  if end == -1:
+                      raise SystemExit(
+                          f"ERROR: Invalid resources file: {path}"
+                      )
+
+                  content = (
+                      content[:end]
+                      + "\n"
+                      + style_xml
+                      + "\n"
+                      + content[end:]
+                  )
+
+              path.write_text(content)
+              print("Configured:", path)
+
+          normal_style = """
+              <style name="Ucrop.CropTheme"
+                     parent="Theme.AppCompat.Light.NoActionBar" />
+          """
+
+          android15_style = """
+              <style name="Ucrop.CropTheme"
+                     parent="Theme.AppCompat.Light.NoActionBar">
+                  <item name="android:windowOptOutEdgeToEdgeEnforcement">
+                      true
+                  </item>
+              </style>
+          """
+
+          ensure_style(
+              Path("android/app/src/main/res/values/styles.xml"),
+              normal_style
+          )
+
+          ensure_style(
+              Path("android/app/src/main/res/values-v35/styles.xml"),
+              android15_style
+          )
+
+          print("Image cropper Android configuration completed.")
+          PY
 
       - name: Set Android plugin compile SDK
         shell: bash
@@ -150,6 +321,7 @@ jobs:
                           updated, count = re.subn(
                               pattern, replacement, text, count=1
                           )
+
                           if count:
                               gradle.write_text(updated)
                               updated_files.append(str(gradle))
@@ -209,7 +381,9 @@ jobs:
           )
 
           if settings is None or app is None:
-              raise SystemExit("ERROR: Android Gradle files not found.")
+              raise SystemExit(
+                  "ERROR: Android Gradle files not found."
+              )
 
           declaration = (
               'id("com.google.gms.google-services") version "4.4.2" apply false'
@@ -227,8 +401,11 @@ jobs:
 
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
+
               if not match:
-                  raise SystemExit("ERROR: Settings plugins block not found.")
+                  raise SystemExit(
+                      "ERROR: Settings plugins block not found."
+                  )
 
               pos = match.end()
               text = text[:pos] + "\n    " + declaration + text[pos:]
@@ -238,8 +415,11 @@ jobs:
 
           if "com.google.gms.google-services" not in text:
               match = re.search(r'plugins\s*\{', text)
+
               if not match:
-                  raise SystemExit("ERROR: App plugins block not found.")
+                  raise SystemExit(
+                      "ERROR: App plugins block not found."
+                  )
 
               pos = match.end()
               text = text[:pos] + "\n    " + application + text[pos:]
@@ -264,7 +444,9 @@ jobs:
           )
 
           if app is None:
-              raise SystemExit("ERROR: App Gradle file not found.")
+              raise SystemExit(
+                  "ERROR: App Gradle file not found."
+              )
 
           text = app.read_text()
 
@@ -274,13 +456,17 @@ jobs:
           )
 
           if not match:
-              raise SystemExit("ERROR: compileSdk could not be verified.")
+              raise SystemExit(
+                  "ERROR: compileSdk could not be verified."
+              )
 
           version = int(match.group(1))
           print("Detected app compile SDK:", version)
 
           if version < 36:
-              raise SystemExit("ERROR: App compile SDK must be at least 36.")
+              raise SystemExit(
+                  "ERROR: App compile SDK must be at least 36."
+              )
 
           print("Compile SDK verification passed.")
           PY
