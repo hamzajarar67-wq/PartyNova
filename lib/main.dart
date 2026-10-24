@@ -8,6 +8,10 @@ import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
+import 'package:image_cropper/image_cropper.dart';
+import 'dart:io';
+
+
 
 
 String _cachedProfilePhotoBase64 = '';
@@ -1611,29 +1615,54 @@ Future<void> _pickDP() async {
   try {
     final picked = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      maxWidth: 256,
-      maxHeight: 256,
-      imageQuality: 35,
     );
 
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
-    final bytes = await picked.readAsBytes();
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: picked.path,
+      aspectRatio: const CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ),
+      compressFormat: ImageCompressFormat.jpg,
+      compressQuality: 90,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Adjust Profile Photo',
+          toolbarColor: const Color(0xFF7028A0),
+          toolbarWidgetColor: Colors.white,
+          activeControlsWidgetColor: const Color(0xFFFF1688),
+          lockAspectRatio: true,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.square,
+          ],
+        ),
+        IOSUiSettings(
+          title: 'Adjust Profile Photo',
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+          aspectRatioPresets: [
+            CropAspectRatioPreset.square,
+          ],
+        ),
+      ],
+    );
+
+    if (cropped == null || !mounted) return;
+
+    final bytes = await cropped.readAsBytes();
 
     if (bytes.length > 450 * 1024) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Photo is too large. Please choose another photo.',
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Photo is too large. Please choose another photo.',
           ),
-        );
-      }
+        ),
+      );
       return;
     }
-
-    if (!mounted) return;
 
     setState(() {
       _photoBase64 = base64Encode(bytes);
@@ -1642,18 +1671,18 @@ Future<void> _pickDP() async {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Photo selected. Tap Save Changes to save it.',
+          'Photo adjusted! Preview it and tap Save Changes.',
         ),
       ),
     );
   } catch (e) {
-    debugPrint('DP selection failed: $e');
+    debugPrint('DP selection or cropping failed: $e');
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Could not select photo. Please try again.',
+            'Could not adjust photo. Please try again.',
           ),
         ),
       );
@@ -1663,7 +1692,9 @@ Future<void> _pickDP() async {
   }
 }
 
+  
 
+Future<void> _saveProfile() async {
 Future<void> _saveProfile() async {
   if (_saving || _pickingPhoto) return;
 
@@ -1682,8 +1713,6 @@ Future<void> _saveProfile() async {
   _saving = true;
 
   try {
-    debugPrint('PROFILE SAVE UID: ${widget.uid}');
-
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -1702,14 +1731,16 @@ Future<void> _saveProfile() async {
       ),
     );
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
   } catch (e) {
     debugPrint('Profile save failed: $e');
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Save failed: $e'),
+        const SnackBar(
+          content: Text(
+            'Could not save profile. Please try again.',
+          ),
         ),
       );
     }
@@ -1763,9 +1794,10 @@ Future<void> _saveProfile() async {
     ? ClipOval(
         child: Image.memory(
           base64Decode(_photoBase64),
-          width: 116,
-          height: 116,
+          width: 100,
+          height: 100,
           fit: BoxFit.cover,
+          gaplessPlayback: true,
           errorBuilder: (context, error, stackTrace) {
             return const Icon(
               Icons.person_rounded,
