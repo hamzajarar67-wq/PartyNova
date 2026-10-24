@@ -1623,6 +1623,7 @@ Future<void> _saveProfile() async {
   setState(() => _saving = true);
 
   try {
+    debugPrint('PROFILE SAVE UID: ${widget.uid}');
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
