@@ -1310,6 +1310,7 @@ Widget _buildProfileTab(User? user) {
           width: 112,
           height: 112,
           fit: BoxFit.cover,
+          cacheWidth: 224,
           errorBuilder: (context, error, stackTrace) {
             return const Icon(
               Icons.person_rounded,
