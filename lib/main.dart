@@ -2058,39 +2058,63 @@ Widget _buildProfileTab(User? user) {
                     ),
                   ],
                 ),
-                child: Builder(
-  builder: (context) {
-    final photoBase64 =
-        (data['photoBase64'] ?? '').toString();
+                child: Stack(
+  alignment: Alignment.center,
+  children: [
+    Builder(
+      builder: (context) {
+        final photoBase64 =
+            (data['photoBase64'] ?? '').toString();
 
-    final photoBytes = getCachedProfilePhoto(photoBase64);
+        final photoBytes = getCachedProfilePhoto(photoBase64);
 
-    if (photoBytes == null) {
-      return const Icon(
-        Icons.person_rounded,
-        size: 64,
-        color: Colors.white,
-      );
-    }
-
-    return ClipOval(
-      child: Image.memory(
-        photoBytes,
-        width: 112,
-        height: 112,
-        fit: BoxFit.cover,
-        cacheWidth: 224,
-        gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) {
-          return const Icon(
-            Icons.person_rounded,
-            size: 64,
-            color: Colors.white,
+        if (photoBytes == null) {
+          return const SizedBox(
+            width: 112,
+            height: 112,
+            child: Icon(
+              Icons.person_rounded,
+              size: 64,
+              color: Colors.white,
+            ),
           );
-        },
+        }
+
+        return ClipOval(
+          child: Image.memory(
+            photoBytes,
+            width: 112,
+            height: 112,
+            fit: BoxFit.cover,
+            cacheWidth: 224,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              return const SizedBox(
+                width: 112,
+                height: 112,
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 64,
+                  color: Colors.white,
+                ),
+              );
+            },
+          ),
+        );
+      },
+    ),
+
+    if ((data['profileFrameAsset'] ?? '').toString().isNotEmpty)
+      Positioned.fill(
+        child: Image.asset(
+          data['profileFrameAsset'].toString(),
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return const SizedBox.shrink();
+          },
+        ),
       ),
-    );
-    },
+  ],
 ),
               ),
 
@@ -2641,9 +2665,10 @@ TextField(
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => FramesGalleryPage(
-          photoBase64: _photoBase64,
-          userName: _nameController.text.trim(),
-        ),
+  photoBase64: _photoBase64,
+  userName: _nameController.text.trim(),
+  uid: widget.uid,
+),
       ),
     );
   },
@@ -2886,11 +2911,13 @@ counterStyle: const TextStyle(color: Colors.white),
 class FramesGalleryPage extends StatefulWidget {
   final String photoBase64;
   final String userName;
+  final String uid;
 
   const FramesGalleryPage({
     super.key,
     required this.photoBase64,
     required this.userName,
+    required this.uid,
   });
 
   @override
@@ -3009,6 +3036,21 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
     'PartyNova Supreme',
   ];
 
+static const List<String> _uploadedFrameAssets = [
+  'assets/frames/1000180954-removebg-preview.png',
+  'assets/frames/1000180960-removebg-preview.png',
+  'assets/frames/1000180961-removebg-preview.png',
+  'assets/frames/1000180964-removebg-preview.png',
+  'assets/frames/1000180965-removebg-preview.png',
+  'assets/frames/1000180973-removebg-preview.png',
+  'assets/frames/1000180975-removebg-preview.png',
+  'assets/frames/1000180976-removebg-preview.png',
+  'assets/frames/1000180977-removebg-preview.png',
+  'assets/frames/1000180978-removebg-preview.png',
+];
+
+  
+
   static const List<Color> _frameColors = [
     Color(0xFFFFD700),
     Color(0xFFFF1688),
@@ -3025,77 +3067,93 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
   }
 
   Widget _profileAvatar({
-    required int frameNumber,
-    required double size,
-  }) {
-    final color = _colorForFrame(frameNumber);
+  required int frameNumber,
+  required double size,
+}) {
+  final color = _colorForFrame(frameNumber);
 
-    Widget avatar;
+  Widget avatar;
 
-    if (widget.photoBase64.isNotEmpty) {
-      try {
-        avatar = Image.memory(
-          base64Decode(widget.photoBase64),
-          width: size,
-          height: size,
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          errorBuilder: (_, __, ___) => Icon(
-            Icons.person_rounded,
-            size: size * 0.58,
-            color: Colors.white,
-          ),
-        );
-      } catch (_) {
-        avatar = Icon(
+  if (widget.photoBase64.isNotEmpty) {
+    try {
+      avatar = Image.memory(
+        base64Decode(widget.photoBase64),
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => Icon(
           Icons.person_rounded,
           size: size * 0.58,
           color: Colors.white,
-        );
-      }
-    } else {
+        ),
+      );
+    } catch (_) {
       avatar = Icon(
         Icons.person_rounded,
         size: size * 0.58,
         color: Colors.white,
       );
     }
-
-    return Container(
-      width: size + 12,
-      height: size + 12,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: SweepGradient(
-          colors: [
-            color,
-            Colors.white,
-            color,
-            color.withValues(alpha: 0.45),
-            color,
-          ],
-        ),
-        border: Border.all(
-          color: frameNumber == _selectedFrame ? _gold : color,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.28),
-            blurRadius: 9,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: ClipOval(
-        child: Container(
-          color: const Color(0xFF24192D),
-          child: avatar,
-        ),
-      ),
+  } else {
+    avatar = Icon(
+      Icons.person_rounded,
+      size: size * 0.58,
+      color: Colors.white,
     );
   }
+
+  return Container(
+    width: size + 12,
+    height: size + 12,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      border: Border.all(
+        color: frameNumber == _selectedFrame
+            ? _gold
+            : color,
+        width: 2,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: color.withValues(alpha: 0.28),
+          blurRadius: 9,
+          spreadRadius: 1,
+        ),
+      ],
+    ),
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: size,
+          height: size,
+          child: ClipOval(
+            child: Container(
+              color: const Color(0xFF24192D),
+              child: avatar,
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Image.asset(
+            _uploadedFrameAssets[frameNumber - 1],
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(
+                  Icons.broken_image_rounded,
+                  color: Colors.redAccent,
+                  size: 22,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _frameCard(int number) {
     final name = _frameNames[number - 1];
@@ -3226,112 +3284,179 @@ class _FramesGalleryPageState extends State<FramesGalleryPage> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+
+Future<void> _applySelectedFrame() async {
+  try {
+    final frameAsset = _uploadedFrameAssets[_selectedFrame - 1];
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.uid)
+        .set({
+      'profileFrameAsset': frameAsset,
+    }, SetOptions(merge: true));
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profile frame saved successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Could not save frame. Please try again.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
+
+
+  
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: _background,
+    appBar: AppBar(
       backgroundColor: _background,
-      appBar: AppBar(
-        backgroundColor: _background,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Frames Gallery',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+      foregroundColor: Colors.white,
+      elevation: 0,
+      title: const Text(
+        'Frames Gallery',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF35123F),
-                    Color(0xFF17121D),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: _pink.withValues(alpha: 0.6),
-                ),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Choose Your Style',
-                    style: TextStyle(
-                      color: _gold,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    'Explore 100 profile frames.',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                  ),
+    ),
+    body: Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF35123F),
+                  Color(0xFF17121D),
                 ],
               ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: _pink.withValues(alpha: 0.6),
+              ),
             ),
-            const SizedBox(height: 20),
-
-            // Preview moved above the gallery.
-            _previewSection(),
-
-            Row(
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Expanded(
-                  child: Text(
-                    'ALL FRAMES',
-                    style: TextStyle(
-                      color: _gold,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
+                Text(
+                  'Choose Your Style',
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                SizedBox(height: 4),
                 Text(
-                  '${_frameNames.length} Frames',
-                  style: const TextStyle(
+                  'Explore 100 profile frames.',
+                  style: TextStyle(
                     color: Colors.white70,
-                    fontSize: 12,
+                    fontSize: 13,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 13),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _frameNames.length,
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 9,
-                childAspectRatio: 0.69,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Fixed preview: does not scroll.
+          _previewSection(),
+
+          // Fixed Apply button.
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: _applySelectedFrame,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _gold,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
-              itemBuilder: (context, index) {
-                return _frameCard(index + 1);
-              },
+              child: const Text(
+                'APPLY FRAME',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'ALL FRAMES',
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+              ),
+              Text(
+                '${_uploadedFrameAssets.length} Frames',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Only this gallery area scrolls.
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _uploadedFrameAssets.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 9,
+                  childAspectRatio: 0.69,
+                ),
+                itemBuilder: (context, index) {
+                  return _frameCard(index + 1);
+                },
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 
