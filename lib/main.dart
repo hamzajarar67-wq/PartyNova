@@ -5318,18 +5318,18 @@ class _CrownPainter extends CustomPainter {
     );
 
     final gemPaint = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          Colors.white,
-          gem,
-          darkMetal,
-        ],
-      ).createShader(
-        const Rect.fromCircle(
-          center: Offset(75, 60),
-          radius: 12,
-        ),
-      );
+  ..shader = RadialGradient(
+    colors: [
+      Colors.white,
+      gem,
+      darkMetal,
+    ],
+  ).createShader(
+    Rect.fromCircle(
+      center: const Offset(75, 60),
+      radius: 12,
+    ),
+  );
 
     canvas.drawCircle(
       const Offset(75, 60),
