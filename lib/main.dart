@@ -1998,23 +1998,43 @@ TextField(
 ),
 
             _editOption(
-              icon: Icons.sports_esports_rounded,
-              title: 'Game Badge',
-              subtitle: 'Your gaming badge',
-              onTap: () => _showComingSoon('Game Badge'),
-            ),
-
-            _editOption(
-              icon: Icons.diamond_rounded,
-              title: 'Money Badge',
-              subtitle: 'Your money badge',
-              onTap: () => _showComingSoon('Money Badge'),
-            ),
-          ],
-        ),
+  icon: Icons.sports_esports_rounded,
+  title: 'Game Badge',
+  subtitle: 'Your gaming badge collection',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GameBadgeGalleryPage(),
       ),
     );
-  }
+  },
+),
+
+            _editOption(
+  icon: Icons.diamond_rounded,
+  title: 'Money Badge',
+  subtitle: 'Your money badge collection',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const MoneyBadgeGalleryPage(),
+      ),
+    );
+  },
+),
+
+_editOption(
+  icon: Icons.card_giftcard_rounded,
+  title: 'Gift Badge',
+  subtitle: 'Your gift badge collection',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const GiftBadgeGalleryPage(),
+      ),
+    );
+  },
+),
 
   Widget _sectionTitle(String title) {
     return Padding(
@@ -5386,6 +5406,1473 @@ class _CrownPainter extends CustomPainter {
     return oldDelegate.metal != metal ||
         oldDelegate.darkMetal != darkMetal ||
         oldDelegate.gem != gem;
+  }
+}
+
+
+
+class GameBadgeGalleryPage extends StatefulWidget {
+  const GameBadgeGalleryPage({super.key});
+
+  @override
+  State<GameBadgeGalleryPage> createState() =>
+      _GameBadgeGalleryPageState();
+}
+
+class _GameBadgeGalleryPageState
+    extends State<GameBadgeGalleryPage> {
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color boxBlue = Color(0xFF102746);
+  static const Color gold = Color(0xFFFFC857);
+
+  int selectedBadge = 0;
+
+  final List<Map<String, dynamic>> badges = [
+    {
+      'name': 'Bronze Champion',
+      'requirement': '100,000 Tokens',
+      'icon': Icons.emoji_events_rounded,
+      'colors': [
+        Color(0xFFFFD09A),
+        Color(0xFFB87333),
+        Color(0xFF613515),
+      ],
+      'symbol': 'I',
+    },
+    {
+      'name': 'Silver Champion',
+      'requirement': '300,000 Tokens',
+      'icon': Icons.emoji_events_rounded,
+      'colors': [
+        Color(0xFFFFFFFF),
+        Color(0xFFB8C5D6),
+        Color(0xFF536579),
+      ],
+      'symbol': 'II',
+    },
+    {
+      'name': 'Golden Champion',
+      'requirement': '500,000 Tokens',
+      'icon': Icons.emoji_events_rounded,
+      'colors': [
+        Color(0xFFFFFFB0),
+        Color(0xFFFFC107),
+        Color(0xFF9A5700),
+      ],
+      'symbol': 'III',
+    },
+    {
+      'name': 'Star Champion',
+      'requirement': '100 Stars',
+      'icon': Icons.star_rounded,
+      'colors': [
+        Color(0xFFFFF6B0),
+        Color(0xFFFFC857),
+        Color(0xFFB76B00),
+      ],
+      'symbol': '100',
+    },
+    {
+      'name': 'Super Star',
+      'requirement': '500 Stars',
+      'icon': Icons.stars_rounded,
+      'colors': [
+        Color(0xFFFFF4D0),
+        Color(0xFFFFB300),
+        Color(0xFF9C4300),
+      ],
+      'symbol': '500',
+    },
+    {
+      'name': 'Diamond Star',
+      'requirement': '800 Stars',
+      'icon': Icons.diamond_rounded,
+      'colors': [
+        Color(0xFFE5FFFF),
+        Color(0xFF51D8FF),
+        Color(0xFF145A9E),
+      ],
+      'symbol': '800',
+    },
+    {
+      'name': 'Legendary Star',
+      'requirement': '1,000 Stars',
+      'icon': Icons.auto_awesome_rounded,
+      'colors': [
+        Color(0xFFFFF8C8),
+        Color(0xFFFFD54F),
+        Color(0xFF8E44AD),
+      ],
+      'symbol': '1000',
+    },
+    {
+      'name': 'Master Gamer',
+      'requirement': 'Game Achievement',
+      'icon': Icons.sports_esports_rounded,
+      'colors': [
+        Color(0xFFB9F6CA),
+        Color(0xFF00A878),
+        Color(0xFF064E45),
+      ],
+      'symbol': 'M',
+    },
+    {
+      'name': 'Elite Champion',
+      'requirement': 'Special Achievement',
+      'icon': Icons.shield_rounded,
+      'colors': [
+        Color(0xFFFFE5A0),
+        Color(0xFFDA9B22),
+        Color(0xFF7B3216),
+      ],
+      'symbol': 'E',
+    },
+    {
+      'name': 'Ultimate Legend',
+      'requirement': 'Legendary Achievement',
+      'icon': Icons.workspace_premium_rounded,
+      'colors': [
+        Color(0xFFFFFFFF),
+        Color(0xFFFFC857),
+        Color(0xFF7139A8),
+      ],
+      'symbol': '★',
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final badge = badges[selectedBadge];
+    final colors = badge['colors'] as List<Color>;
+
+    return Scaffold(
+      backgroundColor: darkBlue,
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        foregroundColor: gold,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'GAME BADGES',
+          style: TextStyle(
+            color: gold,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // TOP PREVIEW
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+              padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF18385B),
+                    Color(0xFF0B192C),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: gold,
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                children: [
+                  const Text(
+                    'BADGE PREVIEW',
+                    style: TextStyle(
+                      color: gold,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 3,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Selected badge artwork
+                  _GameBadgeArtwork(
+                    icon: badge['icon'] as IconData,
+                    colors: colors,
+                    symbol: badge['symbol'] as String,
+                    size: 138,
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    badge['name'] as String,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      color: darkBlue,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: gold,
+                        width: 1,
+                      ),
+                    ),
+                    child: Text(
+                      badge['requirement'] as String,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: gold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    'Select a badge below to preview it',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // COLLECTION HEADING
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.workspace_premium_rounded,
+                    color: gold,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'BADGE COLLECTION',
+                    style: TextStyle(
+                      color: gold,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                  Spacer(),
+                  Text(
+                    '10 BADGES',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // TWO LARGE BADGES PER ROW
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  12,
+                  0,
+                  12,
+                  20,
+                ),
+                itemCount: badges.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.66,
+                ),
+                itemBuilder: (context, index) {
+                  final item = badges[index];
+                  final itemColors =
+                      item['colors'] as List<Color>;
+                  final isSelected = selectedBadge == index;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(19),
+                      onTap: () {
+                        setState(() {
+                          selectedBadge = index;
+                        });
+                      },
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF142D4B),
+                              Color(0xFF09182B),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(19),
+                          border: Border.all(
+                            color: isSelected
+                                ? gold
+                                : const Color(0xFF294360),
+                            width: isSelected ? 2 : 1,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            8,
+                            12,
+                            8,
+                            10,
+                          ),
+                          child: Column(
+                            children: [
+                              // Large badge artwork
+                              Expanded(
+                                child: Center(
+                                  child: _GameBadgeArtwork(
+                                    icon: item['icon'] as IconData,
+                                    colors: itemColors,
+                                    symbol: item['symbol'] as String,
+                                    size: 140,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              Text(
+                                item['name'] as String,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+
+                              const SizedBox(height: 9),
+
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 9,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: darkBlue,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? gold
+                                        : const Color(0xFF294360),
+                                  ),
+                                ),
+                                child: Text(
+                                  item['requirement'] as String,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: gold,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 6),
+
+                              if (isSelected)
+                                const Text(
+                                  'PREVIEWING',
+                                  style: TextStyle(
+                                    color: gold,
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                )
+                              else
+                                const SizedBox(height: 11),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GameBadgeArtwork extends StatelessWidget {
+  const _GameBadgeArtwork({
+    required this.icon,
+    required this.colors,
+    required this.symbol,
+    required this.size,
+  });
+
+  final IconData icon;
+  final List<Color> colors;
+  final String symbol;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isStar =
+        icon == Icons.star_rounded ||
+        icon == Icons.stars_rounded ||
+        icon == Icons.auto_awesome_rounded;
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Outer metallic body
+          Container(
+            width: size * 0.94,
+            height: size * 0.94,
+            decoration: BoxDecoration(
+              shape: isStar
+                  ? BoxShape.circle
+                  : BoxShape.rectangle,
+              borderRadius: isStar
+                  ? null
+                  : BorderRadius.circular(size * 0.24),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: colors,
+              ),
+              border: Border.all(
+                color: const Color(0xFFFFF0B0),
+                width: size * 0.025,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colors[1].withValues(alpha: 0.38),
+                  blurRadius: size * 0.12,
+                  spreadRadius: size * 0.01,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: size * 0.08,
+                  offset: Offset(0, size * 0.04),
+                ),
+              ],
+            ),
+          ),
+
+          // Inner jewel surface
+          Container(
+            width: size * 0.78,
+            height: size * 0.78,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                center: const Alignment(-0.4, -0.6),
+                radius: 1.2,
+                colors: [
+                  colors[0],
+                  colors[1],
+                  colors[2],
+                ],
+              ),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.8),
+                width: size * 0.012,
+              ),
+            ),
+          ),
+
+          // Top-left shine
+          Positioned(
+            top: size * 0.12,
+            left: size * 0.15,
+            child: Icon(
+              Icons.auto_awesome,
+              color: Colors.white.withValues(alpha: 0.95),
+              size: size * 0.12,
+            ),
+          ),
+
+          // Top-right shine
+          Positioned(
+            top: size * 0.12,
+            right: size * 0.15,
+            child: Icon(
+              Icons.auto_awesome,
+              color: Colors.white.withValues(alpha: 0.75),
+              size: size * 0.09,
+            ),
+          ),
+
+          // Main badge symbol
+          Icon(
+            icon,
+            size: size * 0.47,
+            color: Colors.white,
+            shadows: [
+              Shadow(
+                color: Colors.black.withValues(alpha: 0.65),
+                blurRadius: size * 0.06,
+                offset: Offset(0, size * 0.025),
+              ),
+            ],
+          ),
+
+          // Badge level plate
+          Positioned(
+            bottom: size * 0.11,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: size * 0.09,
+                vertical: size * 0.025,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF071426)
+                    .withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(size * 0.08),
+                border: Border.all(
+                  color: const Color(0xFFFFD56A),
+                  width: size * 0.009,
+                ),
+              ),
+              child: Text(
+                symbol,
+                style: TextStyle(
+                  color: const Color(0xFFFFD56A),
+                  fontSize: size * 0.085,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class MoneyBadgeGalleryPage extends StatelessWidget {
+  const MoneyBadgeGalleryPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _RoyalBadgeGallery(
+      isGift: false,
+    );
+  }
+}
+
+class GiftBadgeGalleryPage extends StatelessWidget {
+  const GiftBadgeGalleryPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const _RoyalBadgeGallery(
+      isGift: true,
+    );
+  }
+}
+
+class _RoyalBadgeGallery extends StatefulWidget {
+  const _RoyalBadgeGallery({
+    required this.isGift,
+    super.key,
+  });
+
+  final bool isGift;
+
+  @override
+  State<_RoyalBadgeGallery> createState() =>
+      _RoyalBadgeGalleryState();
+}
+
+class _RoyalBadgeGalleryState
+    extends State<_RoyalBadgeGallery> {
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color panelBlue = Color(0xFF102746);
+  static const Color gold = Color(0xFFFFC857);
+
+  int selectedIndex = 0;
+
+  static const List<int> points = [
+    100000,
+    200000,
+    300000,
+    400000,
+    500000,
+    600000,
+    700000,
+    800000,
+    900000,
+    1000000,
+  ];
+
+  static const List<String> names = [
+    'Bronze Royal',
+    'Silver Royal',
+    'Golden Royal',
+    'Platinum Royal',
+    'Ruby Royal',
+    'Sapphire Royal',
+    'Diamond Royal',
+    'Royal Emperor',
+    'Royal King',
+    'Ultimate Legend',
+  ];
+
+  static const List<List<Color>> palettes = [
+    [
+      Color(0xFFFFD2A0),
+      Color(0xFFB87333),
+      Color(0xFF613515),
+    ],
+    [
+      Color(0xFFFFFFFF),
+      Color(0xFFBFCBDA),
+      Color(0xFF526477),
+    ],
+    [
+      Color(0xFFFFFFC2),
+      Color(0xFFFFC107),
+      Color(0xFF925000),
+    ],
+    [
+      Color(0xFFE9FFFF),
+      Color(0xFF9DB7D5),
+      Color(0xFF425E85),
+    ],
+    [
+      Color(0xFFFFE0E8),
+      Color(0xFFE34267),
+      Color(0xFF74152F),
+    ],
+    [
+      Color(0xFFD9FFFF),
+      Color(0xFF29C7E8),
+      Color(0xFF124E91),
+    ],
+    [
+      Color(0xFFFFFFFF),
+      Color(0xFF73E8FF),
+      Color(0xFF4536B5),
+    ],
+    [
+      Color(0xFFFFF3B0),
+      Color(0xFFFFB52E),
+      Color(0xFF913F15),
+    ],
+    [
+      Color(0xFFFFFFFF),
+      Color(0xFFFFD45A),
+      Color(0xFF7A3FBD),
+    ],
+    [
+      Color(0xFFFFFFFF),
+      Color(0xFFFFD45A),
+      Color(0xFF9B42E8),
+    ],
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final String pageTitle =
+        widget.isGift ? 'GIFT BADGES' : 'MONEY BADGES';
+
+    final String selectedName =
+        names[selectedIndex];
+
+    return Scaffold(
+      backgroundColor: darkBlue,
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        foregroundColor: gold,
+        elevation: 0,
+        centerTitle: true,
+        title: Text(
+          pageTitle,
+          style: const TextStyle(
+            color: gold,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // LARGE PREVIEW AT THE TOP
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(
+                14,
+                4,
+                14,
+                14,
+              ),
+              padding: const EdgeInsets.fromLTRB(
+                12,
+                14,
+                12,
+                16,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A3A60),
+                    Color(0xFF0B172A),
+                    Color(0xFF132A46),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: gold,
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: gold.withValues(alpha: 0.10),
+                    blurRadius: 20,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    widget.isGift
+                        ? 'GIFT BADGE COLLECTION'
+                        : 'RECHARGE BADGE COLLECTION',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: gold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Royal metallic preview
+                  SizedBox(
+                    width: 188,
+                    height: 188,
+                    child: CustomPaint(
+                      painter: _RoyalBadgePainter(
+                        colors: palettes[selectedIndex],
+                        level: selectedIndex,
+                        isGift: widget.isGift,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    selectedName,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 21,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: darkBlue,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: gold,
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Text(
+                      points[selectedIndex].toString(),
+                      style: const TextStyle(
+                        color: gold,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  const Text(
+                    'Tap any badge below to preview',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // COLLECTION HEADER
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                0,
+                16,
+                12,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    widget.isGift
+                        ? Icons.card_giftcard_rounded
+                        : Icons.diamond_rounded,
+                    color: gold,
+                    size: 21,
+                  ),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'ROYAL COLLECTION',
+                      style: TextStyle(
+                        color: gold,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.3,
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    '10 BADGES',
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // TWO LARGE BADGES PER ROW
+            Expanded(
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(
+                  12,
+                  0,
+                  12,
+                  20,
+                ),
+                itemCount: points.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.68,
+                ),
+                itemBuilder: (context, index) {
+                  final bool selected =
+                      selectedIndex == index;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () {
+                        setState(() {
+                          selectedIndex = index;
+                        });
+                      },
+                      child: Ink(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF173252),
+                              Color(0xFF091629),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: selected
+                                ? gold
+                                : const Color(0xFF304660),
+                            width: selected ? 2 : 1,
+                          ),
+                          boxShadow: selected
+                              ? [
+                                  BoxShadow(
+                                    color: gold.withValues(
+                                      alpha: 0.12,
+                                    ),
+                                    blurRadius: 12,
+                                  ),
+                                ]
+                              : [],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            8,
+                            12,
+                            8,
+                            10,
+                          ),
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 145,
+                                    height: 145,
+                                    child: CustomPaint(
+                                      painter: _RoyalBadgePainter(
+                                        colors: palettes[index],
+                                        level: index,
+                                        isGift: widget.isGift,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              Text(
+                                names[index],
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+
+                              const SizedBox(height: 9),
+
+                              Container(
+                                width: double.infinity,
+                                padding:
+                                    const EdgeInsets.symmetric(
+                                  vertical: 9,
+                                  horizontal: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: darkBlue,
+                                  borderRadius:
+                                      BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: selected
+                                        ? gold
+                                        : const Color(0xFF304660),
+                                  ),
+                                ),
+                                child: Text(
+                                  points[index].toString(),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: gold,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 7),
+
+                              Text(
+                                selected
+                                    ? 'PREVIEWING'
+                                    : 'VIEW BADGE',
+                                style: TextStyle(
+                                  color: selected
+                                      ? gold
+                                      : Colors.white54,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RoyalBadgePainter extends CustomPainter {
+  _RoyalBadgePainter({
+    required this.colors,
+    required this.level,
+    required this.isGift,
+  });
+
+  final List<Color> colors;
+  final int level;
+  final bool isGift;
+
+  static const Color gold = Color(0xFFFFD780);
+  static const Color dark = Color(0xFF071426);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double unit =
+        size.shortestSide / 180;
+
+    canvas.save();
+
+    canvas.translate(
+      (size.width - 180 * unit) / 2,
+      (size.height - 180 * unit) / 2,
+    );
+
+    canvas.scale(unit);
+
+    final Rect bounds = const Rect.fromLTWH(
+      8,
+      8,
+      164,
+      164,
+    );
+
+    // Outer shadow
+    canvas.drawOval(
+      bounds.shift(const Offset(0, 5)),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.5)
+        ..maskFilter = const MaskFilter.blur(
+          BlurStyle.normal,
+          8,
+        ),
+    );
+
+    // Outer metallic ring
+    canvas.drawOval(
+      bounds,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFFFFFF),
+            Color(0xFFFFD76C),
+            Color(0xFF9D570C),
+            Color(0xFFFFF0B0),
+          ],
+        ).createShader(bounds),
+    );
+
+    // Dark inset ring
+    canvas.drawOval(
+      const Rect.fromLTWH(15, 15, 150, 150),
+      Paint()..color = dark,
+    );
+
+    // Jewel ring
+    canvas.drawOval(
+      const Rect.fromLTWH(20, 20, 140, 140),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ).createShader(bounds),
+    );
+
+    // Main badge face
+    canvas.drawOval(
+      const Rect.fromLTWH(27, 27, 126, 126),
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(-0.4, -0.6),
+          radius: 1.2,
+          colors: [
+            colors[0],
+            colors[1],
+            colors[2],
+          ],
+        ).createShader(bounds),
+    );
+
+    // Inner metallic border
+    canvas.drawOval(
+      const Rect.fromLTWH(31, 31, 118, 118),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = gold.withValues(alpha: 0.9),
+    );
+
+    // Royal crown silhouette
+    final Path crown = Path()
+      ..moveTo(49, 69)
+      ..lineTo(40, 47)
+      ..lineTo(61, 59)
+      ..lineTo(76, 34)
+      ..lineTo(91, 59)
+      ..lineTo(112, 47)
+      ..lineTo(103, 69)
+      ..close();
+
+    canvas.drawPath(
+      crown,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFFFFFE0),
+            Color(0xFFFFD24D),
+            Color(0xFF9E5700),
+          ],
+        ).createShader(
+          const Rect.fromLTWH(40, 34, 72, 35),
+        ),
+    );
+
+    canvas.drawPath(
+      crown,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = const Color(0xFFFFF2B3),
+    );
+
+    // Crown base
+    final Rect crownBase = const Rect.fromLTWH(
+      48,
+      66,
+      56,
+      9,
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        crownBase,
+        const Radius.circular(2),
+      ),
+      Paint()
+        ..shader = const LinearGradient(
+          colors: [
+            Color(0xFFFFF3B0),
+            Color(0xFFFFBF32),
+            Color(0xFF9B5200),
+          ],
+        ).createShader(crownBase),
+    );
+
+    // Crown jewels
+    for (final Offset gem in const [
+      Offset(50, 47),
+      Offset(76, 35),
+      Offset(102, 47),
+    ]) {
+      canvas.drawCircle(
+        gem,
+        3.5,
+        Paint()
+          ..shader = const RadialGradient(
+            colors: [
+              Colors.white,
+              Color(0xFF56E8FF),
+              Color(0xFF1350A0),
+            ],
+          ).createShader(
+            Rect.fromCircle(
+              center: gem,
+              radius: 3.5,
+            ),
+          ),
+      );
+    }
+
+    // Category symbol
+    final IconData symbol = isGift
+        ? Icons.card_giftcard_rounded
+        : Icons.diamond_rounded;
+
+    final TextPainter iconPainter = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(symbol.codePoint),
+        style: TextStyle(
+          fontFamily: symbol.fontFamily,
+          package: symbol.fontPackage,
+          fontSize: 31,
+          color: Colors.white,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    iconPainter.layout();
+
+    iconPainter.paint(
+      canvas,
+      Offset(
+        90 - iconPainter.width / 2,
+        79,
+      ),
+    );
+
+    // Number plate
+    final Rect plate = const Rect.fromLTWH(
+      34,
+      116,
+      112,
+      25,
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        plate,
+        const Radius.circular(7),
+      ),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFF253A51),
+            Color(0xFF050D18),
+          ],
+        ).createShader(plate),
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        plate,
+        const Radius.circular(7),
+      ),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = gold,
+    );
+
+    // Only the number is written on the badge.
+    final String number = (level + 1) == 10
+        ? '1000000'
+        : '${(level + 1) * 100000}';
+
+    final TextPainter numberPainter = TextPainter(
+      text: TextSpan(
+        text: number,
+        style: const TextStyle(
+          color: Color(0xFFFFD780),
+          fontSize: 14,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.4,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+
+    numberPainter.layout(maxWidth: 106);
+
+    numberPainter.paint(
+      canvas,
+      Offset(
+        90 - numberPainter.width / 2,
+        121.5,
+      ),
+    );
+
+    // Decorative side studs
+    for (int i = 0; i < 8; i++) {
+      final double angle =
+          (i * 3.141592653589793) / 4;
+
+      final Offset point = Offset(
+        90 + 72 * _cos(angle),
+        90 + 72 * _sin(angle),
+      );
+
+      canvas.drawCircle(
+        point,
+        2.3,
+        Paint()..color = gold,
+      );
+
+      canvas.drawCircle(
+        point,
+        1,
+        Paint()..color = Colors.white,
+      );
+    }
+
+    // Higher levels get extra diamond-shaped decorations.
+    if (level >= 4) {
+      final Path jewel = Path()
+        ..moveTo(90, 11)
+        ..lineTo(96, 19)
+        ..lineTo(90, 27)
+        ..lineTo(84, 19)
+        ..close();
+
+      canvas.drawPath(
+        jewel,
+        Paint()
+          ..shader = const LinearGradient(
+            colors: [
+              Colors.white,
+              Color(0xFF65E7FF),
+              Color(0xFF2254B7),
+            ],
+          ).createShader(
+            const Rect.fromLTWH(84, 11, 12, 16),
+          ),
+      );
+    }
+
+    // Extra royal ornament for the top levels.
+    if (level >= 7) {
+      final Path ornament = Path()
+        ..moveTo(90, 1)
+        ..lineTo(94, 8)
+        ..lineTo(102, 9)
+        ..lineTo(96, 14)
+        ..lineTo(98, 21)
+        ..lineTo(90, 17)
+        ..lineTo(82, 21)
+        ..lineTo(84, 14)
+        ..lineTo(78, 9)
+        ..lineTo(86, 8)
+        ..close();
+
+      canvas.drawPath(
+        ornament,
+        Paint()
+          ..shader = const LinearGradient(
+            colors: [
+              Colors.white,
+              Color(0xFFFFD65A),
+              Color(0xFFB56C00),
+            ],
+          ).createShader(
+            const Rect.fromLTWH(78, 1, 24, 20),
+          ),
+      );
+    }
+
+    canvas.restore();
+  }
+
+  double _cos(double value) {
+    // Small angle helper for the decorative studs.
+    return _trig(value, true);
+  }
+
+  double _sin(double value) {
+    return _trig(value, false);
+  }
+
+  double _trig(double value, bool cosine) {
+    return cosine
+        ? _cosValue(value)
+        : _sinValue(value);
+  }
+
+  double _cosValue(double value) {
+    // Convert angle to radians for the circular ornament.
+    return _TaylorTrig.cos(value);
+  }
+
+  double _sinValue(double value) {
+    return _TaylorTrig.sin(value);
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant _RoyalBadgePainter oldDelegate,
+  ) {
+    return oldDelegate.level != level ||
+        oldDelegate.isGift != isGift ||
+        oldDelegate.colors != colors;
+  }
+}
+
+class _TaylorTrig {
+  static double sin(double x) {
+    double result = 0;
+    double term = x;
+
+    for (int n = 0; n < 8; n++) {
+      result += term;
+      term *=
+          -(x * x) / ((2 * n + 2) * (2 * n + 3));
+    }
+
+    return result;
+  }
+
+  static double cos(double x) {
+    double result = 0;
+    double term = 1;
+
+    for (int n = 0; n < 8; n++) {
+      result += term;
+      term *=
+          -(x * x) / ((2 * n + 1) * (2 * n + 2));
+    }
+
+    return result;
   }
 }
 
