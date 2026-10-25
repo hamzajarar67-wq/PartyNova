@@ -3658,6 +3658,8 @@ class _OrnamentsGalleryPageState
   }
 }
 
+
+
 class PvipPage extends StatefulWidget {
   const PvipPage({super.key});
 
@@ -3666,116 +3668,111 @@ class PvipPage extends StatefulWidget {
 }
 
 class _PvipPageState extends State<PvipPage> {
-  static const Color _background = Color(0xFF080B14);
-  static const Color _card = Color(0xFF121827);
+  static const Color _background = Color(0xFF050913);
+  static const Color _panel = Color(0xFF0C1424);
   static const Color _gold = Color(0xFFFFC857);
 
   int _selectedLevel = 1;
+
   final Set<String> _selectedOptions = {};
 
   static const List<Color> _levelColors = [
     Color(0xFFFFC857),
-    Color(0xFF45B7FF),
-    Color(0xFF45E6A5),
-    Color(0xFFB58AFF),
-    Color(0xFFFF6685),
-    Color(0xFF42E5E5),
-    Color(0xFFFF8C42),
+    Color(0xFF20A7FF),
+    Color(0xFF16E59A),
+    Color(0xFFB56BFF),
+    Color(0xFFFF438A),
+    Color(0xFF20D9E8),
+    Color(0xFFFF8A24),
   ];
 
-  static const List<List<Map<String, dynamic>>> _levelOptions = [
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-      {'name': 'Chat Colour', 'icon': Icons.chat_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-      {'name': 'Chat Colour', 'icon': Icons.chat_rounded},
-      {'name': 'Profile Aura', 'icon': Icons.blur_on_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-      {'name': 'Chat Colour', 'icon': Icons.chat_rounded},
-      {'name': 'Profile Aura', 'icon': Icons.blur_on_rounded},
-      {'name': 'Royal Crown', 'icon': Icons.workspace_premium_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-      {'name': 'Chat Colour', 'icon': Icons.chat_rounded},
-      {'name': 'Profile Aura', 'icon': Icons.blur_on_rounded},
-      {'name': 'Royal Crown', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'VIP Halo', 'icon': Icons.flare_rounded},
-    ],
-    [
-      {'name': 'Special Frame', 'icon': Icons.crop_free_rounded},
-      {'name': 'Special Theme', 'icon': Icons.palette_rounded},
-      {'name': 'Ornaments', 'icon': Icons.diamond_rounded},
-      {'name': 'Special Entry', 'icon': Icons.flash_on_rounded},
-      {'name': 'Name Colour', 'icon': Icons.format_color_text_rounded},
-      {'name': 'Special Badge', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'Mic Glow', 'icon': Icons.mic_rounded},
-      {'name': 'Name Shine', 'icon': Icons.auto_awesome_rounded},
-      {'name': 'Chat Colour', 'icon': Icons.chat_rounded},
-      {'name': 'Profile Aura', 'icon': Icons.blur_on_rounded},
-      {'name': 'Royal Crown', 'icon': Icons.workspace_premium_rounded},
-      {'name': 'VIP Halo', 'icon': Icons.flare_rounded},
-      {'name': 'Legend Effect', 'icon': Icons.stars_rounded},
-    ],
+  static const List<Map<String, dynamic>> _baseOptions = [
+    {
+      'name': 'Special Frame',
+      'icon': Icons.crop_free_rounded,
+    },
+    {
+      'name': 'Special Theme',
+      'icon': Icons.palette_rounded,
+    },
+    {
+      'name': 'Ornaments',
+      'icon': Icons.diamond_rounded,
+    },
+    {
+      'name': 'Special Entry',
+      'icon': Icons.flash_on_rounded,
+    },
+    {
+      'name': 'Name Colour',
+      'icon': Icons.format_color_text_rounded,
+    },
+    {
+      'name': 'Special Badge',
+      'icon': Icons.workspace_premium_rounded,
+    },
+    {
+      'name': 'Mic Glow',
+      'icon': Icons.mic_rounded,
+    },
+  ];
+
+  static const List<Map<String, dynamic>> _extraOptions = [
+    {
+      'name': 'Name Shine',
+      'icon': Icons.auto_awesome_rounded,
+    },
+    {
+      'name': 'Chat Colour',
+      'icon': Icons.chat_bubble_rounded,
+    },
+    {
+      'name': 'Profile Aura',
+      'icon': Icons.blur_on_rounded,
+    },
+    {
+      'name': 'Royal Crown',
+      'icon': Icons.emoji_events_rounded,
+    },
+    {
+      'name': 'VIP Halo',
+      'icon': Icons.flare_rounded,
+    },
+    {
+      'name': 'Legend Effect',
+      'icon': Icons.stars_rounded,
+    },
   ];
 
   Color get _currentColor => _levelColors[_selectedLevel - 1];
 
+  List<Map<String, dynamic>> get _currentOptions {
+    final count = _selectedLevel - 1;
+
+    return [
+      ..._baseOptions,
+      ..._extraOptions.take(count),
+    ];
+  }
+
+  String _levelTitle(int level) {
+    const titles = [
+      'STARTER',
+      'BRONZE',
+      'SILVER',
+      'GOLD',
+      'PLATINUM',
+      'DIAMOND',
+      'ROYAL LEGEND',
+    ];
+
+    return titles[level - 1];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final options = _levelOptions[_selectedLevel - 1];
     final color = _currentColor;
+    final options = _currentOptions;
 
     return Scaffold(
       backgroundColor: _background,
@@ -3783,187 +3780,455 @@ class _PvipPageState extends State<PvipPage> {
         backgroundColor: _background,
         foregroundColor: _gold,
         elevation: 0,
-        title: const Text(
-          'PLAYVIBE PVIP',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_rounded),
+          onPressed: () => Navigator.of(context).pop(),
         ),
+        title: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.workspace_premium_rounded,
+              color: _gold,
+              size: 23,
+            ),
+            SizedBox(width: 8),
+            Text(
+              'PLAYVIBE PVIP',
+              style: TextStyle(
+                color: _gold,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                fontSize: 17,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 8),
-
-            // Selected PVIP badge
-            Container(
-              width: 132,
-              height: 132,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    color.withOpacity(0.30),
-                    _card,
-                  ],
-                ),
-                border: Border.all(color: color, width: 2.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withOpacity(0.25),
-                    blurRadius: 24,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.workspace_premium_rounded,
-                    color: color,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'PVIP $_selectedLevel',
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 21,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 22),
-
-            // Horizontal PVIP selector
-            SizedBox(
-              height: 58,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                itemCount: 7,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(width: 9),
-                itemBuilder: (context, index) {
-                  final level = index + 1;
-                  final selected = level == _selectedLevel;
-                  final levelColor = _levelColors[index];
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedLevel = level;
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      width: 82,
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? levelColor.withOpacity(0.16)
-                            : _card,
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(
-                          color: selected
-                              ? levelColor
-                              : Colors.white12,
-                          width: selected ? 2 : 1,
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'PVIP $level',
-                        style: TextStyle(
-                          color: levelColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 22),
-
-            // Compact three-column options
             Expanded(
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-                itemCount: options.length,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 0.96,
-                ),
-                itemBuilder: (context, index) {
-                  final option = options[index];
-                  final name = option['name'] as String;
-                  final icon = option['icon'] as IconData;
-                  final key = '$_selectedLevel-$name';
-                  final selected = _selectedOptions.contains(key);
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 12),
 
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (selected) {
-                          _selectedOptions.remove(key);
-                        } else {
-                          _selectedOptions.add(key);
-                        }
-                      });
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 160),
-                      decoration: BoxDecoration(
-                        color: selected
-                            ? color.withOpacity(0.15)
-                            : _card,
-                        borderRadius: BorderRadius.circular(13),
-                        border: Border.all(
-                          color: selected
-                              ? color
-                              : Colors.white10,
-                          width: selected ? 1.7 : 1,
-                        ),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 4,
-                        vertical: 10,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                    // Main PVIP badge
+                    SizedBox(
+                      width: 240,
+                      height: 218,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Icon(
-                            icon,
-                            color: color,
-                            size: 27,
+                          Container(
+                            width: 195,
+                            height: 195,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: RadialGradient(
+                                colors: [
+                                  color.withOpacity(0.25),
+                                  color.withOpacity(0.08),
+                                  _background,
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withOpacity(0.20),
+                                  blurRadius: 45,
+                                  spreadRadius: 8,
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 9),
-                          Text(
-                            name,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
+                          Container(
+                            width: 158,
+                            height: 158,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  color.withOpacity(0.75),
+                                  _background,
+                                  color.withOpacity(0.35),
+                                ],
+                              ),
+                              border: Border.all(
+                                color: color,
+                                width: 3,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: color.withOpacity(0.40),
+                                  blurRadius: 22,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Container(
+                            width: 135,
+                            height: 135,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: _background,
+                              border: Border.all(
+                                color: color.withOpacity(0.85),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 20,
+                            child: Icon(
+                              Icons.workspace_premium_rounded,
+                              color: color,
+                              size: 44,
+                              shadows: [
+                                Shadow(
+                                  color: color.withOpacity(0.8),
+                                  blurRadius: 18,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            top: 79,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'PVIP',
+                                  style: TextStyle(
+                                    color: color,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                Text(
+                                  '$_selectedLevel',
+                                  style: TextStyle(
+                                    color: color,
+                                    fontSize: 43,
+                                    height: 1,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            child: Icon(
+                              Icons.star_rounded,
+                              color: color,
+                              size: 25,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 13,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _background,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: color,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Text(
+                                _levelTitle(_selectedLevel),
+                                style: TextStyle(
+                                  color: color,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.4,
+                                ),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
+
+                    const SizedBox(height: 8),
+
+                    // Horizontal level selector
+                    SizedBox(
+                      height: 83,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        itemCount: 7,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(width: 9),
+                        itemBuilder: (context, index) {
+                          final level = index + 1;
+                          final levelColor = _levelColors[index];
+                          final isSelected =
+                              level == _selectedLevel;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedLevel = level;
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(
+                                milliseconds: 200,
+                              ),
+                              width: 70,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? levelColor.withOpacity(0.13)
+                                    : _panel,
+                                borderRadius:
+                                    BorderRadius.circular(15),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? levelColor
+                                      : levelColor.withOpacity(0.45),
+                                  width: isSelected ? 2 : 1,
+                                ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: levelColor
+                                              .withOpacity(0.25),
+                                          blurRadius: 14,
+                                        ),
+                                      ]
+                                    : [],
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.workspace_premium_rounded,
+                                    color: levelColor,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    'PVIP $level',
+                                    style: TextStyle(
+                                      color: levelColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Selected level options heading
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 23,
+                            decoration: BoxDecoration(
+                              color: color,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'PVIP $_selectedLevel OPTIONS',
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.1,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            Icons.diamond_rounded,
+                            color: color,
+                            size: 21,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 13),
+
+                    // Three options per row
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 13,
+                      ),
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics:
+                            const NeverScrollableScrollPhysics(),
+                        itemCount: options.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 9,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.94,
+                        ),
+                        itemBuilder: (context, index) {
+                          final option = options[index];
+                          final name = option['name'] as String;
+                          final icon = option['icon'] as IconData;
+                          final optionKey =
+                              '$_selectedLevel-$name';
+                          final isSelected =
+                              _selectedOptions.contains(optionKey);
+
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                if (isSelected) {
+                                  _selectedOptions.remove(optionKey);
+                                } else {
+                                  _selectedOptions.add(optionKey);
+                                }
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(
+                                milliseconds: 180,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? color.withOpacity(0.14)
+                                    : _panel,
+                                borderRadius:
+                                    BorderRadius.circular(13),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? color
+                                      : color.withOpacity(0.42),
+                                  width: isSelected ? 1.8 : 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: color.withOpacity(
+                                      isSelected ? 0.19 : 0.06,
+                                    ),
+                                    blurRadius: isSelected ? 13 : 6,
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    icon,
+                                    color: color,
+                                    size: 31,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    name,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10.5,
+                                      height: 1.15,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    const SizedBox(height: 22),
+
+                    // Level footer
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 26,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 1.5,
+                              color: color.withOpacity(0.75),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            child: Icon(
+                              Icons.workspace_premium_rounded,
+                              color: color,
+                              size: 25,
+                            ),
+                          ),
+                          Text(
+                            'PVIP $_selectedLevel',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                            child: Icon(
+                              Icons.workspace_premium_rounded,
+                              color: color,
+                              size: 25,
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1.5,
+                              color: color.withOpacity(0.75),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -3972,6 +4237,9 @@ class _PvipPageState extends State<PvipPage> {
     );
   }
 }
+
+
+
 
 
 
