@@ -1171,7 +1171,7 @@ Widget _buildGamesTab() {
     {
       'title': 'ONE VS ONE',
       'subtitle': 'BATTLE',
-      'image': 'assets/games/one_vs_one.png',
+      'image': 'assets/games/1792928262794.jpg',
       'colors': [Color(0xFFFFD700), Colors.white],
     },
     {
