@@ -3461,6 +3461,7 @@ Widget build(BuildContext context) {
 }
 
 class ThemesGalleryPage extends StatefulWidget {
+  final String photoBase64;
   final String userName;
 
   const ThemesGalleryPage({
@@ -3470,8 +3471,7 @@ class ThemesGalleryPage extends StatefulWidget {
   });
 
   @override
-  State<ThemesGalleryPage> createState() =>
-      _ThemesGalleryPageState();
+  State<ThemesGalleryPage> createState() => _ThemesGalleryPageState();
 }
 
 class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
