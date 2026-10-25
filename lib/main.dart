@@ -1167,7 +1167,7 @@ Widget _buildGamesTab() {
   const gold = Color(0xFFFFD700);
   const panel = Color(0xFF21101F);
 
-  final games = [
+    final games = [
     {
       'title': 'ONE VS ONE',
       'subtitle': 'BATTLE',
@@ -1177,19 +1177,19 @@ Widget _buildGamesTab() {
     {
       'title': 'PRIVATE',
       'subtitle': 'MATCH',
-      'image': 'assets/games/private_match.png',
+      'image': 'assets/games/51a253a0f1625ec50129f8e42b47d04f.jpg',
       'colors': [Colors.white, Color(0xFFFFD700)],
     },
     {
       'title': 'TEAM',
       'subtitle': 'BATTLE',
-      'image': 'assets/games/team_battle.png',
+      'image': 'assets/games/c7af476b6d7b192bab7a4669bcdf984a.jpg',
       'colors': [Color(0xFFFF4F65), Color(0xFFFFD700)],
     },
     {
       'title': 'CARD',
       'subtitle': 'TOURNAMENT',
-      'image': 'assets/games/tournament.png',
+      'image': 'assets/games/f8d8884d16186cdc6997747d5c695a48.jpg',
       'colors': [Color(0xFF65C7FF), Color(0xFFB58CFF)],
     },
   ];
