@@ -1985,11 +1985,17 @@ TextField(
 ),
 
             _editOption(
-              icon: Icons.verified_rounded,
-              title: 'Royal Badge',
-              subtitle: 'Royal profile badge',
-              onTap: () => _showComingSoon('Royal Badge'),
-            ),
+  icon: Icons.workspace_premium_rounded,
+  title: 'CROWN',
+  subtitle: 'Royal crown collection',
+  onTap: () {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const CrownGalleryPage(),
+      ),
+    );
+  },
+),
 
             _editOption(
               icon: Icons.sports_esports_rounded,
@@ -4751,7 +4757,637 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
 
 
 
+class CrownGalleryPage extends StatefulWidget {
+  const CrownGalleryPage({super.key});
 
+  @override
+  State<CrownGalleryPage> createState() => _CrownGalleryPageState();
+}
+
+class _CrownGalleryPageState extends State<CrownGalleryPage> {
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color boxBlue = Color(0xFF102746);
+  static const Color gold = Color(0xFFFFC857);
+
+  int selectedLevel = 0;
+  int previewLevel = 0;
+
+  final List<Map<String, dynamic>> crowns = [
+    {
+      'name': 'Bronze Crown',
+      'metal': const Color(0xFFCD8B48),
+      'dark': const Color(0xFF633817),
+      'gem': const Color(0xFFFFD28A),
+      'glow': const Color(0xFFCD8B48),
+    },
+    {
+      'name': 'Silver Crown',
+      'metal': const Color(0xFFE0E8F2),
+      'dark': const Color(0xFF65788F),
+      'gem': const Color(0xFF9FEAFF),
+      'glow': const Color(0xFFB9D9F5),
+    },
+    {
+      'name': 'Golden Crown',
+      'metal': const Color(0xFFFFD65C),
+      'dark': const Color(0xFF85570B),
+      'gem': const Color(0xFFFFF2B0),
+      'glow': const Color(0xFFFFD65C),
+    },
+    {
+      'name': 'Purple Royal Crown',
+      'metal': const Color(0xFFD6A5FF),
+      'dark': const Color(0xFF54217D),
+      'gem': const Color(0xFFFFC6F5),
+      'glow': const Color(0xFFB56BFF),
+    },
+    {
+      'name': 'Diamond Crown',
+      'metal': const Color(0xFF8BEAFF),
+      'dark': const Color(0xFF15547A),
+      'gem': const Color(0xFFFFFFFF),
+      'glow': const Color(0xFF55DFFF),
+    },
+    {
+      'name': 'Flame Crown',
+      'metal': const Color(0xFFFFA45E),
+      'dark': const Color(0xFF7D2518),
+      'gem': const Color(0xFFFFE16C),
+      'glow': const Color(0xFFFF633D),
+    },
+    {
+      'name': 'Legendary Crown',
+      'metal': const Color(0xFFFFE7A0),
+      'dark': const Color(0xFF65460C),
+      'gem': const Color(0xFFFF4E8A),
+      'glow': const Color(0xFFFFD45C),
+    },
+  ];
+
+  Map<String, dynamic> get currentCrown => crowns[previewLevel];
+
+  @override
+  Widget build(BuildContext context) {
+    final crown = currentCrown;
+    final Color metal = crown['metal'] as Color;
+    final Color crownGlow = crown['glow'] as Color;
+
+    return Scaffold(
+      backgroundColor: darkBlue,
+      appBar: AppBar(
+        backgroundColor: darkBlue,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(
+            Icons.arrow_back_rounded,
+            color: gold,
+          ),
+        ),
+        title: const Text(
+          'CROWN COLLECTION',
+          style: TextStyle(
+            color: gold,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.3,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionLabel('ROYAL PREVIEW'),
+              const SizedBox(height: 12),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 22,
+                ),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF132C49),
+                      Color(0xFF09172A),
+                      Color(0xFF102441),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: metal.withOpacity(0.75),
+                    width: 1.4,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 150,
+                      height: 135,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: crownGlow.withOpacity(0.06),
+                        boxShadow: [
+                          BoxShadow(
+                            color: crownGlow.withOpacity(0.22),
+                            blurRadius: 35,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: CustomPaint(
+                        painter: _CrownPainter(
+                          metal: metal,
+                          darkMetal: crown['dark'] as Color,
+                          gem: crown['gem'] as Color,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'CROWN ${previewLevel + 1}',
+                      style: TextStyle(
+                        color: metal,
+                        fontSize: 23,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      crown['name'] as String,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'ROYAL EDITION',
+                      style: TextStyle(
+                        color: metal.withOpacity(0.85),
+                        fontSize: 10,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              _sectionLabel('CHOOSE YOUR CROWN'),
+              const SizedBox(height: 12),
+
+              SizedBox(
+                height: 47,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: crowns.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final bool active = previewLevel == index;
+                    final item = crowns[index];
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          previewLevel = index;
+                          selectedLevel = index;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 15,
+                        ),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: active ? gold : boxBlue,
+                          borderRadius: BorderRadius.circular(11),
+                          border: Border.all(
+                            color: active
+                                ? gold
+                                : (item['metal'] as Color)
+                                    .withOpacity(0.6),
+                            width: 1.2,
+                          ),
+                        ),
+                        child: Text(
+                          'CROWN ${index + 1}',
+                          style: TextStyle(
+                            color: active ? darkBlue : Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 22),
+              _sectionLabel('PREVIEW ON YOUR PROFILE'),
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: boxBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: metal.withOpacity(0.55),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 74,
+                      height: 74,
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: metal,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: crownGlow.withOpacity(0.3),
+                            blurRadius: 14,
+                          ),
+                        ],
+                      ),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF263A52),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person_rounded,
+                          size: 42,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Profile DP Frame',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'CROWN ${previewLevel + 1} colour preview',
+                            style: TextStyle(
+                              color: metal,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Demo preview only',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: boxBlue,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: crownGlow.withOpacity(0.65),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: crownGlow.withOpacity(0.09),
+                        border: Border.all(
+                          color: crownGlow,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: crownGlow.withOpacity(0.3),
+                            blurRadius: 16,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.mic_rounded,
+                        size: 31,
+                        color: crownGlow,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Room Mic Glow',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'CROWN ${previewLevel + 1} colour preview',
+                            style: TextStyle(
+                              color: crownGlow,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Room connection comes later',
+                            style: TextStyle(
+                              color: Colors.white54,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedLevel = previewLevel;
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'CROWN ${selectedLevel + 1} selected for demo only',
+                        ),
+                        backgroundColor: boxBlue,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: gold,
+                    foregroundColor: darkBlue,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(13),
+                    ),
+                  ),
+                  child: Text(
+                    'SELECT CROWN ${previewLevel + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 10),
+              const Center(
+                child: Text(
+                  'UI DEMO • FEATURES WILL BE CONNECTED LATER',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontSize: 10,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 17,
+          decoration: BoxDecoration(
+            color: gold,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: const TextStyle(
+            color: gold,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CrownPainter extends CustomPainter {
+  final Color metal;
+  final Color darkMetal;
+  final Color gem;
+
+  _CrownPainter({
+    required this.metal,
+    required this.darkMetal,
+    required this.gem,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double scale = size.width / 150;
+
+    canvas.save();
+    canvas.scale(scale);
+
+    final crownPath = Path()
+      ..moveTo(25, 45)
+      ..lineTo(12, 18)
+      ..lineTo(43, 35)
+      ..lineTo(58, 8)
+      ..lineTo(75, 32)
+      ..lineTo(98, 7)
+      ..lineTo(108, 35)
+      ..lineTo(138, 18)
+      ..lineTo(125, 45)
+      ..lineTo(116, 94)
+      ..quadraticBezierTo(75, 106, 34, 94)
+      ..close();
+
+    final metalPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withOpacity(0.85),
+          metal,
+          darkMetal,
+          metal,
+          Colors.white.withOpacity(0.55),
+        ],
+        stops: const [0, 0.22, 0.52, 0.78, 1],
+      ).createShader(
+        const Rect.fromLTWH(10, 5, 130, 105),
+      );
+
+    canvas.drawPath(crownPath, metalPaint);
+
+    final outlinePaint = Paint()
+      ..color = metal.withOpacity(0.95)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    canvas.drawPath(crownPath, outlinePaint);
+
+    final bandPath = Path()
+      ..moveTo(34, 79)
+      ..quadraticBezierTo(75, 91, 116, 79)
+      ..lineTo(120, 95)
+      ..quadraticBezierTo(75, 108, 30, 95)
+      ..close();
+
+    canvas.drawPath(
+      bandPath,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [metal, darkMetal, metal],
+        ).createShader(
+          const Rect.fromLTWH(25, 78, 100, 30),
+        ),
+    );
+
+    final linePaint = Paint()
+      ..color = Colors.white.withOpacity(0.5)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    canvas.drawLine(
+      const Offset(25, 45),
+      const Offset(125, 45),
+      linePaint,
+    );
+
+    final gemPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          Colors.white,
+          gem,
+          darkMetal,
+        ],
+      ).createShader(
+        const Rect.fromCircle(
+          center: Offset(75, 60),
+          radius: 12,
+        ),
+      );
+
+    canvas.drawCircle(
+      const Offset(75, 60),
+      11,
+      gemPaint,
+    );
+
+    final smallGemPaint = Paint()..color = gem;
+
+    for (final point in const [
+      Offset(44, 72),
+      Offset(106, 72),
+      Offset(58, 84),
+      Offset(92, 84),
+    ]) {
+      canvas.drawCircle(point, 4, smallGemPaint);
+
+      canvas.drawCircle(
+        point.translate(-1, -1),
+        1.4,
+        Paint()..color = Colors.white.withOpacity(0.85),
+      );
+    }
+
+    final sparklePaint = Paint()
+      ..color = Colors.white.withOpacity(0.9)
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+
+    for (final point in const [
+      Offset(18, 35),
+      Offset(132, 35),
+      Offset(58, 19),
+      Offset(99, 19),
+    ]) {
+      canvas.drawLine(
+        Offset(point.dx - 4, point.dy),
+        Offset(point.dx + 4, point.dy),
+        sparklePaint,
+      );
+
+      canvas.drawLine(
+        Offset(point.dx, point.dy - 4),
+        Offset(point.dx, point.dy + 4),
+        sparklePaint,
+      );
+    }
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _CrownPainter oldDelegate) {
+    return oldDelegate.metal != metal ||
+        oldDelegate.darkMetal != darkMetal ||
+        oldDelegate.gem != gem;
+  }
+}
 
 
 
