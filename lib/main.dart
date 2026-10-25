@@ -1370,7 +1370,34 @@ Widget _buildGamesTab() {
 }
 
 
-
+Widget _buildPlaceholderTab(IconData icon, String title) {
+  return Center(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 64,
+          color: const Color(0xFFFFD700),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Coming soon',
+          style: TextStyle(color: Colors.white54),
+        ),
+      ],
+    ),
+  );
+}
 
    Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
