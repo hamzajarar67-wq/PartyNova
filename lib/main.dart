@@ -2023,23 +2023,23 @@ TextField(
   },
 ),
 
-_editOption(
-  icon: Icons.card_giftcard_rounded,
-  title: 'Gift Badge',
-  subtitle: 'Your gift badge collection',
-  onTap: () {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => const GiftBadgeGalleryPage(),
-      ),
-    );
-  },
-),
-
+            _editOption(
+              icon: Icons.card_giftcard_rounded,
+              title: 'Gift Badge',
+              subtitle: 'Your gift badge collection',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const GiftBadgeGalleryPage(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
   Widget _sectionTitle(String title) {
     return Padding(
