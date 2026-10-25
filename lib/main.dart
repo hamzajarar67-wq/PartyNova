@@ -1187,10 +1187,12 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     );
   }
 
-Widget _buildRoomsTab() {
+
+ Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
   const pink = Color(0xFFFF4FA3);
   const panel = Color(0xFF21101F);
+  const purple = Color(0xFF392047);
 
   final filters = ['All Room', 'Popular Room', 'My Room'];
 
@@ -1201,6 +1203,8 @@ Widget _buildRoomsTab() {
     {'name': 'Party Room', 'uid': '456789', 'members': 12},
     {'name': 'Music Room', 'uid': '567890', 'members': 6},
     {'name': 'Fun Room', 'uid': '678901', 'members': 4},
+    {'name': 'Chill Room', 'uid': '789012', 'members': 7},
+    {'name': 'Vibe Room', 'uid': '890123', 'members': 9},
   ];
 
   return Container(
@@ -1209,34 +1213,46 @@ Widget _buildRoomsTab() {
       top: false,
       child: Column(
         children: [
-          // Search button
+          // Search box
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                width: 48,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: panel,
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: gold, width: 1),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+            child: Container(
+              height: 50,
+              decoration: BoxDecoration(
+                color: panel,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: pink,
+                  width: 1.3,
                 ),
-                child: IconButton(
-                  icon: const Icon(
+              ),
+              child: TextField(
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+                cursorColor: pink,
+                decoration: InputDecoration(
+                  hintText: 'Search UID and Room',
+                  hintStyle: const TextStyle(
+                    color: Colors.white60,
+                    fontSize: 14,
+                  ),
+                  prefixIcon: const Icon(
                     Icons.search_rounded,
                     color: gold,
-                    size: 27,
+                    size: 25,
                   ),
-                  onPressed: () {
-                    // Search functionality will be connected later.
-                  },
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
           ),
 
-          // Three filters inside one box
+          // All Room / Popular Room / My Room
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Container(
@@ -1265,11 +1281,11 @@ Widget _buildRoomsTab() {
                         curve: Curves.easeInOut,
                         padding: const EdgeInsets.symmetric(
                           vertical: 12,
-                          horizontal: 3,
+                          horizontal: 2,
                         ),
                         decoration: BoxDecoration(
                           color: selected
-                              ? pink.withValues(alpha: 0.22)
+                              ? pink.withValues(alpha: 0.20)
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(
@@ -1322,16 +1338,16 @@ Widget _buildRoomsTab() {
 
           const SizedBox(height: 14),
 
-          // Scrollable two-column room cards
+          // Scrollable room cards
           Expanded(
             child: GridView.builder(
-              padding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 20),
               itemCount: rooms.length,
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
-                mainAxisSpacing: 14,
+                mainAxisSpacing: 18,
                 childAspectRatio: 0.76,
               ),
               itemBuilder: (context, index) {
@@ -1346,114 +1362,132 @@ Widget _buildRoomsTab() {
                       width: 1.2,
                     ),
                   ),
-                  clipBehavior: Clip.antiAlias,
+                  clipBehavior: Clip.none,
                   child: Column(
                     children: [
-                      // Large room picture with member count
+                      // Large room picture
                       Expanded(
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF54244F),
-                                    Color(0xFF21101F),
-                                    Color(0xFF392047),
-                                  ],
-                                ),
-                              ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.groups_rounded,
-                                  size: 66,
-                                  color: Color(0xFFFFB9DD),
-                                ),
-                              ),
-                            ),
-
-                            Positioned(
-                              top: 9,
-                              right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: pink,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.white24,
+                        child: ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(15),
+                          ),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color(0xFF54244F),
+                                      Color(0xFF21101F),
+                                      Color(0xFF392047),
+                                    ],
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.people_alt_rounded,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${room['members']}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.groups_rounded,
+                                    size: 66,
+                                    color: Color(0xFFFFB9DD),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+
+                              // Pink member count
+                              Positioned(
+                                top: 9,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: pink,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.white24,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.people_alt_rounded,
+                                        color: Colors.white,
+                                        size: 14,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${room['members']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
 
-                      // Room name and owner's UID
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(7, 10, 7, 11),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF160D19),
-                          border: Border(
-                            top: BorderSide(
-                              color: pink.withValues(alpha: 0.7),
+                      // Room name box extends slightly outward
+                      Transform.translate(
+                        offset: const Offset(0, 5),
+                        child: Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 7,
+                          ),
+                          padding: const EdgeInsets.fromLTRB(
+                            5,
+                            9,
+                            5,
+                            10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: purple,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: pink,
                               width: 1,
                             ),
                           ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              room['name'].toString(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                          child: Column(
+                            children: [
+                              Text(
+                                room['name'].toString(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'UID: ${room['uid']}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xFFFFB9DD),
-                                fontSize: 11,
+                              const SizedBox(height: 5),
+                              Text(
+                                'UID: ${room['uid']}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFFFFB9DD),
+                                  fontSize: 11,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
+
+                      const SizedBox(height: 5),
                     ],
                   ),
                 );
@@ -1464,7 +1498,8 @@ Widget _buildRoomsTab() {
       ),
     ),
   );
-}
+}                           
+                                    
 
 
 
