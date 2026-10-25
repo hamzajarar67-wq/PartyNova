@@ -1031,7 +1031,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
         children: [
           _buildHomeTab(),
           _buildRoomsTab(),
-          _buildPlaceholderTab(Icons.sports_esports, 'Games'),
+          _buildGamesTab(),
           _buildPlaceholderTab(Icons.account_balance_wallet, 'Wallet'),
           _buildPlaceholderTab(Icons.people, 'Social'),
           _buildProfileTab(user),
@@ -1163,30 +1163,211 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     );
   }
 
-  Widget _buildPlaceholderTab(IconData icon, String title) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 64, color: const Color(0xFFFFD700)),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
+Widget _buildGamesTab() {
+  const gold = Color(0xFFFFD700);
+  const panel = Color(0xFF21101F);
+
+  final games = [
+    {
+      'title': 'ONE VS ONE',
+      'subtitle': 'BATTLE',
+      'image': 'assets/games/one_vs_one.png',
+      'colors': [Color(0xFFFFD700), Colors.white],
+    },
+    {
+      'title': 'PRIVATE',
+      'subtitle': 'MATCH',
+      'image': 'assets/games/private_match.png',
+      'colors': [Colors.white, Color(0xFFFFD700)],
+    },
+    {
+      'title': 'TEAM',
+      'subtitle': 'BATTLE',
+      'image': 'assets/games/team_battle.png',
+      'colors': [Color(0xFFFF4F65), Color(0xFFFFD700)],
+    },
+    {
+      'title': 'CARD',
+      'subtitle': 'TOURNAMENT',
+      'image': 'assets/games/tournament.png',
+      'colors': [Color(0xFF65C7FF), Color(0xFFB58CFF)],
+    },
+  ];
+
+  return SingleChildScrollView(
+    padding: const EdgeInsets.all(14),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'GAME ARENA',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: gold,
+            fontSize: 26,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Coming soon',
-            style: TextStyle(color: Colors.white54),
+        ),
+        const SizedBox(height: 5),
+        const Text(
+          'Choose Your Battle',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+        const SizedBox(height: 20),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: games.length,
+          gridDelegate:
+              const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.72,
+          ),
+          itemBuilder: (context, index) {
+            final game = games[index];
+            final colors = game['colors'] as List<Color>;
+
+            return InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () {
+                _showMessage(
+                  '${game['title']} ${game['subtitle']} will be available soon.',
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: panel,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: gold.withValues(alpha: 0.8),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: gold.withValues(alpha: 0.10),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(17),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(
+                              game['image'] as String,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stack) {
+                                return Container(
+                                  decoration: const BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color(0xFF33233C),
+                                        Color(0xFF080A12),
+                                      ],
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.style_rounded,
+                                      size: 58,
+                                      color: gold,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Color(0xEE08070D),
+                                  ],
+                                  stops: [0.35, 1.0],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 13,
+                        ),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF281A31),
+                              Color(0xFF100B17),
+                            ],
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              game['title'] as String,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: colors[0],
+                                fontSize: 15,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.7,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              game['subtitle'] as String,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: colors[1],
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            const SizedBox(height: 7),
+                            Container(
+                              height: 2,
+                              width: 45,
+                              decoration: BoxDecoration(
+                                color: gold,
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
 
 
 
