@@ -1692,7 +1692,8 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     );
   }
 
-  Widget buildRoomCards() {
+  
+   Widget buildRoomCards() {
     return Expanded(
       child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
@@ -1706,124 +1707,138 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         itemBuilder: (context, index) {
           final room = rooms[index];
 
-          return Container(
-            decoration: BoxDecoration(
-              color: panel,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFF59304F),
-                width: 1.2,
-              ),
-            ),
-            clipBehavior: Clip.none,
-            child: Column(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(15),
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF54244F),
-                                Color(0xFF21101F),
-                                Color(0xFF392047),
-                              ],
-                            ),
-                          ),
-                          child: const Center(
-                            child: Icon(
-                              Icons.groups_rounded,
-                              size: 66,
-                              color: Color(0xFFFFB9DD),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 9,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: pink,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.people_alt_rounded,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${room['members']}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+          return InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PartyRoomScreen(
+                    roomName: room['name'].toString(),
+                    roomUid: room['uid'].toString(),
                   ),
                 ),
-                Transform.translate(
-                  offset: const Offset(0, 5),
-                  child: Container(
-                    width: double.infinity,
-                    margin: const EdgeInsets.symmetric(horizontal: 7),
-                    padding: const EdgeInsets.fromLTRB(5, 9, 5, 10),
-                    decoration: BoxDecoration(
-                      color: purple,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: pink,
-                        width: 1,
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: panel,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF59304F),
+                  width: 1.2,
+                ),
+              ),
+              clipBehavior: Clip.none,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(15),
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Container(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFF54244F),
+                                  Color(0xFF21101F),
+                                  Color(0xFF392047),
+                                ],
+                              ),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.groups_rounded,
+                                size: 66,
+                                color: Color(0xFFFFB9DD),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 9,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: pink,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.people_alt_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${room['members']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Text(
-                          room['name'].toString(),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
+                  ),
+                  Transform.translate(
+                    offset: const Offset(0, 5),
+                    child: Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: 7),
+                      padding: const EdgeInsets.fromLTRB(5, 9, 5, 10),
+                      decoration: BoxDecoration(
+                        color: purple,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: pink,
+                          width: 1,
                         ),
-                        const SizedBox(height: 5),
-                        Text(
-                          'UID: ${room['uid']}',
-                          style: const TextStyle(
-                            color: Color(0xFFFFB9DD),
-                            fontSize: 11,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            room['name'].toString(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 5),
+                          Text(
+                            'UID: ${room['uid']}',
+                            style: const TextStyle(
+                              color: Color(0xFFFFB9DD),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 5),
-              ],
+                  const SizedBox(height: 5),
+                ],
+              ),
             ),
           );
         },
@@ -1906,11 +1921,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       ),
     ),
   );
-}       
-          
-
-                                                 
-                                    
+}                         
 
 
 
@@ -8068,3 +8079,327 @@ class _GlossySettingsBox extends StatelessWidget {
     );
   }
 }
+
+
+class PartyRoomScreen extends StatelessWidget {
+  final String roomName;
+  final String roomUid;
+
+  const PartyRoomScreen({
+    super.key,
+    required this.roomName,
+    required this.roomUid,
+  });
+
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color pink = Color(0xFFFF4FA3);
+  static const Color panelBlue = Color(0xFF102746);
+
+  Widget _buildSeat() {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: panelBlue,
+              border: Border.all(
+                color: Colors.white,
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.30),
+                  blurRadius: 9,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.chair_rounded,
+                color: pink,
+                size: 27,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSeatRow() {
+    return Row(
+      children: List.generate(5, (_) => _buildSeat()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: darkBlue,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Room header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 8, 5, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        color: panelBlue,
+                        border: Border.all(
+                          color: gold,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF392047),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: gold,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.groups_rounded,
+                              color: gold,
+                              size: 27,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  roomName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  'UID: $roomUid',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: gold,
+                              foregroundColor: darkBlue,
+                              minimumSize: const Size(48, 38),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                              tapTargetSize:
+                                  MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text(
+                              'JOIN',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  SizedBox(
+                    width: 38,
+                    child: Column(
+                      children: [
+                        IconButton(
+                          onPressed: () {},
+                          tooltip: 'More options',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 40,
+                          ),
+                          icon: const Icon(
+                            Icons.more_horiz_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          tooltip: 'Leave room screen',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(
+                            minWidth: 36,
+                            minHeight: 40,
+                          ),
+                          icon: const Icon(
+                            Icons.power_settings_new_rounded,
+                            color: gold,
+                            size: 25,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Fifteen seats in three rows
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
+              child: Column(
+                children: [
+                  _buildSeatRow(),
+                  const SizedBox(height: 12),
+                  _buildSeatRow(),
+                  const SizedBox(height: 12),
+                  _buildSeatRow(),
+                ],
+              ),
+            ),
+
+            // Blank chat area
+            const Expanded(
+              child: SizedBox.expand(),
+            ),
+
+            // Bottom controls
+            Container(
+              padding: const EdgeInsets.fromLTRB(5, 8, 5, 8),
+              decoration: const BoxDecoration(
+                color: panelBlue,
+                border: Border(
+                  top: BorderSide(
+                    color: gold,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () {},
+                    tooltip: 'Microphone',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(
+                      minWidth: 42,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.mic_rounded,
+                      color: gold,
+                      size: 27,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    tooltip: 'Speaker',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(
+                      minWidth: 42,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.volume_up_rounded,
+                      color: Colors.white,
+                      size: 27,
+                    ),
+                  ),
+                  Expanded(
+                    child: TextField(
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Message...',
+                        hintStyle: const TextStyle(
+                          color: Colors.white60,
+                          fontSize: 13,
+                        ),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        filled: true,
+                        fillColor: darkBlue,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(color: gold),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(color: gold),
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    tooltip: 'Gift',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(
+                      minWidth: 42,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.card_giftcard_rounded,
+                      color: pink,
+                      size: 27,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    tooltip: 'More',
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(
+                      minWidth: 42,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
