@@ -2909,556 +2909,465 @@ counterStyle: const TextStyle(color: Colors.white),
 
 
 class FramesGalleryPage extends StatefulWidget {
-  final String photoBase64;
-  final String userName;
-  final String uid;
+final String photoBase64;
+final String userName;
 
-  const FramesGalleryPage({
-    super.key,
-    required this.photoBase64,
-    required this.userName,
-    required this.uid,
-  });
+const FramesGalleryPage({
+super.key,
+required this.photoBase64,
+required this.userName,
+});
 
-  @override
-  State<FramesGalleryPage> createState() =>
-      _FramesGalleryPageState();
+@override
+State<FramesGalleryPage> createState() =>
+_FramesGalleryPageState();
 }
 
 class _FramesGalleryPageState extends State<FramesGalleryPage> {
-  int _selectedFrame = 1;
+int _selectedFrame = 1;
 
-  static const Color _background = Color(0xFF09070B);
-  static const Color _pink = Color(0xFFFF1688);
-  static const Color _gold = Color(0xFFFFD780);
-  static const Color _panel = Color(0xFF17121D);
+static const Color _background = Color(0xFF09070B);
+static const Color _pink = Color(0xFFFF1688);
+static const Color _gold = Color(0xFFFFD780);
+static const Color _panel = Color(0xFF17121D);
 
-  static const List<String> _frameNames = [
-    'Royal King',
-    'Royal Queen',
-    'Golden Crown',
-    'King of Kings',
-    'Royal Princess',
-    'Royal Prince',
-    'Imperial Gold',
-    'Royal Diamond',
-    'Golden Throne',
-    'Royal Emperor',
-    'Royal Empress',
-    'Crown Legend',
-    'King Majesty',
-    'Queen Majesty',
-    'Royal Pearl',
-    'Golden Royalty',
-    'Royal Palace',
-    'Crown Master',
-    'Royal Dynasty',
-    'Royal Glory',
-    'King Legacy',
-    'Queen Legacy',
-    'Royal Elite',
-    'Royal Prestige',
-    'Eternal Royal',
-    'Diamond Star',
-    'Blue Diamond',
-    'Pink Diamond',
-    'Crystal Shine',
-    'Diamond King',
-    'Diamond Queen',
-    'Crystal Crown',
-    'Emerald Glow',
-    'Sapphire Dream',
-    'Ruby Royal',
-    'Platinum Shine',
-    'Crystal Legend',
-    'Diamond Aura',
-    'Luxury Gem',
-    'Eternal Diamond',
-    'VIP Gold',
-    'VIP Black',
-    'VIP Legend',
-    'VIP Elite',
-    'VIP Superstar',
-    'VIP Royal',
-    'VIP Diamond',
-    'VIP Emperor',
-    'VIP Empress',
-    'VIP Platinum',
-    'VIP Prestige',
-    'VIP Crown',
-    'VIP Luxury',
-    'VIP Icon',
-    'VIP Infinity',
-    'Purple Neon',
-    'Pink Neon',
-    'Blue Neon',
-    'Neon King',
-    'Neon Queen',
-    'Cyber Glow',
-    'Electric Aura',
-    'Neon Galaxy',
-    'Purple Flame',
-    'Neon Star',
-    'Cosmic Light',
-    'Electric Crown',
-    'Neon Legend',
-    'Rainbow Glow',
-    'Galaxy Neon',
-    'Fire King',
-    'Ice Queen',
-    'Phoenix Rise',
-    'Dragon Soul',
-    'Angel Wings',
-    'Devil Flame',
-    'Butterfly Dream',
-    'Golden Rose',
-    'Midnight Star',
-    'Moonlight Aura',
-    'Sunlight Glory',
-    'Ocean Pearl',
-    'Crystal Butterfly',
-    'Eternal Flame',
-    'Mystic Legend',
-    'Money King',
-    'Millionaire',
-    'Billionaire Gold',
-    'Golden Phoenix',
-    'Royal Dragon',
-    'Diamond Phoenix',
-    'Cosmic King',
-    'Celestial Queen',
-    'Infinity Crown',
-    'Legend Forever',
-    'Supreme Royal',
-    'Ultimate King',
-    'Ultimate Queen',
-    'PartyNova Legend',
-    'PartyNova Supreme',
-  ];
-
-static const List<String> _uploadedFrameAssets = [
-  'assets/frames/1000180954-removebg-preview.png',
-  'assets/frames/1000180960-removebg-preview.png',
-  'assets/frames/1000180961-removebg-preview.png',
-  'assets/frames/1000180964-removebg-preview.png',
-  'assets/frames/1000180965-removebg-preview.png',
-  'assets/frames/1000180973-removebg-preview.png',
-  'assets/frames/1000180975-removebg-preview.png',
-  'assets/frames/1000180976-removebg-preview.png',
-  'assets/frames/1000180977-removebg-preview.png',
-  'assets/frames/1000180978-removebg-preview.png',
+static const List<String> _frameNames = [
+'Royal King',
+'Royal Queen',
+'Golden Crown',
+'King of Kings',
+'Royal Princess',
+'Royal Prince',
+'Imperial Gold',
+'Royal Diamond',
+'Golden Throne',
+'Royal Emperor',
+'Royal Empress',
+'Crown Legend',
+'King Majesty',
+'Queen Majesty',
+'Royal Pearl',
+'Golden Royalty',
+'Royal Palace',
+'Crown Master',
+'Royal Dynasty',
+'Royal Glory',
+'King Legacy',
+'Queen Legacy',
+'Royal Elite',
+'Royal Prestige',
+'Eternal Royal',
+'Diamond Star',
+'Blue Diamond',
+'Pink Diamond',
+'Crystal Shine',
+'Diamond King',
+'Diamond Queen',
+'Crystal Crown',
+'Emerald Glow',
+'Sapphire Dream',
+'Ruby Royal',
+'Platinum Shine',
+'Crystal Legend',
+'Diamond Aura',
+'Luxury Gem',
+'Eternal Diamond',
+'VIP Gold',
+'VIP Black',
+'VIP Legend',
+'VIP Elite',
+'VIP Superstar',
+'VIP Royal',
+'VIP Diamond',
+'VIP Emperor',
+'VIP Empress',
+'VIP Platinum',
+'VIP Prestige',
+'VIP Crown',
+'VIP Luxury',
+'VIP Icon',
+'VIP Infinity',
+'Purple Neon',
+'Pink Neon',
+'Blue Neon',
+'Neon King',
+'Neon Queen',
+'Cyber Glow',
+'Electric Aura',
+'Neon Galaxy',
+'Purple Flame',
+'Neon Star',
+'Cosmic Light',
+'Electric Crown',
+'Neon Legend',
+'Rainbow Glow',
+'Galaxy Neon',
+'Fire King',
+'Ice Queen',
+'Phoenix Rise',
+'Dragon Soul',
+'Angel Wings',
+'Devil Flame',
+'Butterfly Dream',
+'Golden Rose',
+'Midnight Star',
+'Moonlight Aura',
+'Sunlight Glory',
+'Ocean Pearl',
+'Crystal Butterfly',
+'Eternal Flame',
+'Mystic Legend',
+'Money King',
+'Millionaire',
+'Billionaire Gold',
+'Golden Phoenix',
+'Royal Dragon',
+'Diamond Phoenix',
+'Cosmic King',
+'Celestial Queen',
+'Infinity Crown',
+'Legend Forever',
+'Supreme Royal',
+'Ultimate King',
+'Ultimate Queen',
+'PartyNova Legend',
+'PartyNova Supreme',
 ];
 
-  
+static const List<Color> _frameColors = [
+Color(0xFFFFD700),
+Color(0xFFFF1688),
+Color(0xFF8A2BE2),
+Color(0xFF00CFFF),
+Color(0xFF20C997),
+Color(0xFFFF7043),
+Color(0xFFE5E4E2),
+Color(0xFF7C4DFF),
+];
 
-  static const List<Color> _frameColors = [
-    Color(0xFFFFD700),
-    Color(0xFFFF1688),
-    Color(0xFF8A2BE2),
-    Color(0xFF00CFFF),
-    Color(0xFF20C997),
-    Color(0xFFFF7043),
-    Color(0xFFE5E4E2),
-    Color(0xFF7C4DFF),
-  ];
+Color _colorForFrame(int number) {
+return _frameColors[(number - 1) % _frameColors.length];
+}
 
-  Color _colorForFrame(int number) {
-    return _frameColors[(number - 1) % _frameColors.length];
-  }
-
-  Widget _profileAvatar({
-  required int frameNumber,
-  required double size,
+Widget _profileAvatar({
+required int frameNumber,
+required double size,
 }) {
-  final color = _colorForFrame(frameNumber);
+final color = _colorForFrame(frameNumber);
 
-  Widget avatar;
+Widget avatar;  
 
-  if (widget.photoBase64.isNotEmpty) {
-    try {
-      avatar = Image.memory(
-        base64Decode(widget.photoBase64),
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        gaplessPlayback: true,
-        errorBuilder: (_, __, ___) => Icon(
-          Icons.person_rounded,
-          size: size * 0.58,
-          color: Colors.white,
-        ),
-      );
-    } catch (_) {
-      avatar = Icon(
-        Icons.person_rounded,
-        size: size * 0.58,
-        color: Colors.white,
-      );
-    }
-  } else {
-    avatar = Icon(
-      Icons.person_rounded,
-      size: size * 0.58,
-      color: Colors.white,
-    );
-  }
+if (widget.photoBase64.isNotEmpty) {  
+  try {  
+    avatar = Image.memory(  
+      base64Decode(widget.photoBase64),  
+      width: size,  
+      height: size,  
+      fit: BoxFit.cover,  
+      gaplessPlayback: true,  
+      errorBuilder: (_, __, ___) => Icon(  
+        Icons.person_rounded,  
+        size: size * 0.58,  
+        color: Colors.white,  
+      ),  
+    );  
+  } catch (_) {  
+    avatar = Icon(  
+      Icons.person_rounded,  
+      size: size * 0.58,  
+      color: Colors.white,  
+    );  
+  }  
+} else {  
+  avatar = Icon(  
+    Icons.person_rounded,  
+    size: size * 0.58,  
+    color: Colors.white,  
+  );  
+}  
 
-  return Container(
-    width: size + 12,
-    height: size + 12,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      border: Border.all(
-        color: frameNumber == _selectedFrame
-            ? _gold
-            : color,
-        width: 2,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: color.withValues(alpha: 0.28),
-          blurRadius: 9,
-          spreadRadius: 1,
-        ),
-      ],
-    ),
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        SizedBox(
-          width: size,
-          height: size,
-          child: ClipOval(
-            child: Container(
-              color: const Color(0xFF24192D),
-              child: avatar,
-            ),
-          ),
-        ),
-        Positioned.fill(
-          child: Image.asset(
-            _uploadedFrameAssets[frameNumber - 1],
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return const Center(
-                child: Icon(
-                  Icons.broken_image_rounded,
-                  color: Colors.redAccent,
-                  size: 22,
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    ),
-  );
+return Container(  
+  width: size + 12,  
+  height: size + 12,  
+  padding: const EdgeInsets.all(4),  
+  decoration: BoxDecoration(  
+    shape: BoxShape.circle,  
+    gradient: SweepGradient(  
+      colors: [  
+        color,  
+        Colors.white,  
+        color,  
+        color.withValues(alpha: 0.45),  
+        color,  
+      ],  
+    ),  
+    border: Border.all(  
+      color: frameNumber == _selectedFrame ? _gold : color,  
+      width: 2,  
+    ),  
+    boxShadow: [  
+      BoxShadow(  
+        color: color.withValues(alpha: 0.28),  
+        blurRadius: 9,  
+        spreadRadius: 1,  
+      ),  
+    ],  
+  ),  
+  child: ClipOval(  
+    child: Container(  
+      color: const Color(0xFF24192D),  
+      child: avatar,  
+    ),  
+  ),  
+);
+
 }
 
-  Widget _frameCard(int number) {
-    final name = _frameNames[number - 1];
-    final color = _colorForFrame(number);
-    final selected = _selectedFrame == number;
+Widget _frameCard(int number) {
+final name = _frameNames[number - 1];
+final color = _colorForFrame(number);
+final selected = _selectedFrame == number;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () {
-        setState(() {
-          _selectedFrame = number;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 3,
-          vertical: 10,
-        ),
-        decoration: BoxDecoration(
-          color: _panel,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: selected
-                ? _gold
-                : color.withValues(alpha: 0.45),
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _profileAvatar(
-              frameNumber: number,
-              size: 43,
-            ),
-            const SizedBox(height: 9),
-            Text(
-              name,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: selected ? _gold : Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+return InkWell(  
+  borderRadius: BorderRadius.circular(14),  
+  onTap: () {  
+    setState(() {  
+      _selectedFrame = number;  
+    });  
+  },  
+  child: Container(  
+    padding: const EdgeInsets.symmetric(  
+      horizontal: 3,  
+      vertical: 10,  
+    ),  
+    decoration: BoxDecoration(  
+      color: _panel,  
+      borderRadius: BorderRadius.circular(14),  
+      border: Border.all(  
+        color: selected  
+            ? _gold  
+            : color.withValues(alpha: 0.45),  
+        width: selected ? 2 : 1,  
+      ),  
+    ),  
+    child: Column(  
+      mainAxisAlignment: MainAxisAlignment.center,  
+      children: [  
+        _profileAvatar(  
+          frameNumber: number,  
+          size: 43,  
+        ),  
+        const SizedBox(height: 9),  
+        Text(  
+          name,  
+          maxLines: 2,  
+          textAlign: TextAlign.center,  
+          overflow: TextOverflow.ellipsis,  
+          style: TextStyle(  
+            color: selected ? _gold : Colors.white,  
+            fontSize: 10,  
+            fontWeight: FontWeight.w600,  
+          ),  
+        ),  
+      ],  
+    ),  
+  ),  
+);
 
-  Widget _previewSection() {
-    final color = _colorForFrame(_selectedFrame);
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 22),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.65),
-        ),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'FRAME PREVIEW',
-            style: TextStyle(
-              color: _gold,
-              fontSize: 14,
-              letterSpacing: 2,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 22),
-          _profileAvatar(
-            frameNumber: _selectedFrame,
-            size: 112,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            widget.userName.isEmpty
-                ? 'Your Name'
-                : widget.userName,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            _frameNames[_selectedFrame - 1],
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: color,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 18),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 13),
-            decoration: BoxDecoration(
-              color: const Color(0xFF24192D),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _pink.withValues(alpha: 0.6),
-              ),
-            ),
-            child: const Text(
-              'UI Preview Only',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-
-Future<void> _applySelectedFrame() async {
-  try {
-    final frameAsset = _uploadedFrameAssets[_selectedFrame - 1];
-
-    await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.uid)
-        .set({
-      'profileFrameAsset': frameAsset,
-    }, SetOptions(merge: true));
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile frame saved successfully!'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Could not save frame. Please try again.'),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
 }
 
+Widget _previewSection() {
+final color = _colorForFrame(_selectedFrame);
 
-  
+return Container(  
+  width: double.infinity,  
+  margin: const EdgeInsets.only(bottom: 22),  
+  padding: const EdgeInsets.all(20),  
+  decoration: BoxDecoration(  
+    color: _panel,  
+    borderRadius: BorderRadius.circular(18),  
+    border: Border.all(  
+      color: _gold.withValues(alpha: 0.65),  
+    ),  
+  ),  
+  child: Column(  
+    children: [  
+      const Text(  
+        'FRAME PREVIEW',  
+        style: TextStyle(  
+          color: _gold,  
+          fontSize: 14,  
+          letterSpacing: 2,  
+          fontWeight: FontWeight.bold,  
+        ),  
+      ),  
+      const SizedBox(height: 22),  
+      _profileAvatar(  
+        frameNumber: _selectedFrame,  
+        size: 112,  
+      ),  
+      const SizedBox(height: 14),  
+      Text(  
+        widget.userName.isEmpty  
+            ? 'Your Name'  
+            : widget.userName,  
+        textAlign: TextAlign.center,  
+        style: const TextStyle(  
+          color: Colors.white,  
+          fontSize: 19,  
+          fontWeight: FontWeight.bold,  
+        ),  
+      ),  
+      const SizedBox(height: 7),  
+      Text(  
+        _frameNames[_selectedFrame - 1],  
+        textAlign: TextAlign.center,  
+        style: TextStyle(  
+          color: color,  
+          fontSize: 13,  
+          fontWeight: FontWeight.w600,  
+        ),  
+      ),  
+      const SizedBox(height: 18),  
+      Container(  
+        width: double.infinity,  
+        padding: const EdgeInsets.symmetric(vertical: 13),  
+        decoration: BoxDecoration(  
+          color: const Color(0xFF24192D),  
+          borderRadius: BorderRadius.circular(12),  
+          border: Border.all(  
+            color: _pink.withValues(alpha: 0.6),  
+          ),  
+        ),  
+        child: const Text(  
+          'UI Preview Only',  
+          textAlign: TextAlign.center,  
+          style: TextStyle(  
+            color: Colors.white70,  
+            fontSize: 12,  
+          ),  
+        ),  
+      ),  
+    ],  
+  ),  
+);
+
+}
+
 @override
 Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: _background,
-    appBar: AppBar(
-      backgroundColor: _background,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      title: const Text(
-        'Frames Gallery',
-        style: TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    ),
-    body: Padding(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF35123F),
-                  Color(0xFF17121D),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _pink.withValues(alpha: 0.6),
-              ),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Choose Your Style',
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Explore 100 profile frames.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
+return Scaffold(
+backgroundColor: _background,
+appBar: AppBar(
+backgroundColor: _background,
+foregroundColor: Colors.white,
+elevation: 0,
+title: const Text(
+'Frames Gallery',
+style: TextStyle(
+color: Colors.white,
+fontWeight: FontWeight.bold,
+),
+),
+),
+body: SingleChildScrollView(
+padding: const EdgeInsets.fromLTRB(14, 12, 14, 30),
+child: Column(
+crossAxisAlignment: CrossAxisAlignment.start,
+children: [
+Container(
+width: double.infinity,
+padding: const EdgeInsets.all(16),
+decoration: BoxDecoration(
+gradient: const LinearGradient(
+colors: [
+Color(0xFF35123F),
+Color(0xFF17121D),
+],
+),
+borderRadius: BorderRadius.circular(16),
+border: Border.all(
+color: _pink.withValues(alpha: 0.6),
+),
+),
+child: const Column(
+crossAxisAlignment: CrossAxisAlignment.start,
+children: [
+Text(
+'Choose Your Style',
+style: TextStyle(
+color: _gold,
+fontSize: 20,
+fontWeight: FontWeight.bold,
+),
+),
+SizedBox(height: 6),
+Text(
+'Explore 100 profile frames.',
+style: TextStyle(
+color: Colors.white70,
+fontSize: 13,
+),
+),
+],
+),
+),
+const SizedBox(height: 20),
 
-          const SizedBox(height: 8),
+// Preview moved above the gallery.  
+        _previewSection(),  
 
-          // Fixed preview: does not scroll.
-          _previewSection(),
+        Row(  
+          children: [  
+            const Expanded(  
+              child: Text(  
+                'ALL FRAMES',  
+                style: TextStyle(  
+                  color: _gold,  
+                  fontSize: 15,  
+                  fontWeight: FontWeight.bold,  
+                  letterSpacing: 1.5,  
+                ),  
+              ),  
+            ),  
+            Text(  
+              '${_frameNames.length} Frames',  
+              style: const TextStyle(  
+                color: Colors.white70,  
+                fontSize: 12,  
+              ),  
+            ),  
+          ],  
+        ),  
+        const SizedBox(height: 13),  
+        GridView.builder(  
+          shrinkWrap: true,  
+          physics: const NeverScrollableScrollPhysics(),  
+          itemCount: _frameNames.length,  
+          gridDelegate:  
+              const SliverGridDelegateWithFixedCrossAxisCount(  
+            crossAxisCount: 4,  
+            crossAxisSpacing: 8,  
+            mainAxisSpacing: 9,  
+            childAspectRatio: 0.69,  
+          ),  
+          itemBuilder: (context, index) {  
+            return _frameCard(index + 1);  
+          },  
+        ),  
+      ],  
+    ),  
+  ),  
+);
 
-          // Fixed Apply button.
-          SizedBox(
-            width: double.infinity,
-            height: 46,
-            child: ElevatedButton(
-              onPressed: _applySelectedFrame,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _gold,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                'APPLY FRAME',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'ALL FRAMES',
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-              Text(
-                '${_uploadedFrameAssets.length} Frames',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Only this gallery area scrolls.
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _uploadedFrameAssets.length,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 9,
-                  childAspectRatio: 0.69,
-                ),
-                itemBuilder: (context, index) {
-                  return _frameCard(index + 1);
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
- }
 }
+}
+
+Ye hoga shaiyd
+
+
+
+
 
 class ThemesGalleryPage extends StatefulWidget {
   final String photoBase64;
