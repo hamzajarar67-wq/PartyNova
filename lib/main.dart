@@ -986,6 +986,17 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   int _selectedRoomFilter = 0;
   int _selectedMyRoomFilter = 0;
 
+    final TextEditingController _roomSearchController =
+      TextEditingController();
+
+  String _roomSearchQuery = '';
+
+  @override
+  void dispose() {
+    _roomSearchController.dispose();
+    super.dispose();
+  }
+
   static const List<String> _titles = [
     'Home',
     'Rooms',
@@ -1538,6 +1549,17 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     {'name': 'Vibe Room', 'uid': '890123', 'members': 9},
   ];
 
+
+  final searchQuery = _roomSearchQuery.trim().toLowerCase();
+
+  final filteredRooms = rooms.where((room) {
+    final roomName = room['name'].toString().toLowerCase();
+    final roomUid = room['uid'].toString();
+
+    return roomName.contains(searchQuery) ||
+        roomUid.contains(searchQuery);
+  }).toList(); 
+
   Widget buildTopFilters() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -1810,7 +1832,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     return Expanded(
       child: GridView.builder(
         padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
-        itemCount: rooms.length,
+        itemCount: filteredRooms.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 12,
@@ -1818,7 +1840,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           childAspectRatio: 0.76,
         ),
         itemBuilder: (context, index) {
-          final room = rooms[index];
+          final room = filteredRooms[index];
 
           return InkWell(
             borderRadius: BorderRadius.circular(16),
@@ -1979,7 +2001,13 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     width: 1.3,
                   ),
                 ),
-                child: const TextField(
+                child: TextField(
+  controller: _roomSearchController,
+  onChanged: (value) {
+    setState(() {
+      _roomSearchQuery = value;
+    });
+  },
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
