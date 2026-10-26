@@ -233,16 +233,6 @@ class PartyNovaApp extends StatelessWidget {
     return MaterialApp(
       title: 'PartyNova',
       debugShowCheckedModeBanner: false,
-      builder: (context, child) {
-        final media = MediaQuery.of(context);
-
-        return MediaQuery(
-          data: media.copyWith(
-            size: Size(450, media.size.height),
-          ),
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: partyBlack,
