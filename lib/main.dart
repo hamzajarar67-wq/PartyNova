@@ -8080,8 +8080,7 @@ class _GlossySettingsBox extends StatelessWidget {
   }
 }
 
-
-class PartyRoomScreen extends StatelessWidget {
+class PartyRoomScreen extends StatefulWidget {
   final String roomName;
   final String roomUid;
 
@@ -8091,44 +8090,81 @@ class PartyRoomScreen extends StatelessWidget {
     required this.roomUid,
   });
 
+  @override
+  State<PartyRoomScreen> createState() => _PartyRoomScreenState();
+}
+
+class _PartyRoomScreenState extends State<PartyRoomScreen> {
   static const Color darkBlue = Color(0xFF100810);
   static const Color gold = Color(0xFFFFD700);
   static const Color pink = Color(0xFFFF4FA3);
   static const Color panelBlue = Color(0xFF24101F);
 
-  // Empty seat with a transparent background.
+  final TextEditingController _messageController =
+      TextEditingController();
+
+  final FocusNode _messageFocusNode = FocusNode();
+
+  bool _messageOpen = false;
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _messageFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _openMessageBoard() {
+    setState(() {
+      _messageOpen = true;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _messageOpen) {
+        _messageFocusNode.requestFocus();
+      }
+    });
+  }
+
+  void _closeMessageBoard() {
+    _messageFocusNode.unfocus();
+
+    setState(() {
+      _messageOpen = false;
+    });
+  }
+
+  // Empty mic seat.
   Widget _buildSeat(int number) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 3),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Center(
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 1.8,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.white.withOpacity(0.22),
-                      blurRadius: 5,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 1.8,
                 ),
-                child: const Center(
-                  child: Icon(
-                    Icons.chair_rounded,
-                    color: pink,
-                    size: 27,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.22),
+                    blurRadius: 5,
+                    spreadRadius: 0.5,
                   ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.chair_rounded,
+                  color: pink,
+                  size: 35,
                 ),
               ),
             ),
@@ -8148,13 +8184,175 @@ class PartyRoomScreen extends StatelessWidget {
     );
   }
 
-  // Five seats per row.
+  // Five seats in each row.
   Widget _buildSeatRow(int firstNumber) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: List.generate(
         5,
         (index) => _buildSeat(firstNumber + index),
+      ),
+    );
+  }
+
+  // Bottom action icon without a separate box.
+  Widget _buildActionIcon({
+    required IconData icon,
+    required Color color,
+    required double size,
+    required String tooltip,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints(
+        minWidth: 36,
+        minHeight: 44,
+      ),
+      padding: EdgeInsets.zero,
+      icon: Icon(
+        icon,
+        color: color,
+        size: size,
+      ),
+    );
+  }
+
+  // Bottom row: SMS / Message board, Mic, Speaker, Emoji, Gift, More.
+  Widget _buildBottomBar() {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        5,
+        8,
+        5,
+        MediaQuery.of(context).viewInsets.bottom > 0 ? 4 : 8,
+      ),
+      decoration: const BoxDecoration(
+        color: panelBlue,
+        border: Border(
+          top: BorderSide(
+            color: pink,
+            width: 1.5,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          if (_messageOpen)
+            Expanded(
+              child: Container(
+                constraints: const BoxConstraints(
+                  minHeight: 52,
+                  maxHeight: 96,
+                ),
+                decoration: BoxDecoration(
+                  color: darkBlue,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: pink,
+                    width: 1.4,
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _messageController,
+                        focusNode: _messageFocusNode,
+                        minLines: 1,
+                        maxLines: 3,
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                        ),
+                        cursorColor: pink,
+                        decoration: const InputDecoration(
+                          hintText: 'Write a message...',
+                          hintStyle: TextStyle(
+                            color: Colors.white60,
+                            fontSize: 13,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _closeMessageBoard,
+                      tooltip: 'Close message board',
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints(
+                        minWidth: 34,
+                        minHeight: 44,
+                      ),
+                      padding: EdgeInsets.zero,
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: pink,
+                        size: 22,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            _buildActionIcon(
+              icon: Icons.sms_rounded,
+              color: pink,
+              size: 29,
+              tooltip: 'Open messages',
+              onPressed: _openMessageBoard,
+            ),
+
+          _buildActionIcon(
+            icon: Icons.mic_rounded,
+            color: gold,
+            size: 29,
+            tooltip: 'Microphone',
+            onPressed: () {},
+          ),
+
+          _buildActionIcon(
+            icon: Icons.volume_up_rounded,
+            color: Colors.white,
+            size: 28,
+            tooltip: 'Speaker',
+            onPressed: () {},
+          ),
+
+          _buildActionIcon(
+            icon: Icons.emoji_emotions_rounded,
+            color: gold,
+            size: 28,
+            tooltip: 'Emoji',
+            onPressed: () {},
+          ),
+
+          _buildActionIcon(
+            icon: Icons.card_giftcard_rounded,
+            color: pink,
+            size: 29,
+            tooltip: 'Gift',
+            onPressed: () {},
+          ),
+
+          _buildActionIcon(
+            icon: Icons.more_horiz_rounded,
+            color: Colors.white,
+            size: 30,
+            tooltip: 'More',
+            onPressed: () {},
+          ),
+        ],
       ),
     );
   }
@@ -8167,7 +8365,7 @@ class PartyRoomScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Room header.
+            // Larger room header.
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 10, 6, 8),
               child: Row(
@@ -8175,11 +8373,11 @@ class PartyRoomScreen extends StatelessWidget {
                   Expanded(
                     child: Container(
                       constraints: const BoxConstraints(
-                        minHeight: 100,
+                        minHeight: 116,
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 10,
+                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
                         color: panelBlue,
@@ -8191,10 +8389,10 @@ class PartyRoomScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          // Large square room DP placeholder.
+                          // Larger room DP.
                           Container(
-                            width: 70,
-                            height: 70,
+                            width: 82,
+                            height: 82,
                             decoration: BoxDecoration(
                               color: const Color(0xFF301426),
                               borderRadius: BorderRadius.circular(12),
@@ -8206,7 +8404,7 @@ class PartyRoomScreen extends StatelessWidget {
                             child: const Icon(
                               Icons.groups_rounded,
                               color: gold,
-                              size: 42,
+                              size: 48,
                             ),
                           ),
 
@@ -8216,33 +8414,34 @@ class PartyRoomScreen extends StatelessWidget {
                           Expanded(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  roomName,
-                                  maxLines: 1,
+                                  widget.roomName,
+                                  maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 17,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 7),
                                 Text(
-                                  'UID: $roomUid',
+                                  'UID: ${widget.roomUid}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 13,
+                                    fontSize: 15,
                                   ),
                                 ),
                               ],
                             ),
                           ),
 
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 5),
 
                           // JOIN button.
                           ElevatedButton(
@@ -8250,7 +8449,7 @@ class PartyRoomScreen extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: gold,
                               foregroundColor: darkBlue,
-                              minimumSize: const Size(54, 42),
+                              minimumSize: const Size(58, 46),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 7,
                               ),
@@ -8261,7 +8460,7 @@ class PartyRoomScreen extends StatelessWidget {
                             child: const Text(
                               'JOIN',
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -8271,26 +8470,24 @@ class PartyRoomScreen extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
 
-                  // Header actions.
+                  // Room options and leave buttons.
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: () {
-                          // Keep / Leave menu can be added later.
-                        },
+                        onPressed: () {},
                         tooltip: 'Room options',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 34,
-                          minHeight: 38,
+                          minHeight: 42,
                         ),
                         icon: const Icon(
                           Icons.more_horiz_rounded,
                           color: Colors.white,
-                          size: 28,
+                          size: 29,
                         ),
                       ),
                       IconButton(
@@ -8299,12 +8496,12 @@ class PartyRoomScreen extends StatelessWidget {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 34,
-                          minHeight: 38,
+                          minHeight: 42,
                         ),
                         icon: const Icon(
                           Icons.power_settings_new_rounded,
                           color: gold,
-                          size: 25,
+                          size: 27,
                         ),
                       ),
                     ],
@@ -8315,7 +8512,7 @@ class PartyRoomScreen extends StatelessWidget {
 
             // Fifteen seats: three rows of five.
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 16, 8, 0),
+              padding: const EdgeInsets.fromLTRB(7, 14, 7, 0),
               child: Column(
                 children: [
                   _buildSeatRow(1),
@@ -8327,151 +8524,19 @@ class PartyRoomScreen extends StatelessWidget {
               ),
             ),
 
-            // Empty room chat area.
+            // Room chat area.
             const Expanded(
               child: SizedBox.expand(),
             ),
 
-            // Message box first, followed by icons without separate boxes.
-            Container(
-              padding: const EdgeInsets.fromLTRB(6, 10, 6, 10),
-              decoration: BoxDecoration(
-                color: panelBlue,
-                border: Border(
-                  top: BorderSide(
-                    color: pink,
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Long message field with all four borders.
-                  Expanded(
-                    child: SizedBox(
-                      height: 48,
-                      child: TextField(
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                        cursorColor: pink,
-                        textInputAction: TextInputAction.send,
-                        decoration: InputDecoration(
-                          hintText: 'SMS...',
-                          hintStyle: const TextStyle(
-                            color: Colors.white60,
-                            fontSize: 14,
-                          ),
-                          contentPadding:
-                              const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          filled: true,
-                          fillColor: darkBlue,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: pink,
-                              width: 1.4,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: pink,
-                              width: 1.4,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: gold,
-                              width: 1.6,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(width: 4),
-
-                  // Microphone.
-                  IconButton(
-                    onPressed: () {},
-                    tooltip: 'Microphone',
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(
-                      minWidth: 34,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.mic_rounded,
-                      color: gold,
-                      size: 25,
-                    ),
-                  ),
-
-                  // Speaker.
-                  IconButton(
-                    onPressed: () {},
-                    tooltip: 'Speaker',
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(
-                      minWidth: 34,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.volume_up_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-
-                  // Gift.
-                  IconButton(
-                    onPressed: () {},
-                    tooltip: 'Gift',
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(
-                      minWidth: 34,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.card_giftcard_rounded,
-                      color: pink,
-                      size: 25,
-                    ),
-                  ),
-
-                  // More.
-                  IconButton(
-                    onPressed: () {},
-                    tooltip: 'More',
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints(
-                      minWidth: 30,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.more_horiz_rounded,
-                      color: Colors.white,
-                      size: 26,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Bottom controls.
+            _buildBottomBar(),
           ],
         ),
       ),
     );
   }
-}  
- 
+}
+
+
+
