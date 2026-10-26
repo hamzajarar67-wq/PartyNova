@@ -8134,17 +8134,17 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     });
   }
 
-  // Empty mic seat.
+  // Empty seat: 65 x 65 pixels.
   Widget _buildSeat(int number) {
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 60,
-              height: 60,
+              width: 65,
+              height: 65,
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 shape: BoxShape.circle,
@@ -8164,7 +8164,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 child: Icon(
                   Icons.chair_rounded,
                   color: pink,
-                  size: 35,
+                  size: 40,
                 ),
               ),
             ),
@@ -8195,7 +8195,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
-  // Bottom action icon without a separate box.
+  // Bottom action icons.
   Widget _buildActionIcon({
     required IconData icon,
     required Color color,
@@ -8208,8 +8208,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       constraints: const BoxConstraints(
-        minWidth: 36,
-        minHeight: 44,
+        minWidth: 40,
+        minHeight: 46,
       ),
       padding: EdgeInsets.zero,
       icon: Icon(
@@ -8220,14 +8220,125 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
-  // Bottom row: SMS / Message board, Mic, Speaker, Emoji, Gift, More.
+  // SMS opens a large multiline typing board.
+  // When open, all other bottom icons are hidden.
   Widget _buildBottomBar() {
+    final keyboardOpen =
+        MediaQuery.of(context).viewInsets.bottom > 0;
+
+    if (_messageOpen) {
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          10,
+          10,
+          10,
+          keyboardOpen ? 5 : 10,
+        ),
+        decoration: const BoxDecoration(
+          color: panelBlue,
+          border: Border(
+            top: BorderSide(
+              color: pink,
+              width: 1.5,
+            ),
+            bottom: BorderSide(
+              color: pink,
+              width: 1.5,
+            ),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.sms_rounded,
+                  color: pink,
+                  size: 32,
+                ),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Message',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _closeMessageBoard,
+                  tooltip: 'Close message board',
+                  constraints: const BoxConstraints(
+                    minWidth: 44,
+                    minHeight: 44,
+                  ),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: pink,
+                    size: 30,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            // Large multiline text area.
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(
+                minHeight: 100,
+                maxHeight: 180,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: darkBlue,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: pink,
+                  width: 1.5,
+                ),
+              ),
+              child: TextField(
+                controller: _messageController,
+                focusNode: _messageFocusNode,
+                minLines: 3,
+                maxLines: 6,
+                keyboardType: TextInputType.multiline,
+                textInputAction: TextInputAction.newline,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                ),
+                cursorColor: pink,
+                decoration: const InputDecoration(
+                  hintText: 'Write your message...',
+                  hintStyle: TextStyle(
+                    color: Colors.white60,
+                    fontSize: 16,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Normal bottom row: SMS, Mic, Speaker, Emoji, Gift, More.
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        5,
-        8,
-        5,
-        MediaQuery.of(context).viewInsets.bottom > 0 ? 4 : 8,
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 8,
       ),
       decoration: const BoxDecoration(
         color: panelBlue,
@@ -8236,119 +8347,54 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             color: pink,
             width: 1.5,
           ),
+          bottom: BorderSide(
+            color: pink,
+            width: 1.5,
+          ),
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (_messageOpen)
-            Expanded(
-              child: Container(
-                constraints: const BoxConstraints(
-                  minHeight: 52,
-                  maxHeight: 96,
-                ),
-                decoration: BoxDecoration(
-                  color: darkBlue,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: pink,
-                    width: 1.4,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _messageController,
-                        focusNode: _messageFocusNode,
-                        minLines: 1,
-                        maxLines: 3,
-                        keyboardType: TextInputType.multiline,
-                        textInputAction: TextInputAction.newline,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                        ),
-                        cursorColor: pink,
-                        decoration: const InputDecoration(
-                          hintText: 'Write a message...',
-                          hintStyle: TextStyle(
-                            color: Colors.white60,
-                            fontSize: 13,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: _closeMessageBoard,
-                      tooltip: 'Close message board',
-                      visualDensity: VisualDensity.compact,
-                      constraints: const BoxConstraints(
-                        minWidth: 34,
-                        minHeight: 44,
-                      ),
-                      padding: EdgeInsets.zero,
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        color: pink,
-                        size: 22,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            _buildActionIcon(
-              icon: Icons.sms_rounded,
-              color: pink,
-              size: 29,
-              tooltip: 'Open messages',
-              onPressed: _openMessageBoard,
-            ),
-
+          _buildActionIcon(
+            icon: Icons.sms_rounded,
+            color: pink,
+            size: 32,
+            tooltip: 'Open messages',
+            onPressed: _openMessageBoard,
+          ),
           _buildActionIcon(
             icon: Icons.mic_rounded,
             color: gold,
-            size: 29,
+            size: 33,
             tooltip: 'Microphone',
             onPressed: () {},
           ),
-
           _buildActionIcon(
             icon: Icons.volume_up_rounded,
             color: Colors.white,
-            size: 28,
+            size: 32,
             tooltip: 'Speaker',
             onPressed: () {},
           ),
-
           _buildActionIcon(
             icon: Icons.emoji_emotions_rounded,
             color: gold,
-            size: 28,
+            size: 32,
             tooltip: 'Emoji',
             onPressed: () {},
           ),
-
           _buildActionIcon(
             icon: Icons.card_giftcard_rounded,
             color: pink,
-            size: 29,
+            size: 33,
             tooltip: 'Gift',
             onPressed: () {},
           ),
-
           _buildActionIcon(
             icon: Icons.more_horiz_rounded,
             color: Colors.white,
-            size: 30,
+            size: 34,
             tooltip: 'More',
             onPressed: () {},
           ),
@@ -8365,7 +8411,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Larger room header.
+            // Room header.
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 10, 6, 8),
               child: Row(
@@ -8389,7 +8435,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                       ),
                       child: Row(
                         children: [
-                          // Larger room DP.
+                          // Room DP placeholder.
                           Container(
                             width: 82,
                             height: 82,
@@ -8407,13 +8453,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                               size: 48,
                             ),
                           ),
-
                           const SizedBox(width: 10),
 
                           // Room name and UID.
                           Expanded(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment:
+                                  MainAxisAlignment.center,
                               crossAxisAlignment:
                                   CrossAxisAlignment.start,
                               children: [
@@ -8440,7 +8486,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                               ],
                             ),
                           ),
-
                           const SizedBox(width: 5),
 
                           // JOIN button.
@@ -8469,7 +8514,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 5),
 
                   // Room options and leave buttons.
@@ -8512,7 +8556,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
             // Fifteen seats: three rows of five.
             Padding(
-              padding: const EdgeInsets.fromLTRB(7, 14, 7, 0),
+              padding: const EdgeInsets.fromLTRB(5, 14, 5, 0),
               child: Column(
                 children: [
                   _buildSeatRow(1),
@@ -8524,12 +8568,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               ),
             ),
 
-            // Room chat area.
+            // Remaining room chat area.
             const Expanded(
               child: SizedBox.expand(),
             ),
 
-            // Bottom controls.
+            // Bottom controls or SMS typing board.
             _buildBottomBar(),
           ],
         ),
@@ -8537,6 +8581,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 }
-
-
-
+  
+                  
+                              
