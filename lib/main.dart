@@ -2664,10 +2664,9 @@ TextField(
   onTap: () {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => FramesGalleryPage(
+builder: (_) => FramesGalleryPage(
   photoBase64: _photoBase64,
   userName: _nameController.text.trim(),
-  uid: widget.uid,
 ),
       ),
     );
@@ -3362,8 +3361,6 @@ const SizedBox(height: 20),
 
 }
 }
-
-Ye hoga shaiyd
 
 
 
