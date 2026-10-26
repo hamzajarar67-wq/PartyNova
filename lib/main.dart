@@ -1033,7 +1033,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
           _buildRoomsTab(),
           _buildGamesTab(),
           _buildPlaceholderTab(Icons.account_balance_wallet, 'Wallet'),
-          _buildPlaceholderTab(Icons.people, 'Social'),
+          _buildSocialTab(),
           _buildProfileTab(user),
         ],
       ),
@@ -1369,6 +1369,119 @@ Widget _buildGamesTab() {
   );
 }
 
+
+
+Widget _buildSocialTab() {
+  const pink = Color(0xFFFF1688);
+  const black = Color(0xFF09070B);
+
+  return DefaultTabController(
+    length: 3,
+    child: Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            child: const TabBar(
+              indicatorColor: black,
+              indicatorWeight: 3,
+              labelColor: black,
+              unselectedLabelColor: Colors.black54,
+              labelStyle: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
+              tabs: [
+                Tab(text: 'Friend'),
+                Tab(text: 'Message'),
+                Tab(text: 'Friend Request'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                _socialDesignSection(
+                  title: 'Friends',
+                  subtitle: 'Your friends will appear here',
+                  icon: Icons.people_rounded,
+                  pink: pink,
+                ),
+                _socialDesignSection(
+                  title: 'Messages',
+                  subtitle: 'Your conversations will appear here',
+                  icon: Icons.chat_bubble_rounded,
+                  pink: pink,
+                ),
+                _socialDesignSection(
+                  title: 'Friend Requests',
+                  subtitle: 'Incoming requests will appear here',
+                  icon: Icons.person_add_alt_1_rounded,
+                  pink: pink,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _socialDesignSection({
+  required String title,
+  required String subtitle,
+  required IconData icon,
+  required Color pink,
+}) {
+  return Container(
+    color: pink,
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: pink, size: 32),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Color(0xFF09070B),
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
+
+  
 
 Widget _buildPlaceholderTab(IconData icon, String title) {
   return Center(
