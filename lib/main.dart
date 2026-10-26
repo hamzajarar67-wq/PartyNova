@@ -8096,44 +8096,67 @@ class PartyRoomScreen extends StatelessWidget {
   static const Color pink = Color(0xFFFF4FA3);
   static const Color panelBlue = Color(0xFF102746);
 
-  Widget _buildSeat() {
+  // One empty seat with its number underneath.
+  Widget _buildSeat(int number) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 3),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: panelBlue,
-              border: Border.all(
-                color: Colors.white,
-                width: 2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.30),
-                  blurRadius: 9,
-                  spreadRadius: 1,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.28),
+                      blurRadius: 7,
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.chair_rounded,
-                color: pink,
-                size: 27,
+                child: const Center(
+                  child: Icon(
+                    Icons.chair_rounded,
+                    color: pink,
+                    size: 25,
+                  ),
+                ),
               ),
             ),
-          ),
+            const SizedBox(height: 4),
+            Text(
+              'NO. $number',
+              maxLines: 1,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildSeatRow() {
+  // Five seats per row.
+  Widget _buildSeatRow(int firstNumber) {
     return Row(
-      children: List.generate(5, (_) => _buildSeat()),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(
+        5,
+        (index) => _buildSeat(firstNumber + index),
+      ),
     );
   }
 
@@ -8144,27 +8167,33 @@ class PartyRoomScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Room header
+            // Room header.
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 5, 8),
+              padding: const EdgeInsets.fromLTRB(10, 12, 8, 8),
               child: Row(
                 children: [
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.all(9),
+                      constraints: const BoxConstraints(
+                        minHeight: 86,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
                         color: panelBlue,
                         border: Border.all(
                           color: gold,
                           width: 1.5,
                         ),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       child: Row(
                         children: [
                           Container(
-                            width: 46,
-                            height: 46,
+                            width: 56,
+                            height: 56,
                             decoration: BoxDecoration(
                               color: const Color(0xFF392047),
                               shape: BoxShape.circle,
@@ -8176,12 +8205,13 @@ class PartyRoomScreen extends StatelessWidget {
                             child: const Icon(
                               Icons.groups_rounded,
                               color: gold,
-                              size: 27,
+                              size: 32,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
@@ -8190,7 +8220,7 @@ class PartyRoomScreen extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 15,
+                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -8201,30 +8231,31 @@ class PartyRoomScreen extends StatelessWidget {
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 11,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(width: 5),
+                          const SizedBox(width: 8),
                           ElevatedButton(
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor: gold,
                               foregroundColor: darkBlue,
-                              minimumSize: const Size(48, 38),
+                              minimumSize: const Size(62, 44),
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
+                                horizontal: 10,
                               ),
+                              shape: const StadiumBorder(),
                               tapTargetSize:
                                   MaterialTapTargetSize.shrinkWrap,
                             ),
                             child: const Text(
                               'JOIN',
                               style: TextStyle(
-                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
                           ),
@@ -8232,68 +8263,65 @@ class PartyRoomScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 2),
-                  SizedBox(
-                    width: 38,
-                    child: Column(
-                      children: [
-                        IconButton(
-                          onPressed: () {},
-                          tooltip: 'More options',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 40,
-                          ),
-                          icon: const Icon(
-                            Icons.more_horiz_rounded,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          tooltip: 'Leave room screen',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(
-                            minWidth: 36,
-                            minHeight: 40,
-                          ),
-                          icon: const Icon(
-                            Icons.power_settings_new_rounded,
-                            color: gold,
-                            size: 25,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(width: 10),
+
+                  // Room options and power on one line.
+                  IconButton(
+                    onPressed: () {
+                      // Keep / Leave menu will be added later.
+                    },
+                    tooltip: 'Room options',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 30,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.more_horiz_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    tooltip: 'Leave room',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 48,
+                    ),
+                    icon: const Icon(
+                      Icons.power_settings_new_rounded,
+                      color: gold,
+                      size: 26,
                     ),
                   ),
                 ],
               ),
             ),
 
-            // Fifteen seats in three rows
+            // Fifteen seats: 1–5, 6–10, 11–15.
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 12, 8, 4),
+              padding: const EdgeInsets.fromLTRB(8, 18, 8, 0),
               child: Column(
                 children: [
-                  _buildSeatRow(),
+                  _buildSeatRow(1),
                   const SizedBox(height: 12),
-                  _buildSeatRow(),
+                  _buildSeatRow(6),
                   const SizedBox(height: 12),
-                  _buildSeatRow(),
+                  _buildSeatRow(11),
                 ],
               ),
             ),
 
-            // Blank chat area
+            // Empty chat area.
             const Expanded(
               child: SizedBox.expand(),
             ),
 
-            // Bottom controls
+            // Larger bottom controls.
             Container(
-              padding: const EdgeInsets.fromLTRB(5, 8, 5, 8),
+              padding: const EdgeInsets.fromLTRB(5, 9, 5, 9),
               decoration: const BoxDecoration(
                 color: panelBlue,
                 border: Border(
@@ -8305,90 +8333,113 @@ class PartyRoomScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
+                  // Microphone.
                   IconButton(
                     onPressed: () {},
                     tooltip: 'Microphone',
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
-                      minWidth: 42,
-                      minHeight: 48,
+                      minWidth: 48,
+                      minHeight: 54,
                     ),
                     icon: const Icon(
                       Icons.mic_rounded,
                       color: gold,
-                      size: 27,
+                      size: 31,
                     ),
                   ),
+
+                  // Speaker.
                   IconButton(
                     onPressed: () {},
                     tooltip: 'Speaker',
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
-                      minWidth: 42,
-                      minHeight: 48,
+                      minWidth: 48,
+                      minHeight: 54,
                     ),
                     icon: const Icon(
                       Icons.volume_up_rounded,
                       color: Colors.white,
-                      size: 27,
+                      size: 30,
                     ),
                   ),
+
+                  // Message input.
                   Expanded(
-                    child: TextField(
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Message...',
-                        hintStyle: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 13,
+                    child: SizedBox(
+                      height: 54,
+                      child: TextField(
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
                         ),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        filled: true,
-                        fillColor: darkBlue,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: gold),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(color: gold),
+                        cursorColor: gold,
+                        decoration: InputDecoration(
+                          hintText: 'Message...',
+                          hintStyle: const TextStyle(
+                            color: Colors.white60,
+                            fontSize: 15,
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 16,
+                          ),
+                          filled: true,
+                          fillColor: darkBlue,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: const BorderSide(color: gold),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: const BorderSide(
+                              color: gold,
+                              width: 1.3,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(28),
+                            borderSide: const BorderSide(
+                              color: gold,
+                              width: 1.8,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
+
+                  // Gift box.
                   IconButton(
                     onPressed: () {},
                     tooltip: 'Gift',
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
-                      minWidth: 42,
-                      minHeight: 48,
+                      minWidth: 48,
+                      minHeight: 54,
                     ),
                     icon: const Icon(
                       Icons.card_giftcard_rounded,
                       color: pink,
-                      size: 27,
+                      size: 32,
                     ),
                   ),
+
+                  // More.
                   IconButton(
                     onPressed: () {},
                     tooltip: 'More',
-                    padding: const EdgeInsets.all(4),
+                    padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(
                       minWidth: 42,
-                      minHeight: 48,
+                      minHeight: 54,
                     ),
                     icon: const Icon(
                       Icons.more_horiz_rounded,
                       color: Colors.white,
-                      size: 28,
+                      size: 31,
                     ),
                   ),
                 ],
