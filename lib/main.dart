@@ -1436,7 +1436,7 @@ Widget _socialDesignSection({
   required Color pink,
 }) {
   return Container(
-    color: pink,
+    color: const Color(0xFFEAF8FF),
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     child: Column(
@@ -1445,7 +1445,7 @@ Widget _socialDesignSection({
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: const Color(0xFF09070B),
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
