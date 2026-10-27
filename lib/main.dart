@@ -9151,7 +9151,7 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
               ),
             ),
           ),
-          Expanded(child: _buildSearchResult()),
+          _buildSearchResult(),
         ],
       ),
     );
