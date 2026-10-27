@@ -9012,104 +9012,88 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
         final photoBytes = getCachedProfilePhoto(photoBase64);
 
         return Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: panel,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: pink, width: 1.4),
+  margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+  padding: const EdgeInsets.symmetric(
+    horizontal: 10,
+    vertical: 8,
+  ),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(10),
+  ),
+  child: Row(
+    children: [
+      CircleAvatar(
+        radius: 22,
+        backgroundColor: Colors.grey.shade200,
+        backgroundImage:
+            photoBytes != null ? MemoryImage(photoBytes) : null,
+        child: photoBytes == null
+            ? const Icon(
+                Icons.person_rounded,
+                color: Colors.grey,
+                size: 25,
+              )
+            : null,
+      ),
+      const SizedBox(width: 10),
+
+      // User name only; UID is hidden.
+      Expanded(
+        child: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: purple,
-                backgroundImage:
-                    photoBytes != null ? MemoryImage(photoBytes) : null,
-                child: photoBytes == null
-                    ? const Icon(
-                        Icons.person_rounded,
-                        color: Colors.white,
-                        size: 32,
-                      )
-                    : null,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+        ),
+      ),
 
-                    // PartyNova UID appears only inside this box.
-                    const SizedBox(height: 7),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: darkBlue,
-                        borderRadius: BorderRadius.circular(7),
-                        border: Border.all(color: gold, width: 1),
-                      ),
-                      child: Text(
-                        'UID: $partyNovaUid',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFFFB9DD),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+      const SizedBox(width: 8),
 
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 38,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Friend request is not connected yet.',
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(
-                          Icons.person_add_alt_1_rounded,
-                          size: 18,
-                        ),
-                        label: const Text(
-                          'Send Request',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: gold,
-                          foregroundColor: darkBlue,
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                      ),
-                    ),
-                  ],
+      // Compact Send Request button.
+      SizedBox(
+        height: 36,
+        child: ElevatedButton.icon(
+          onPressed: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Friend request is not connected yet.',
                 ),
               ),
-            ],
+            );
+          },
+          icon: const Icon(
+            Icons.person_add_alt_1_rounded,
+            size: 16,
           ),
-        );
+          label: const Text(
+            'Send Request',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: gold,
+            foregroundColor: darkBlue,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 9,
+            ),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7),
+            ),
+          ),
+        ),
+      ),
+    ],
+  ),
+);
       },
     );
   }
