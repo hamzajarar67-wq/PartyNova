@@ -9046,162 +9046,250 @@ Future<void> _sendFriendRequest({
 }
 
 
+Widget _buildSearchResult() {
+  final query = _query.trim();
+  final currentUser = FirebaseAuth.instance.currentUser;
 
-  
-
-  Widget _buildSearchResult() {
-    final query = _query.trim();
-
-    if (query.isEmpty) {
-      return const Center(
-        child: Text(
-          'Search by PartyNova UID',
-          style: TextStyle(color: Colors.white70, fontSize: 15),
-        ),
-      );
-    }
-
-    if (!RegExp(r'^\d{6,10}$').hasMatch(query)) {
-      return const Center(
-        child: Text(
-          'Enter a valid PartyNova UID.',
-          style: TextStyle(color: Colors.white70, fontSize: 14),
-        ),
-      );
-    }
-
-    return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      key: ValueKey(query),
-      future: FirebaseFirestore.instance
-    .collection('publicProfiles')
-    .where('userId', isEqualTo: query)
-    .limit(1)
-    .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: gold),
-          );
-        }
-
-        if (snapshot.hasError) {
-  return Center(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
+  if (query.isEmpty) {
+    return const Center(
       child: Text(
-        'Search Error: ${snapshot.error}',
-        style: const TextStyle(
-          color: Colors.redAccent,
-          fontSize: 13,
-        ),
+        'Search by PartyNova UID',
+        style: TextStyle(color: Colors.white70, fontSize: 15),
       ),
-    ),
-  );
-}
-
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(
-            child: Text(
-              'No user found with this UID.',
-              style: TextStyle(color: Colors.white70),
-            ),
-          );
-        }
-
-        final userData = snapshot.data!.docs.first.data();
-        final receiverFirebaseUid = snapshot.data!.docs.first.id;
-
-        // Use PartyNova UID, never the Firebase document ID.
-        final partyNovaUid = (userData['userId'] ?? '').toString();
-        final name = (userData['name'] ?? 'PartyNova User').toString();
-        final photoBase64 = (userData['photoBase64'] ?? '').toString();
-        final photoBytes = getCachedProfilePhoto(photoBase64);
-
-        return Container(
-  margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
-  padding: const EdgeInsets.symmetric(
-    horizontal: 10,
-    vertical: 8,
-  ),
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(10),
-  ),
-  child: Row(
-    children: [
-      CircleAvatar(
-        radius: 22,
-        backgroundColor: Colors.grey.shade200,
-        backgroundImage:
-            photoBytes != null ? MemoryImage(photoBytes) : null,
-        child: photoBytes == null
-            ? const Icon(
-                Icons.person_rounded,
-                color: Colors.grey,
-                size: 25,
-              )
-            : null,
-      ),
-      const SizedBox(width: 10),
-
-      // User name only; UID is hidden.
-      Expanded(
-        child: Text(
-          name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-
-      const SizedBox(width: 8),
-
-      // Compact Send Request button.
-      SizedBox(
-        height: 36,
-        child: ElevatedButton.icon(
-          onPressed: () async {
-  await _sendFriendRequest(
-    receiverFirebaseUid: receiverFirebaseUid,
-    receiverPartyNovaUid: partyNovaUid,
-    receiverName: name,
-    receiverPhotoBase64: photoBase64,
-  );
-},
-          icon: const Icon(
-            Icons.person_add_alt_1_rounded,
-            size: 16,
-          ),
-          label: const Text(
-            'Send Request',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: gold,
-            foregroundColor: darkBlue,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 9,
-            ),
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(7),
-            ),
-          ),
-        ),
-      ),
-    ],
-  ),
-);
-      },
     );
   }
+
+  if (!RegExp(r'^\d{6,10}$').hasMatch(query)) {
+    return const Center(
+      child: Text(
+        'Enter a valid PartyNova UID.',
+        style: TextStyle(color: Colors.white70, fontSize: 14),
+      ),
+    );
+  }
+
+  if (currentUser == null) {
+    return const Center(
+      child: Text(
+        'Please log in first.',
+        style: TextStyle(color: Colors.white70),
+      ),
+    );
+  }
+
+  return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    key: ValueKey(query),
+    future: FirebaseFirestore.instance
+        .collection('publicProfiles')
+        .where('userId', isEqualTo: query)
+        .limit(1)
+        .get(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(
+          child: CircularProgressIndicator(color: gold),
+        );
+      }
+
+      if (snapshot.hasError) {
+        return const Center(
+          child: Text(
+            'Search failed. Please try again.',
+            style: TextStyle(color: Colors.redAccent),
+          ),
+        );
+      }
+
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const Center(
+          child: Text(
+            'No user found with this UID.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }
+
+      final profileDoc = snapshot.data!.docs.first;
+      final userData = profileDoc.data();
+      final receiverFirebaseUid = profileDoc.id;
+
+      // Never allow users to send requests to themselves.
+      if (receiverFirebaseUid == currentUser.uid) {
+        return const Center(
+          child: Text(
+            'This is your profile.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }
+
+      final partyNovaUid = (userData['userId'] ?? '').toString();
+      final name = (userData['name'] ?? 'PartyNova User').toString();
+      final photoBase64 = (userData['photoBase64'] ?? '').toString();
+      final photoBytes = getCachedProfilePhoto(photoBase64);
+
+      return FutureBuilder<List<QuerySnapshot<Map<String, dynamic>>>>(
+        future: Future.wait([
+          FirebaseFirestore.instance
+              .collection('friendRequests')
+              .where('senderUid', isEqualTo: currentUser.uid)
+              .where('receiverUid', isEqualTo: receiverFirebaseUid)
+              .get(),
+          FirebaseFirestore.instance
+              .collection('friendRequests')
+              .where('senderUid', isEqualTo: receiverFirebaseUid)
+              .where('receiverUid', isEqualTo: currentUser.uid)
+              .get(),
+        ]),
+        builder: (context, requestSnapshot) {
+          if (requestSnapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(color: gold),
+            );
+          }
+
+          if (requestSnapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Could not check friend status. Please try again.',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            );
+          }
+
+          final outgoingDocs = requestSnapshot.data![0].docs;
+          final incomingDocs = requestSnapshot.data![1].docs;
+          final allRequests = [...outgoingDocs, ...incomingDocs];
+
+          final alreadyFriends = allRequests.any(
+            (doc) => doc.data()['status'] == 'accepted',
+          );
+
+          final requestPending = allRequests.any(
+            (doc) => doc.data()['status'] == 'pending',
+          );
+
+          return Container(
+            margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.grey.shade200,
+                  backgroundImage:
+                      photoBytes != null ? MemoryImage(photoBytes) : null,
+                  child: photoBytes == null
+                      ? const Icon(
+                          Icons.person_rounded,
+                          color: Colors.grey,
+                          size: 25,
+                        )
+                      : null,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'ID: $partyNovaUid',
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (alreadyFriends)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      'Friends',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else if (requestPending)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      'Request Pending',
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                else
+                  SizedBox(
+                    height: 36,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await _sendFriendRequest(
+                          receiverFirebaseUid: receiverFirebaseUid,
+                          receiverPartyNovaUid: partyNovaUid,
+                          receiverName: name,
+                          receiverPhotoBase64: photoBase64,
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.person_add_alt_1_rounded,
+                        size: 16,
+                      ),
+                      label: const Text(
+                        'Send Request',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: gold,
+                        foregroundColor: darkBlue,
+                        padding: const EdgeInsets.symmetric(horizontal: 9),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(7),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+  
+
+  
+            
 
   @override
   Widget build(BuildContext context) {
