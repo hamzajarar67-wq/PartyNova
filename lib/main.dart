@@ -2099,105 +2099,84 @@ Widget buildUserSearchResult() {
         children: [
           // Search disappears only on My Room
           if (_selectedRoomFilter != 2)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-              child: Container(
-                height: 50,
-                decoration: BoxDecoration(
-                  color: panel,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: pink,
-                    width: 1.3,
-                  ),
-                ),
-                child: TextField(
-  controller: _roomSearchController,
-  readOnly: true,
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PartyNovaSearchPage(),
+  Padding(
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+    child: Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: panel,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: pink,
+          width: 1.3,
+        ),
       ),
-    );
-  },
-  style: const TextStyle(
-    color: Colors.white,
-    fontSize: 14,
-  ),
-  cursorColor: pink,
-  decoration: const InputDecoration(
-    hintText: 'Search UID and Room',
-    hintStyle: TextStyle(
-      color: Colors.white60,
-      fontSize: 14,
-    ),
-    prefixIcon: Icon(
-      Icons.search_rounded,
-      color: gold,
-      size: 25,
-    ),
-    border: InputBorder.none,
-    contentPadding: EdgeInsets.symmetric(vertical: 14),
-  ),
-),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
-                  cursorColor: pink,
-                  decoration: InputDecoration(
-                    hintText: 'Search UID and Room',
-                    hintStyle: TextStyle(
-                      color: Colors.white60,
-                      fontSize: 14,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: gold,
-                      size: 25,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
+      child: TextField(
+        controller: _roomSearchController,
+        readOnly: true,
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PartyNovaSearchPage(),
             ),
-          
-          buildUserSearchResult(),
-          buildTopFilters(),
+          );
+        },
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+        ),
+        cursorColor: pink,
+        decoration: const InputDecoration(
+          hintText: 'Search UID and Room',
+          hintStyle: TextStyle(
+            color: Colors.white60,
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: gold,
+            size: 25,
+          ),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 14),
+        ),
+      ),
+    ),
+  ),
 
-          if (_selectedRoomFilter == 2)
-            Expanded(
-              child: SingleChildScrollView(
-                child: buildMyRoomContent(),
-              ),
-            )
-          else ...[
-            const SizedBox(height: 20),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'ROOMS',
-                  style: TextStyle(
-                    color: gold,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ),
-            ),
-            buildRoomCards(),
-          ],
+buildTopFilters(),
+
+if (_selectedRoomFilter == 2)
+  Expanded(
+    child: SingleChildScrollView(
+      child: buildMyRoomContent(),
+    ),
+  )
+else ...[
+  const SizedBox(height: 20),
+  const Padding(
+    padding: EdgeInsets.symmetric(horizontal: 16),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        'ROOMS',
+        style: TextStyle(
+          color: gold,
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 2,
+        ),
+      ),
+    ),
+  ),
+  buildRoomCards(),
+],
         ],
       ),
     ),
   );
-}                         
+}
 
 
 
