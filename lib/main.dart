@@ -9835,6 +9835,9 @@ class _FriendsListSection extends StatelessWidget {
   }
 }
 
+
+
+
 class PartyNovaPublicProfilePage extends StatelessWidget {
   final String firebaseUid;
 
@@ -9844,67 +9847,15 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
   });
 
   static const Color _background = Color(0xFF09070B);
-  static const Color _panel = Color(0xFF21101F);
-  static const Color _gold = Color(0xFFFFD700);
-  static const Color _purple = Color(0xFF703B91);
-
-  Widget _buildCountItem({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 14,
-      ),
-      decoration: BoxDecoration(
-        color: _panel,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _gold.withValues(alpha: 0.4),
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: _gold,
-            size: 23,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 19,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  static const Color _gold = Color(0xFFFFD780);
+  static const Color _pink = Color(0xFFFF1688);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
       appBar: AppBar(
-        backgroundColor: _panel,
+        backgroundColor: _background,
         foregroundColor: _gold,
         elevation: 0,
         title: const Text(
@@ -9914,11 +9865,11 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: FirebaseFirestore.instance
-            .collection('publicProfiles')
+      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
             .doc(firebaseUid)
-            .get(),
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -9929,7 +9880,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             );
           }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return const Center(
               child: CircularProgressIndicator(
                 color: _gold,
@@ -9937,7 +9888,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             );
           }
 
-          if (!snapshot.hasData || !snapshot.data!.exists) {
+          if (!snapshot.data!.exists) {
             return const Center(
               child: Text(
                 'Profile not found.',
@@ -9951,8 +9902,8 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
           final name =
               (data['name'] ?? 'PartyNova User').toString();
 
-          final partyId =
-              (data['userId'] ?? '').toString();
+          final userId =
+              (data['userId'] ?? '').toString().trim();
 
           final bio =
               (data['bio'] ?? 'No bio added yet.').toString();
@@ -9960,177 +9911,229 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
           final photoBase64 =
               (data['photoBase64'] ?? '').toString();
 
-          final bytes = getCachedProfilePhoto(photoBase64);
+          final profileFrameAsset =
+              (data['profileFrameAsset'] ?? '').toString();
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 12),
+          final role =
+              (data['role'] ?? '').toString().toLowerCase();
 
-                // Profile picture
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
+          final isOwnerOrAdmin =
+              role == 'owner' || role == 'admin';
+
+          final photoBytes =
+              getCachedProfilePhoto(photoBase64);
+
+          return Container(
+            color: _background,
+            width: double.infinity,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 8),
+
+                  // Profile picture and frame
+                  Container(
+                    width: 112,
+                    height: 112,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFF1688),
+                          Color(0xFF7028A0),
+                          Color(0xFF21102F),
+                        ],
+                      ),
                       border: Border.all(
                         color: _gold,
-                        width: 2,
+                        width: 3,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _pink.withValues(alpha: 0.25),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
-                    child: CircleAvatar(
-                      radius: 58,
-                      backgroundColor: _purple,
-                      backgroundImage: bytes == null
-                          ? null
-                          : MemoryImage(bytes),
-                      child: bytes == null
-                          ? const Icon(
-                              Icons.person_rounded,
-                              color: Colors.white,
-                              size: 58,
-                            )
-                          : null,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipOval(
+                          child: SizedBox(
+                            width: 106,
+                            height: 106,
+                            child: photoBytes == null
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    size: 64,
+                                    color: Colors.white,
+                                  )
+                                : Image.memory(
+                                    photoBytes,
+                                    fit: BoxFit.cover,
+                                    cacheWidth: 224,
+                                    gaplessPlayback: true,
+                                    errorBuilder:
+                                        (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.person_rounded,
+                                        size: 64,
+                                        color: Colors.white,
+                                      );
+                                    },
+                                  ),
+                          ),
+                        ),
+
+                        if (profileFrameAsset.isNotEmpty)
+                          Positioned.fill(
+                            child: Image.asset(
+                              profileFrameAsset,
+                              fit: BoxFit.contain,
+                              errorBuilder:
+                                  (context, error, stackTrace) {
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 18),
+                  const SizedBox(height: 14),
 
-                // User name
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 25,
-                    fontWeight: FontWeight.bold,
+                  // Name
+                  Text(
+                    name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 9),
+                  const SizedBox(height: 10),
 
-                // PartyNova ID
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 15,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _panel,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _gold.withValues(alpha: 0.5),
+                  // Owner/Admin badge or PartyNova ID
+                  if (isOwnerOrAdmin)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 7,
                       ),
-                    ),
-                    child: Text(
-                      'PartyNova ID: $partyId',
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFFFE9A6),
+                            Color(0xFFD6A83C),
+                            Color(0xFF8A5A12),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _gold,
+                        ),
+                      ),
+                      child: Text(
+                        role.toUpperCase(),
+                        style: const TextStyle(
+                          color: Color(0xFF422B0A),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      'ID: ${userId.isEmpty ? 'Not available' : userId}',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: _gold,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
                       ),
+                    ),
+
+                  const SizedBox(height: 18),
+
+                  // Bio
+                  if (bio.trim().isNotEmpty &&
+                      bio != 'No bio added yet.')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                      ),
+                      child: Text(
+                        bio,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // Profile statistics
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 6,
+                    ),
+                    decoration: const BoxDecoration(
+                      border: Border.symmetric(
+                        horizontal: BorderSide(
+                          color: _gold,
+                          width: 0.7,
+                        ),
+                      ),
+                    ),
+                    child: const Row(
+                      children: [
+                        Expanded(
+                          child: _ProfileCountItem(
+                            title: 'Follower',
+                            value: '0',
+                          ),
+                        ),
+                        Expanded(
+                          child: _ProfileCountItem(
+                            title: 'Following',
+                            value: '0',
+                          ),
+                        ),
+                        Expanded(
+                          child: _ProfileCountItem(
+                            title: 'Send Gift',
+                            value: '0',
+                          ),
+                        ),
+                        Expanded(
+                          child: _ProfileCountItem(
+                            title: 'Gift Received',
+                            value: '0',
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 25),
-
-                // Profile statistics
-                const Text(
-                  'PROFILE STATS',
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCountItem(
-                        icon: Icons.people_alt_rounded,
-                        title: 'Follower',
-                        value: '0',
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCountItem(
-                        icon: Icons.person_add_alt_1_rounded,
-                        title: 'Following',
-                        value: '0',
-                      ),
-                    ),
+                  // Keep the existing Owner/Admin ID card.
+                  if (isOwnerOrAdmin) ...[
+                    const SizedBox(height: 24),
+                    PartyNovaGoldenIdCard(userId: userId),
                   ],
-                ),
 
-                const SizedBox(height: 10),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCountItem(
-                        icon: Icons.card_giftcard_rounded,
-                        title: 'Send Gift',
-                        value: '0',
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _buildCountItem(
-                        icon: Icons.redeem_rounded,
-                        title: 'Gift Received',
-                        value: '0',
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 25),
-
-                // Bio section
-                const Text(
-                  'ABOUT ME',
-                  style: TextStyle(
-                    color: _gold,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: _panel,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: _gold.withValues(alpha: 0.45),
-                    ),
-                  ),
-                  child: Text(
-                    bio,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15,
-                      height: 1.5,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
           );
         },
@@ -10138,3 +10141,6 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
     );
   }
 }
+
+
+                
