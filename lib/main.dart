@@ -1453,510 +1453,6 @@ Widget _buildGamesTab() {
 
 Widget _buildSocialTab() => const PartyNovaSocialTab();
 
-class _SocialBottomNavIcon extends StatelessWidget {
-  final IconData icon;
-  final bool selected;
-
-  const _SocialBottomNavIcon({
-    required this.icon,
-    required this.selected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      return Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54);
-    }
-
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('friendRequests')
-          .where('receiverUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'pending')
-          .snapshots(),
-      builder: (context, snapshot) {
-        final count = snapshot.data?.docs
-                .where((doc) => doc.data()['seenByReceiver'] != true)
-                .length ??
-            0;
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54),
-            if (count > 0)
-              Positioned(
-                right: -10,
-                top: -7,
-                child: _RequestCountBadge(count: count),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _SocialBottomNavLabel extends StatelessWidget {
-  final bool selected;
-  const _SocialBottomNavLabel({required this.selected});
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54));
-    }
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('friendRequests')
-          .where('receiverUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'pending')
-          .snapshots(),
-      builder: (context, snapshot) {
-        final count = snapshot.data?.docs
-                .where((doc) => doc.data()['seenByReceiver'] != true)
-                .length ??
-            0;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
-            if (count > 0) ...[
-              const SizedBox(width: 3),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _RequestCountBadge extends StatelessWidget {
-  final int count;
-  const _RequestCountBadge({required this.count});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-        child: Center(
-          child: Text(
-            count > 99 ? '99+' : '$count',
-            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
-          ),
-        ),
-      );
-}
-
-class PartyNovaSocialTab extends StatefulWidget {
-  const PartyNovaSocialTab({super.key});
-
-  @override
-  State<PartyNovaSocialTab> createState() => _PartyNovaSocialTabState();
-}
-
-class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
-    with SingleTickerProviderStateMixin {
-  late final TabController _controller;
-  bool _markingSeen = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TabController(length: 3, vsync: this);
-    _controller.addListener(_handleTabChange);
-  }
-
-  @override
-  void dispose() {
-    _controller.removeListener(_handleTabChange);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleTabChange() {
-    if (!_controller.indexIsChanging && _controller.index == 2) {
-      _markIncomingRequestsSeen();
-    }
-  }
-
-  Future<void> _markIncomingRequestsSeen() async {
-    if (_markingSeen) return;
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
-    _markingSeen = true;
-    try {
-      final requests = await FirebaseFirestore.instance
-          .collection('friendRequests')
-          .where('receiverUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'pending')
-          .get();
-      final unseen = requests.docs
-          .where((doc) => doc.data()['seenByReceiver'] != true)
-          .toList();
-
-      for (var i = 0; i < unseen.length; i += 400) {
-        final batch = FirebaseFirestore.instance.batch();
-        for (final doc in unseen.skip(i).take(400)) {
-          batch.update(doc.reference, {
-            'seenByReceiver': true,
-            'seenAt': FieldValue.serverTimestamp(),
-          });
-        }
-        await batch.commit();
-      }
-    } catch (e) {
-      debugPrint('Mark friend requests seen error: $e');
-    } finally {
-      _markingSeen = false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    const pink = Color(0xFFFF1688);
-    const black = Color(0xFF09070B);
-    return Container(
-      color: Colors.white,
-      child: Column(
-        children: [
-          Material(
-            color: Colors.white,
-            child: TabBar(
-              controller: _controller,
-              indicatorColor: black,
-              indicatorWeight: 3,
-              labelColor: black,
-              unselectedLabelColor: Colors.black54,
-              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-              tabs: [
-                const Tab(text: 'Friend'),
-                const Tab(text: 'Message'),
-                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                  stream: _incomingPendingStream(),
-                  builder: (context, snapshot) {
-                    final count = snapshot.data?.docs
-                            .where((doc) => doc.data()['seenByReceiver'] != true)
-                            .length ??
-                        0;
-                    return Tab(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('Friend Request'),
-                          if (count > 0) ...[
-                            const SizedBox(width: 5),
-                            _RequestCountBadge(count: count),
-                          ],
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _controller,
-              children: const [
-                _FriendsListSection(),
-                _SocialEmptySection(title: 'Messages', subtitle: 'Your conversations will appear here', icon: Icons.chat_bubble_rounded),
-                _IncomingRequestsSection(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-Stream<QuerySnapshot<Map<String, dynamic>>> _incomingPendingStream() {
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) {
-    return const Stream.empty();
-  }
-  return FirebaseFirestore.instance
-      .collection('friendRequests')
-      .where('receiverUid', isEqualTo: uid)
-      .where('status', isEqualTo: 'pending')
-      .snapshots();
-}
-
-class _SocialEmptySection extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  const _SocialEmptySection({required this.title, required this.subtitle, required this.icon});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        color: const Color(0xFFEAF8FF),
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(color: Color(0xFF09070B), fontSize: 22, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
-              child: Row(
-                children: [
-                  Icon(icon, color: const Color(0xFFFF1688), size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF09070B), fontSize: 15))),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-}
-
-class _IncomingRequestsSection extends StatefulWidget {
-  const _IncomingRequestsSection();
-
-  @override
-  State<_IncomingRequestsSection> createState() => _IncomingRequestsSectionState();
-}
-
-class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
-  bool _working = false;
-
-  Future<void> _respond(DocumentSnapshot<Map<String, dynamic>> doc, String status) async {
-    if (_working) return;
-    setState(() => _working = true);
-    try {
-      await doc.reference.update({
-        'status': status,
-        'updatedAt': FieldValue.serverTimestamp(),
-        'seenByReceiver': true,
-        'seenAt': FieldValue.serverTimestamp(),
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(status == 'accepted' ? 'Friend added successfully.' : 'Friend request rejected.')),
-      );
-    } catch (e) {
-      debugPrint('Respond to friend request error: $e');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update request. Check Firestore rules.')),
-      );
-    } finally {
-      if (mounted) setState(() => _working = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return const Center(child: Text('Please log in again.'));
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _incomingPendingStream(),
-      builder: (context, snapshot) {
-        if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
-        final docs = snapshot.data!.docs;
-        if (docs.isEmpty) {
-          return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
-        }
-        return Container(
-          color: const Color(0xFFEAF8FF),
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final doc = docs[index];
-              final data = doc.data();
-              final senderUid = (data['senderUid'] ?? '').toString();
-              final name = (data['senderName'] ?? 'PartyNova User').toString();
-              final partyId = (data['senderPartyNovaUid'] ?? '').toString();
-              final photo = (data['senderPhotoBase64'] ?? '').toString();
-              final bytes = getCachedProfilePhoto(photo);
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF1688).withValues(alpha: 0.35))),
-                child: Row(
-                  children: [
-                    InkWell(
-                      borderRadius: BorderRadius.circular(30),
-                      onTap: senderUid.isEmpty ? null : () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: senderUid)));
-                      },
-                      child: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: const Color(0xFFEDEDED),
-                        backgroundImage: bytes == null ? null : MemoryImage(bytes),
-                        child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.black54) : null,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: InkWell(
-                        onTap: senderUid.isEmpty ? null : () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: senderUid)));
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)),
-                            const SizedBox(height: 4),
-                            Text('ID: $partyId', style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    _BlackRequestAction(icon: Icons.check_rounded, onTap: _working ? null : () => _respond(doc, 'accepted')),
-                    const SizedBox(width: 6),
-                    _BlackRequestAction(icon: Icons.close_rounded, onTap: _working ? null : () => _respond(doc, 'rejected')),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _BlackRequestAction extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback? onTap;
-  const _BlackRequestAction({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(color: const Color(0xFF09070B), borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, color: Colors.white, size: 20),
-        ),
-      );
-}
-
-class _FriendsListSection extends StatelessWidget {
-  const _FriendsListSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return const Center(child: Text('Please log in again.'));
-    final firestore = FirebaseFirestore.instance;
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: firestore.collection('friendRequests').where('senderUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
-      builder: (context, outgoing) {
-        if (outgoing.hasError) return const Center(child: Text('Could not load friends.'));
-        if (!outgoing.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
-        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: firestore.collection('friendRequests').where('receiverUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
-          builder: (context, incoming) {
-            if (incoming.hasError) return const Center(child: Text('Could not load friends.'));
-            if (!incoming.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
-            final docs = <DocumentSnapshot<Map<String, dynamic>>>[
-              ...outgoing.data!.docs,
-              ...incoming.data!.docs,
-            ];
-            final unique = <String, DocumentSnapshot<Map<String, dynamic>>>{};
-            for (final doc in docs) {
-              final data = doc.data()!;
-              final friendUid = data['senderUid'] == uid ? data['receiverUid'] : data['senderUid'];
-              unique[friendUid.toString()] = doc;
-            }
-            final friends = unique.values.toList();
-            if (friends.isEmpty) return const _SocialEmptySection(title: 'Friends', subtitle: 'Accepted friends will appear here.', icon: Icons.people_rounded);
-            return Container(
-              color: const Color(0xFFEAF8FF),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: friends.length,
-                itemBuilder: (context, index) {
-                  final doc = friends[index];
-                  final data = doc.data()!;
-                  final isSender = data['senderUid'] == uid;
-                  final friendUid = (isSender ? data['receiverUid'] : data['senderUid']).toString();
-                  final name = ((isSender ? data['receiverName'] : data['senderName']) ?? 'PartyNova User').toString();
-                  final partyId = ((isSender ? data['receiverPartyNovaUid'] : data['senderPartyNovaUid']) ?? '').toString();
-                  final photo = ((isSender ? data['receiverPhotoBase64'] : data['senderPhotoBase64']) ?? '').toString();
-                  final bytes = getCachedProfilePhoto(photo);
-                  return Card(
-                    color: Colors.white,
-                    child: ListTile(
-                      leading: CircleAvatar(backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded) : null),
-                      title: Text(name, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                      subtitle: Text('ID: $partyId', style: const TextStyle(color: Colors.black54)),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: friendUid))),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-class PartyNovaPublicProfilePage extends StatelessWidget {
-  final String firebaseUid;
-  const PartyNovaPublicProfilePage({super.key, required this.firebaseUid});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF09070B),
-      appBar: AppBar(backgroundColor: const Color(0xFF21101F), foregroundColor: const Color(0xFFFFD700), title: const Text('Profile')),
-      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: FirebaseFirestore.instance.collection('publicProfiles').doc(firebaseUid).get(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('Could not load profile.', style: TextStyle(color: Colors.white70)));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
-          if (!snapshot.data!.exists) return const Center(child: Text('Profile not found.', style: TextStyle(color: Colors.white70)));
-          final data = snapshot.data!.data() ?? {};
-          final name = (data['name'] ?? 'PartyNova User').toString();
-          final partyId = (data['userId'] ?? '').toString();
-          final bio = (data['bio'] ?? 'No bio added yet.').toString();
-          final bytes = getCachedProfilePhoto((data['photoBase64'] ?? '').toString());
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  CircleAvatar(radius: 58, backgroundColor: const Color(0xFF703B91), backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.white, size: 58) : null),
-                  const SizedBox(height: 18),
-                  Text(name, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('PartyNova ID: $partyId', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15)),
-                  const SizedBox(height: 18),
-                  Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF21101F), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5))), child: Text(bio, style: const TextStyle(color: Colors.white70, fontSize: 15))),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
 Widget _socialDesignSection({
   required String title,
   required String subtitle,
@@ -2454,6 +1950,9 @@ Widget buildUserSearchResult() {
       ],
     );
   }
+
+
+
 
   
    Widget buildRoomCards() {
@@ -4408,7 +3907,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
     [
       Color(0xFF35172D),
       Color(0xFF743B63),
-      Color(0xFFD9A5C7),
+           Color(0xFFD9A5C7),
     ],
   ];
 
@@ -6361,6 +5860,8 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
 
 class CrownGalleryPage extends StatefulWidget {
   const CrownGalleryPage({super.key});
+
+
 
   @override
   State<CrownGalleryPage> createState() => _CrownGalleryPageState();
@@ -9761,3 +9262,511 @@ Future<void> _sendFriendRequest({
     );
   }
 }
+
+// Social and friend-request widgets (kept at top level to avoid nested-class syntax errors).
+class _SocialBottomNavIcon extends StatelessWidget {
+  final IconData icon;
+  final bool selected;
+
+  const _SocialBottomNavIcon({
+    required this.icon,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54);
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('friendRequests')
+          .where('receiverUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'pending')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final count = snapshot.data?.docs
+                .where((doc) => doc.data()['seenByReceiver'] != true)
+                .length ??
+            0;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54),
+            if (count > 0)
+              Positioned(
+                right: -10,
+                top: -7,
+                child: _RequestCountBadge(count: count),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SocialBottomNavLabel extends StatelessWidget {
+  final bool selected;
+  const _SocialBottomNavLabel({required this.selected});
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54));
+    }
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('friendRequests')
+          .where('receiverUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'pending')
+          .snapshots(),
+      builder: (context, snapshot) {
+        final count = snapshot.data?.docs
+                .where((doc) => doc.data()['seenByReceiver'] != true)
+                .length ??
+            0;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
+            if (count > 0) ...[
+              const SizedBox(width: 3),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RequestCountBadge extends StatelessWidget {
+  final int count;
+  const _RequestCountBadge({required this.count});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+        child: Center(
+          child: Text(
+            count > 99 ? '99+' : '$count',
+            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+}
+
+class PartyNovaSocialTab extends StatefulWidget {
+  const PartyNovaSocialTab({super.key});
+
+  @override
+  State<PartyNovaSocialTab> createState() => _PartyNovaSocialTabState();
+}
+
+class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
+    with SingleTickerProviderStateMixin {
+  late final TabController _controller;
+  bool _markingSeen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TabController(length: 3, vsync: this);
+    _controller.addListener(_handleTabChange);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleTabChange);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _handleTabChange() {
+    if (!_controller.indexIsChanging && _controller.index == 2) {
+      _markIncomingRequestsSeen();
+    }
+  }
+
+  Future<void> _markIncomingRequestsSeen() async {
+    if (_markingSeen) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    _markingSeen = true;
+    try {
+      final requests = await FirebaseFirestore.instance
+          .collection('friendRequests')
+          .where('receiverUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'pending')
+          .get();
+      final unseen = requests.docs
+          .where((doc) => doc.data()['seenByReceiver'] != true)
+          .toList();
+
+      for (var i = 0; i < unseen.length; i += 400) {
+        final batch = FirebaseFirestore.instance.batch();
+        for (final doc in unseen.skip(i).take(400)) {
+          batch.update(doc.reference, {
+            'seenByReceiver': true,
+            'seenAt': FieldValue.serverTimestamp(),
+          });
+        }
+        await batch.commit();
+      }
+    } catch (e) {
+      debugPrint('Mark friend requests seen error: $e');
+    } finally {
+      _markingSeen = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    const pink = Color(0xFFFF1688);
+    const black = Color(0xFF09070B);
+    return Container(
+      color: Colors.white,
+      child: Column(
+        children: [
+          Material(
+            color: Colors.white,
+            child: TabBar(
+              controller: _controller,
+              indicatorColor: black,
+              indicatorWeight: 3,
+              labelColor: black,
+              unselectedLabelColor: Colors.black54,
+              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              tabs: [
+                const Tab(text: 'Friend'),
+                const Tab(text: 'Message'),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: _incomingPendingStream(),
+                  builder: (context, snapshot) {
+                    final count = snapshot.data?.docs
+                            .where((doc) => doc.data()['seenByReceiver'] != true)
+                            .length ??
+                        0;
+                    return Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Friend Request'),
+                          if (count > 0) ...[
+                            const SizedBox(width: 5),
+                            _RequestCountBadge(count: count),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _controller,
+              children: const [
+                _FriendsListSection(),
+                _SocialEmptySection(title: 'Messages', subtitle: 'Your conversations will appear here', icon: Icons.chat_bubble_rounded),
+                _IncomingRequestsSection(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Stream<QuerySnapshot<Map<String, dynamic>>> _incomingPendingStream() {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) {
+    return const Stream.empty();
+  }
+  return FirebaseFirestore.instance
+      .collection('friendRequests')
+      .where('receiverUid', isEqualTo: uid)
+      .where('status', isEqualTo: 'pending')
+      .snapshots();
+}
+
+class _SocialEmptySection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  const _SocialEmptySection({required this.title, required this.subtitle, required this.icon});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        color: const Color(0xFFEAF8FF),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: const TextStyle(color: Color(0xFF09070B), fontSize: 22, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+              child: Row(
+                children: [
+                  Icon(icon, color: const Color(0xFFFF1688), size: 32),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF09070B), fontSize: 15))),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _IncomingRequestsSection extends StatefulWidget {
+  const _IncomingRequestsSection();
+
+  @override
+  State<_IncomingRequestsSection> createState() => _IncomingRequestsSectionState();
+}
+
+class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
+  bool _working = false;
+
+  Future<void> _respond(DocumentSnapshot<Map<String, dynamic>> doc, String status) async {
+    if (_working) return;
+    setState(() => _working = true);
+    try {
+      await doc.reference.update({
+        'status': status,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'seenByReceiver': true,
+        'seenAt': FieldValue.serverTimestamp(),
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(status == 'accepted' ? 'Friend added successfully.' : 'Friend request rejected.')),
+      );
+    } catch (e) {
+      debugPrint('Respond to friend request error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not update request. Check Firestore rules.')),
+      );
+    } finally {
+      if (mounted) setState(() => _working = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const Center(child: Text('Please log in again.'));
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _incomingPendingStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        final docs = snapshot.data!.docs;
+        if (docs.isEmpty) {
+          return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
+        }
+        return Container(
+          color: const Color(0xFFEAF8FF),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: docs.length,
+            itemBuilder: (context, index) {
+              final doc = docs[index];
+              final data = doc.data();
+              final senderUid = (data['senderUid'] ?? '').toString();
+              final name = (data['senderName'] ?? 'PartyNova User').toString();
+              final partyId = (data['senderPartyNovaUid'] ?? '').toString();
+              final photo = (data['senderPhotoBase64'] ?? '').toString();
+              final bytes = getCachedProfilePhoto(photo);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF1688).withValues(alpha: 0.35))),
+                child: Row(
+                  children: [
+                    InkWell(
+                      borderRadius: BorderRadius.circular(30),
+                      onTap: senderUid.isEmpty ? null : () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: senderUid)));
+                      },
+                      child: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: const Color(0xFFEDEDED),
+                        backgroundImage: bytes == null ? null : MemoryImage(bytes),
+                        child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.black54) : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: InkWell(
+                        onTap: senderUid.isEmpty ? null : () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: senderUid)));
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)),
+                            const SizedBox(height: 4),
+                            Text('ID: $partyId', style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    _BlackRequestAction(icon: Icons.check_rounded, onTap: _working ? null : () => _respond(doc, 'accepted')),
+                    const SizedBox(width: 6),
+                    _BlackRequestAction(icon: Icons.close_rounded, onTap: _working ? null : () => _respond(doc, 'rejected')),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _BlackRequestAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  const _BlackRequestAction({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(color: const Color(0xFF09070B), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
+      );
+}
+
+class _FriendsListSection extends StatelessWidget {
+  const _FriendsListSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return const Center(child: Text('Please log in again.'));
+    final firestore = FirebaseFirestore.instance;
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: firestore.collection('friendRequests').where('senderUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
+      builder: (context, outgoing) {
+        if (outgoing.hasError) return const Center(child: Text('Could not load friends.'));
+        if (!outgoing.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: firestore.collection('friendRequests').where('receiverUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
+          builder: (context, incoming) {
+            if (incoming.hasError) return const Center(child: Text('Could not load friends.'));
+            if (!incoming.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+            final docs = <DocumentSnapshot<Map<String, dynamic>>>[
+              ...outgoing.data!.docs,
+              ...incoming.data!.docs,
+            ];
+            final unique = <String, DocumentSnapshot<Map<String, dynamic>>>{};
+            for (final doc in docs) {
+              final data = doc.data()!;
+              final friendUid = data['senderUid'] == uid ? data['receiverUid'] : data['senderUid'];
+              unique[friendUid.toString()] = doc;
+            }
+            final friends = unique.values.toList();
+            if (friends.isEmpty) return const _SocialEmptySection(title: 'Friends', subtitle: 'Accepted friends will appear here.', icon: Icons.people_rounded);
+            return Container(
+              color: const Color(0xFFEAF8FF),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: friends.length,
+                itemBuilder: (context, index) {
+                  final doc = friends[index];
+                  final data = doc.data()!;
+                  final isSender = data['senderUid'] == uid;
+                  final friendUid = (isSender ? data['receiverUid'] : data['senderUid']).toString();
+                  final name = ((isSender ? data['receiverName'] : data['senderName']) ?? 'PartyNova User').toString();
+                  final partyId = ((isSender ? data['receiverPartyNovaUid'] : data['senderPartyNovaUid']) ?? '').toString();
+                  final photo = ((isSender ? data['receiverPhotoBase64'] : data['senderPhotoBase64']) ?? '').toString();
+                  final bytes = getCachedProfilePhoto(photo);
+                  return Card(
+                    color: Colors.white,
+                    child: ListTile(
+                      leading: CircleAvatar(backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded) : null),
+                      title: Text(name, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      subtitle: Text('ID: $partyId', style: const TextStyle(color: Colors.black54)),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: friendUid))),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class PartyNovaPublicProfilePage extends StatelessWidget {
+  final String firebaseUid;
+  const PartyNovaPublicProfilePage({super.key, required this.firebaseUid});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF09070B),
+      appBar: AppBar(backgroundColor: const Color(0xFF21101F), foregroundColor: const Color(0xFFFFD700), title: const Text('Profile')),
+      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        future: FirebaseFirestore.instance.collection('publicProfiles').doc(firebaseUid).get(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return const Center(child: Text('Could not load profile.', style: TextStyle(color: Colors.white70)));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
+          if (!snapshot.data!.exists) return const Center(child: Text('Profile not found.', style: TextStyle(color: Colors.white70)));
+          final data = snapshot.data!.data() ?? {};
+          final name = (data['name'] ?? 'PartyNova User').toString();
+          final partyId = (data['userId'] ?? '').toString();
+          final bio = (data['bio'] ?? 'No bio added yet.').toString();
+          final bytes = getCachedProfilePhoto((data['photoBase64'] ?? '').toString());
+          return Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  CircleAvatar(radius: 58, backgroundColor: const Color(0xFF703B91), backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.white, size: 58) : null),
+                  const SizedBox(height: 18),
+                  Text(name, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Text('PartyNova ID: $partyId', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15)),
+                  const SizedBox(height: 18),
+                  Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF21101F), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5))), child: Text(bio, style: const TextStyle(color: Colors.white70, fontSize: 15))),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+  
