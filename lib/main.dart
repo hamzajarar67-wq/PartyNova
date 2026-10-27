@@ -9133,6 +9133,7 @@ Future<void> _sendFriendRequest({
         }
 
         final userData = snapshot.data!.docs.first.data();
+        final receiverFirebaseUid = snapshot.data!.docs.first.id;
 
         // Use PartyNova UID, never the Firebase document ID.
         final partyNovaUid = (userData['userId'] ?? '').toString();
@@ -9190,7 +9191,7 @@ Future<void> _sendFriendRequest({
           onPressed: () async {
   await _sendFriendRequest(
     receiverFirebaseUid: receiverFirebaseUid,
-    receiverPartyNovaUid: uid,
+    receiverPartyNovaUid: partyNovaUid,
     receiverName: name,
     receiverPhotoBase64: photoBase64,
   );
