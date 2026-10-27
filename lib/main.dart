@@ -246,6 +246,48 @@ class PartyNovaApp extends StatelessWidget {
   }
 }
 
+
+Future<void> syncPartyNovaPublicProfile(User user) async {
+  final firestore = FirebaseFirestore.instance;
+
+  // Read the signed-in user's existing profile.
+  final userDoc = await firestore
+      .collection('users')
+      .doc(user.uid)
+      .get();
+
+  if (!userDoc.exists) {
+    debugPrint('Public profile sync skipped: user profile not found.');
+    return;
+  }
+
+  final data = userDoc.data()!;
+
+  final userId = (data['userId'] ?? '').toString();
+  final name = (data['name'] ?? user.displayName ?? 'PartyNova User')
+      .toString();
+  final photoBase64 = (data['photoBase64'] ?? '').toString();
+
+  if (!RegExp(r'^(?:\d{6}|\d{8}|\d{10})$').hasMatch(userId)) {
+    debugPrint('Public profile sync skipped: invalid PartyNova ID.');
+    return;
+  }
+
+  // Store only fields intended for public profile search.
+  await firestore
+      .collection('publicProfiles')
+      .doc(user.uid)
+      .set({
+    'userId': userId,
+    'name': name,
+    'photoBase64': photoBase64,
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
+
+
+
+
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});
 
@@ -632,10 +674,11 @@ class _LoginPageState extends State<LoginPage> {
 
       // Set up the profile ID separately so it cannot block login.
       try {
-        await assignPartyNovaUserId(user);
-      } catch (e) {
-        debugPrint('PartyNova profile ID setup failed: $e');
-      }
+  await assignPartyNovaUserId(user);
+  await syncPartyNovaPublicProfile(user);
+} catch (e) {
+  debugPrint('PartyNova profile setup failed: $e');
+}
     } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() => _error = _friendlyError(e));
@@ -2730,7 +2773,10 @@ Future<void> _saveProfile() async {
   _saving = true;
 
   try {
-    await FirebaseFirestore.instance
+    final firestore = FirebaseFirestore.instance;
+
+    // Update the original private profile.
+    await firestore
         .collection('users')
         .doc(widget.uid)
         .set({
@@ -2739,6 +2785,39 @@ Future<void> _saveProfile() async {
       'photoBase64': _photoBase64,
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    // Read the existing PartyNova ID without changing it.
+    final userSnapshot = await firestore
+        .collection('users')
+        .doc(widget.uid)
+        .get();
+
+    final userData = userSnapshot.data();
+    final userId = (userData?['userId'] ?? '').toString();
+
+    // Sync the public profile used by UID search.
+    if (RegExp(r'^(?:\d{6}|\d{8}|\d{10})$')
+        .hasMatch(userId)) {
+      try {
+        await firestore
+            .collection('publicProfiles')
+            .doc(widget.uid)
+            .set({
+          'userId': userId,
+          'name': name,
+          'photoBase64': _photoBase64,
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      } catch (syncError) {
+        debugPrint(
+          'Public profile sync failed: $syncError',
+        );
+      }
+    } else {
+      debugPrint(
+        'Public profile sync skipped: invalid PartyNova ID.',
+      );
+    }
 
     if (!mounted) return;
 
@@ -8889,10 +8968,10 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
     return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
       key: ValueKey(query),
       future: FirebaseFirestore.instance
-          .collection('users')
-          .where('userId', isEqualTo: query)
-          .limit(1)
-          .get(),
+    .collection('publicProfiles')
+    .where('userId', isEqualTo: query)
+    .limit(1)
+    .get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
