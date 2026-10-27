@@ -9837,38 +9837,300 @@ class _FriendsListSection extends StatelessWidget {
 
 class PartyNovaPublicProfilePage extends StatelessWidget {
   final String firebaseUid;
-  const PartyNovaPublicProfilePage({super.key, required this.firebaseUid});
+
+  const PartyNovaPublicProfilePage({
+    super.key,
+    required this.firebaseUid,
+  });
+
+  static const Color _background = Color(0xFF09070B);
+  static const Color _panel = Color(0xFF21101F);
+  static const Color _gold = Color(0xFFFFD700);
+  static const Color _purple = Color(0xFF703B91);
+
+  Widget _buildCountItem({
+    required IconData icon,
+    required String title,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5,
+        vertical: 14,
+      ),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _gold.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            color: _gold,
+            size: 23,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 19,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09070B),
-      appBar: AppBar(backgroundColor: const Color(0xFF21101F), foregroundColor: const Color(0xFFFFD700), title: const Text('Profile')),
+      backgroundColor: _background,
+      appBar: AppBar(
+        backgroundColor: _panel,
+        foregroundColor: _gold,
+        elevation: 0,
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        future: FirebaseFirestore.instance.collection('publicProfiles').doc(firebaseUid).get(),
+        future: FirebaseFirestore.instance
+            .collection('publicProfiles')
+            .doc(firebaseUid)
+            .get(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('Could not load profile.', style: TextStyle(color: Colors.white70)));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFFD700)));
-          if (!snapshot.data!.exists) return const Center(child: Text('Profile not found.', style: TextStyle(color: Colors.white70)));
-          final data = snapshot.data!.data() ?? {};
-          final name = (data['name'] ?? 'PartyNova User').toString();
-          final partyId = (data['userId'] ?? '').toString();
-          final bio = (data['bio'] ?? 'No bio added yet.').toString();
-          final bytes = getCachedProfilePhoto((data['photoBase64'] ?? '').toString());
-          return Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  CircleAvatar(radius: 58, backgroundColor: const Color(0xFF703B91), backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.white, size: 58) : null),
-                  const SizedBox(height: 18),
-                  Text(name, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text('PartyNova ID: $partyId', style: const TextStyle(color: Color(0xFFFFD700), fontSize: 15)),
-                  const SizedBox(height: 18),
-                  Container(width: double.infinity, padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF21101F), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5))), child: Text(bio, style: const TextStyle(color: Colors.white70, fontSize: 15))),
-                ],
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Could not load profile.',
+                style: TextStyle(color: Colors.white70),
               ),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: _gold,
+              ),
+            );
+          }
+
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(
+              child: Text(
+                'Profile not found.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+
+          final data = snapshot.data!.data() ?? {};
+
+          final name =
+              (data['name'] ?? 'PartyNova User').toString();
+
+          final partyId =
+              (data['userId'] ?? '').toString();
+
+          final bio =
+              (data['bio'] ?? 'No bio added yet.').toString();
+
+          final photoBase64 =
+              (data['photoBase64'] ?? '').toString();
+
+          final bytes = getCachedProfilePhoto(photoBase64);
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 12),
+
+                // Profile picture
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _gold,
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: 58,
+                      backgroundColor: _purple,
+                      backgroundImage: bytes == null
+                          ? null
+                          : MemoryImage(bytes),
+                      child: bytes == null
+                          ? const Icon(
+                              Icons.person_rounded,
+                              color: Colors.white,
+                              size: 58,
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // User name
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 9),
+
+                // PartyNova ID
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _panel,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _gold.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      'PartyNova ID: $partyId',
+                      style: const TextStyle(
+                        color: _gold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+
+                // Profile statistics
+                const Text(
+                  'PROFILE STATS',
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCountItem(
+                        icon: Icons.people_alt_rounded,
+                        title: 'Follower',
+                        value: '0',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCountItem(
+                        icon: Icons.person_add_alt_1_rounded,
+                        title: 'Following',
+                        value: '0',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCountItem(
+                        icon: Icons.card_giftcard_rounded,
+                        title: 'Send Gift',
+                        value: '0',
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildCountItem(
+                        icon: Icons.redeem_rounded,
+                        title: 'Gift Received',
+                        value: '0',
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 25),
+
+                // Bio section
+                const Text(
+                  'ABOUT ME',
+                  style: TextStyle(
+                    color: _gold,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _panel,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _gold.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Text(
+                    bio,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
             ),
           );
         },
@@ -9876,6 +10138,3 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
     );
   }
 }
-
-
-  
