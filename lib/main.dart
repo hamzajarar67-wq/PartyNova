@@ -9822,7 +9822,135 @@ class _FriendsListSection extends StatelessWidget {
                       leading: CircleAvatar(backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded) : null),
                       title: Text(name, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                       subtitle: Text('ID: $partyId', style: const TextStyle(color: Colors.black54)),
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: friendUid))),
+                      onTap: () async {
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(
+            color: Color(0xFFFF1688),
+            width: 1.5,
+          ),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+        content: SizedBox(
+          width: 300,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 42,
+                backgroundColor: const Color(0xFFFFE3F1),
+                backgroundImage:
+                    bytes == null ? null : MemoryImage(bytes),
+                child: bytes == null
+                    ? const Icon(
+                        Icons.person_rounded,
+                        size: 42,
+                        color: Color(0xFFFF1688),
+                      )
+                    : null,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                name,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                'PartyNova ID: $partyId',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 22),
+              Row(
+                children: [
+                  Expanded(
+                    child: _friendPopupButton(
+                      text: 'Delete',
+                      background: const Color(0xFFFF1688),
+                      foreground: Colors.white,
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Delete will be connected after confirming the friends database.',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _friendPopupButton(
+                      text: 'Profile',
+                      background: const Color(0xFFFFE3F1),
+                      foreground: const Color(0xFFFF1688),
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                PartyNovaPublicProfilePage(
+                              firebaseUid: friendUid,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _friendPopupButton(
+                      text: 'Message',
+                      background: const Color(0xFFFF1688),
+                      foreground: Colors.white,
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Messaging will be connected later.',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                                const SizedBox(width: 10),
+              Expanded(
+                child: _friendPopupButton(
+                  text: 'Cancel',
+                  background: Colors.white,
+                  foreground: Colors.black87,
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+},
                     ),
                   );
                 },
@@ -9834,6 +9962,46 @@ class _FriendsListSection extends StatelessWidget {
     );
   }
 }
+
+
+
+Widget _friendPopupButton({
+  required String text,
+  required Color background,
+  required Color foreground,
+  required VoidCallback onPressed,
+}) {
+  return SizedBox(
+    height: 44,
+    child: ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(
+            color: Color(0xFFFF1688),
+            width: 1,
+          ),
+        ),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+      ),
+    ),
+  );
+}
+
+
+
+
 
 
 
