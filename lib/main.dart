@@ -2113,11 +2113,35 @@ Widget buildUserSearchResult() {
                 ),
                 child: TextField(
   controller: _roomSearchController,
-  onChanged: (value) {
-    setState(() {
-      _roomSearchQuery = value;
-    });
+  readOnly: true,
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PartyNovaSearchPage(),
+      ),
+    );
   },
+  style: const TextStyle(
+    color: Colors.white,
+    fontSize: 14,
+  ),
+  cursorColor: pink,
+  decoration: const InputDecoration(
+    hintText: 'Search UID and Room',
+    hintStyle: TextStyle(
+      color: Colors.white60,
+      fontSize: 14,
+    ),
+    prefixIcon: Icon(
+      Icons.search_rounded,
+      color: gold,
+      size: 25,
+    ),
+    border: InputBorder.none,
+    contentPadding: EdgeInsets.symmetric(vertical: 14),
+  ),
+),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -8834,5 +8858,257 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   }
 }
   
-                  
+
+
+class PartyNovaSearchPage extends StatefulWidget {
+  const PartyNovaSearchPage({super.key});
+
+  @override
+  State<PartyNovaSearchPage> createState() =>
+      _PartyNovaSearchPageState();
+}
+
+class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
+  static const Color darkBlue = Color(0xFF100810);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color pink = Color(0xFFFF4FA3);
+  static const Color panel = Color(0xFF24101F);
+  static const Color purple = Color(0xFF703B91);
+
+  final TextEditingController _searchController =
+      TextEditingController();
+
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildSearchResult() {
+    final query = _query.trim();
+
+    if (query.isEmpty) {
+      return const Center(
+        child: Text(
+          'Search by PartyNova UID',
+          style: TextStyle(color: Colors.white70, fontSize: 15),
+        ),
+      );
+    }
+
+    if (!RegExp(r'^\d{6,10}$').hasMatch(query)) {
+      return const Center(
+        child: Text(
+          'Enter a valid PartyNova UID.',
+          style: TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+      );
+    }
+
+    return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      key: ValueKey(query),
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .where('userId', isEqualTo: query)
+          .limit(1)
+          .get(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: gold),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text(
+              'Search failed. Please try again.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(
+            child: Text(
+              'No user found with this UID.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+
+        final userData = snapshot.data!.docs.first.data();
+
+        // Use PartyNova UID, never the Firebase document ID.
+        final partyNovaUid = (userData['userId'] ?? '').toString();
+        final name = (userData['name'] ?? 'PartyNova User').toString();
+        final photoBase64 = (userData['photoBase64'] ?? '').toString();
+        final photoBytes = getCachedProfilePhoto(photoBase64);
+
+        return Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: panel,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: pink, width: 1.4),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: purple,
+                backgroundImage:
+                    photoBytes != null ? MemoryImage(photoBytes) : null,
+                child: photoBytes == null
+                    ? const Icon(
+                        Icons.person_rounded,
+                        color: Colors.white,
+                        size: 32,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    // PartyNova UID appears only inside this box.
+                    const SizedBox(height: 7),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: darkBlue,
+                        borderRadius: BorderRadius.circular(7),
+                        border: Border.all(color: gold, width: 1),
+                      ),
+                      child: Text(
+                        'UID: $partyNovaUid',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFFFB9DD),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 38,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Friend request is not connected yet.',
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          size: 18,
+                        ),
+                        label: const Text(
+                          'Send Request',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: gold,
+                          foregroundColor: darkBlue,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: darkBlue,
+      appBar: AppBar(
+        backgroundColor: panel,
+        foregroundColor: gold,
+        elevation: 0,
+        title: const Text(
+          'Search Users',
+          style: TextStyle(
+            color: gold,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      body: Column(
+        children: [
+          // Separate search box at the top.
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: panel,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: pink, width: 1.3),
+              ),
+              child: TextField(
+                controller: _searchController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                ),
+                cursorColor: pink,
+                decoration: const InputDecoration(
+                  hintText: 'Enter PartyNova UID',
+                  hintStyle: TextStyle(color: Colors.white60),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: gold,
+                  ),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 15),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _query = value;
+                  });
+                },
+              ),
+            ),
+          ),
+          Expanded(child: _buildSearchResult()),
+        ],
+      ),
+    );
+  }
+}
+
+
                               
