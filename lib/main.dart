@@ -9045,7 +9045,6 @@ Future<void> _sendFriendRequest({
   }
 }
 
-
 Widget _buildSearchResult() {
   final query = _query.trim();
   final currentUser = FirebaseAuth.instance.currentUser;
@@ -9113,7 +9112,6 @@ Widget _buildSearchResult() {
       final userData = profileDoc.data();
       final receiverFirebaseUid = profileDoc.id;
 
-      // Never allow users to send requests to themselves.
       if (receiverFirebaseUid == currentUser.uid) {
         return const Center(
           child: Text(
@@ -9169,6 +9167,18 @@ Widget _buildSearchResult() {
             (doc) => doc.data()['status'] == 'pending',
           );
 
+          // Open the searched user's public profile.
+          void openUserProfile() {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PartyNovaPublicProfilePage(
+                  firebaseUid: receiverFirebaseUid,
+                ),
+              ),
+            );
+          }
+
           return Container(
             margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
             padding: const EdgeInsets.symmetric(
@@ -9181,32 +9191,43 @@ Widget _buildSearchResult() {
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.grey.shade200,
-                  backgroundImage:
-                      photoBytes != null ? MemoryImage(photoBytes) : null,
-                  child: photoBytes == null
-                      ? const Icon(
-                          Icons.person_rounded,
-                          color: Colors.grey,
-                          size: 25,
-                        )
-                      : null,
+                // Tap the DP to open the user's profile.
+                InkWell(
+                  onTap: openUserProfile,
+                  borderRadius: BorderRadius.circular(30),
+                  child: CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Colors.grey.shade200,
+                    backgroundImage:
+                        photoBytes != null ? MemoryImage(photoBytes) : null,
+                    child: photoBytes == null
+                        ? const Icon(
+                            Icons.person_rounded,
+                            color: Colors.grey,
+                            size: 25,
+                          )
+                        : null,
+                  ),
                 ),
+
                 const SizedBox(width: 10),
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      // Tap the name to open the same profile.
+                      InkWell(
+                        onTap: openUserProfile,
+                        child: Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -9220,6 +9241,7 @@ Widget _buildSearchResult() {
                     ],
                   ),
                 ),
+
                 if (alreadyFriends)
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 6),
@@ -9286,7 +9308,6 @@ Widget _buildSearchResult() {
     },
   );
 }
-  
 
   
             
