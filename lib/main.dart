@@ -1560,6 +1560,116 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         roomUid.contains(searchQuery);
   }).toList(); 
 
+
+Widget buildUserSearchResult() {
+  final query = _roomSearchQuery.trim();
+
+  if (!RegExp(r'^\d{6,10}$').hasMatch(query)) {
+    return const SizedBox.shrink();
+  }
+
+  return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    future: FirebaseFirestore.instance
+        .collection('users')
+        .where('userId', isEqualTo: query)
+        .limit(1)
+        .get(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      if (snapshot.hasError) {
+        return const Padding(
+          padding: EdgeInsets.all(12),
+          child: Text(
+            'User search failed. Please try again.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }
+
+      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(12),
+          child: Text(
+            'No user found with this UID.',
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }
+
+      final userData = snapshot.data!.docs.first.data();
+      final name = (userData['name'] ?? 'PartyNova User').toString();
+      final uid = (userData['userId'] ?? '').toString();
+      final photoBase64 = (userData['photoBase64'] ?? '').toString();
+      final photoBytes = getCachedProfilePhoto(photoBase64);
+
+      return Container(
+        margin: const EdgeInsets.fromLTRB(14, 12, 14, 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: panel,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: pink, width: 1.2),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 27,
+              backgroundColor: purple,
+              backgroundImage:
+                  photoBytes != null ? MemoryImage(photoBytes) : null,
+              child: photoBytes == null
+                  ? const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    )
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'UID: $uid',
+                    style: const TextStyle(
+                      color: Color(0xFFFFB9DD),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+
+
+     
   Widget buildTopFilters() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -2030,7 +2140,8 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                 ),
               ),
             ),
-
+          
+          buildUserSearchResult(),
           buildTopFilters(),
 
           if (_selectedRoomFilter == 2)
