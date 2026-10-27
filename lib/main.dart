@@ -8901,13 +8901,19 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
         }
 
         if (snapshot.hasError) {
-          return const Center(
-            child: Text(
-              'Search failed. Please try again.',
-              style: TextStyle(color: Colors.white70),
-            ),
-          );
-        }
+  return Center(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        'Search Error: ${snapshot.error}',
+        style: const TextStyle(
+          color: Colors.redAccent,
+          fontSize: 13,
+        ),
+      ),
+    ),
+  );
+}
 
         if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const Center(
