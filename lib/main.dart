@@ -1648,6 +1648,7 @@ Widget buildUserSearchResult() {
       }
 
       final userData = snapshot.data!.docs.first.data();
+      final receiverFirebaseUid = snapshot.data!.docs.first.id;
       final name = (userData['name'] ?? 'PartyNova User').toString();
       final uid = (userData['userId'] ?? '').toString();
       final photoBase64 = (userData['photoBase64'] ?? '').toString();
@@ -8944,6 +8945,134 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
     super.dispose();
   }
 
+
+Future<void> _sendFriendRequest({
+  required String receiverFirebaseUid,
+  required String receiverPartyNovaUid,
+  required String receiverName,
+  required String receiverPhotoBase64,
+}) async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  if (currentUser == null) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please log in first.')),
+    );
+    return;
+  }
+
+  if (currentUser.uid == receiverFirebaseUid) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('You cannot add yourself.')),
+    );
+    return;
+  }
+
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    final senderProfile = await firestore
+        .collection('publicProfiles')
+        .doc(currentUser.uid)
+        .get();
+
+    if (!senderProfile.exists) {
+      throw Exception('Your public profile was not found.');
+    }
+
+    final senderData = senderProfile.data()!;
+    final senderPartyNovaUid =
+        (senderData['userId'] ?? '').toString();
+    final senderName =
+        (senderData['name'] ?? 'PartyNova User').toString();
+    final senderPhotoBase64 =
+        (senderData['photoBase64'] ?? '').toString();
+
+    if (senderPartyNovaUid.isEmpty) {
+      throw Exception('Your PartyNova ID was not found.');
+    }
+
+    final requestId = '${currentUser.uid}_$receiverFirebaseUid';
+    final reverseRequestId = '${receiverFirebaseUid}_${currentUser.uid}';
+
+    final requestRef =
+        firestore.collection('friendRequests').doc(requestId);
+    final reverseRequestRef =
+        firestore.collection('friendRequests').doc(reverseRequestId);
+
+    final existingRequest = await requestRef.get();
+
+    if (existingRequest.exists) {
+      final status = existingRequest.data()?['status'];
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            status == 'pending'
+                ? 'Friend request already sent.'
+                : status == 'accepted'
+                    ? 'You are already friends.'
+                    : 'A request already exists.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final reverseRequest = await reverseRequestRef.get();
+
+    if (reverseRequest.exists &&
+        reverseRequest.data()?['status'] == 'pending') {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This user has already sent you a request.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    await requestRef.set({
+      'senderUid': currentUser.uid,
+      'receiverUid': receiverFirebaseUid,
+      'senderPartyNovaUid': senderPartyNovaUid,
+      'receiverPartyNovaUid': receiverPartyNovaUid,
+      'senderName': senderName,
+      'senderPhotoBase64': senderPhotoBase64,
+      'receiverName': receiverName,
+      'receiverPhotoBase64': receiverPhotoBase64,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Friend request sent successfully.')),
+    );
+  } catch (e) {
+    debugPrint('Send friend request error: $e');
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Could not send request. Please try again.',
+        ),
+      ),
+    );
+  }
+}
+
+
+
+  
+
   Widget _buildSearchResult() {
     final query = _query.trim();
 
@@ -9058,15 +9187,14 @@ class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
       SizedBox(
         height: 36,
         child: ElevatedButton.icon(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text(
-                  'Friend request is not connected yet.',
-                ),
-              ),
-            );
-          },
+          onPressed: () async {
+  await _sendFriendRequest(
+    receiverFirebaseUid: receiverFirebaseUid,
+    receiverPartyNovaUid: uid,
+    receiverName: name,
+    receiverPhotoBase64: photoBase64,
+  );
+},
           icon: const Icon(
             Icons.person_add_alt_1_rounded,
             size: 16,
