@@ -9874,6 +9874,8 @@ class _FriendsListSection extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 22),
+
+              // Delete and Profile buttons
               Row(
                 children: [
                   Expanded(
@@ -9886,7 +9888,7 @@ class _FriendsListSection extends StatelessWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text(
-                              'Delete will be connected after confirming the friends database.',
+                              'Delete is not connected yet.',
                             ),
                           ),
                         );
@@ -9904,8 +9906,7 @@ class _FriendsListSection extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                                PartyNovaPublicProfilePage(
+                            builder: (_) => PartyNovaPublicProfilePage(
                               firebaseUid: friendUid,
                             ),
                           ),
@@ -9915,7 +9916,10 @@ class _FriendsListSection extends StatelessWidget {
                   ),
                 ],
               ),
+
               const SizedBox(height: 10),
+
+              // Message and Cancel buttons
               Row(
                 children: [
                   Expanded(
@@ -9935,14 +9939,18 @@ class _FriendsListSection extends StatelessWidget {
                       },
                     ),
                   ),
-                                const SizedBox(width: 10),
-              Expanded(
-                child: _friendPopupButton(
-                  text: 'Cancel',
-                  background: Colors.white,
-                  foreground: Colors.black87,
-                  onPressed: () => Navigator.pop(dialogContext),
-                ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _friendPopupButton(
+                      text: 'Cancel',
+                      background: Colors.white,
+                      foreground: Colors.black87,
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -9951,7 +9959,7 @@ class _FriendsListSection extends StatelessWidget {
     },
   );
 },
-                    ),
+                      ),
                   );
                 },
               ),
@@ -9962,7 +9970,6 @@ class _FriendsListSection extends StatelessWidget {
     );
   }
 }
-
 
 
 Widget _friendPopupButton({
