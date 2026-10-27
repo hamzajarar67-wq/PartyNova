@@ -239,7 +239,7 @@ class PartyNovaApp extends StatelessWidget {
         final media = MediaQuery.of(context);
         final appWidth = media.size.width > 450 ? 450.0 : media.size.width;
         return MediaQuery(
-          data: media,
+          data: media.copyWith(textScaler: TextScaler.noScaling),
           child: Center(
             child: SizedBox(
               width: appWidth,
@@ -9875,82 +9875,109 @@ class _FriendsListSection extends StatelessWidget {
               ),
               const SizedBox(height: 22),
 
-              // Delete and Profile buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _friendPopupButton(
+              // All four actions use one consistent colour and vertical layout.
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    _friendPopupButton(
                       text: 'Delete',
                       background: const Color(0xFFFF1688),
                       foreground: Colors.white,
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Delete is not connected yet.',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: dialogContext,
+                          builder: (confirmContext) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            title: const Text(
+                              'Remove Friend?',
+                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                             ),
+                            content: Text(
+                              'Remove $name from your friends? This will not delete either account.',
+                              style: const TextStyle(color: Colors.black87),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(confirmContext, false),
+                                child: const Text('Cancel', style: TextStyle(color: Color(0xFFFF1688))),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF1688), foregroundColor: Colors.white),
+                                onPressed: () => Navigator.pop(confirmContext, true),
+                                child: const Text('Remove'),
+                              ),
+                            ],
                           ),
                         );
+                        if (confirm != true) return;
+                        try {
+                          final firestore = FirebaseFirestore.instance;
+                          final batch = firestore.batch();
+                          final outgoingPair = await firestore
+                              .collection('friendRequests')
+                              .where('senderUid', isEqualTo: uid)
+                              .where('receiverUid', isEqualTo: friendUid)
+                              .get();
+                          final incomingPair = await firestore
+                              .collection('friendRequests')
+                              .where('senderUid', isEqualTo: friendUid)
+                              .where('receiverUid', isEqualTo: uid)
+                              .get();
+                          for (final item in [...outgoingPair.docs, ...incomingPair.docs]) {
+                            batch.delete(item.reference);
+                          }
+                          await batch.commit();
+                          if (!context.mounted) return;
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('$name removed from friends.')),
+                          );
+                        } catch (error) {
+                          debugPrint('Friend removal failed: $error');
+                          if (!dialogContext.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not remove friend. Please try again.')),
+                          );
+                        }
                       },
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _friendPopupButton(
+                    const SizedBox(height: 10),
+                    _friendPopupButton(
                       text: 'Profile',
-                      background: const Color(0xFFFFE3F1),
-                      foreground: const Color(0xFFFF1688),
+                      background: const Color(0xFFFF1688),
+                      foreground: Colors.white,
                       onPressed: () {
                         Navigator.pop(dialogContext);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => PartyNovaPublicProfilePage(
-                              firebaseUid: friendUid,
-                            ),
+                            builder: (_) => PartyNovaPublicProfilePage(firebaseUid: friendUid),
                           ),
                         );
                       },
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              // Message and Cancel buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: _friendPopupButton(
+                    const SizedBox(height: 10),
+                    _friendPopupButton(
                       text: 'Message',
                       background: const Color(0xFFFF1688),
                       foreground: Colors.white,
                       onPressed: () {
                         Navigator.pop(dialogContext);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Messaging will be connected later.',
-                            ),
-                          ),
+                          const SnackBar(content: Text('Messaging will be connected later.')),
                         );
                       },
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _friendPopupButton(
+                    const SizedBox(height: 10),
+                    _friendPopupButton(
                       text: 'Cancel',
-                      background: Colors.white,
-                      foreground: Colors.black87,
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                      },
+                      background: const Color(0xFFFF1688),
+                      foreground: Colors.white,
+                      onPressed: () => Navigator.pop(dialogContext),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -9979,6 +10006,7 @@ Widget _friendPopupButton({
   required VoidCallback onPressed,
 }) {
   return SizedBox(
+    width: double.infinity,
     height: 44,
     child: ElevatedButton(
       onPressed: onPressed,
