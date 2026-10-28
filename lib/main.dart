@@ -9588,7 +9588,7 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
               controller: _controller,
               children: const [
                 _FriendsListSection(),
-                _SocialEmptySection(title: 'Messages', subtitle: 'Your conversations will appear here', icon: Icons.chat_bubble_rounded),
+                const _MessagesListSection(),
                 _IncomingRequestsSection(),
               ],
             ),
@@ -10434,6 +10434,42 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
           .doc(_conversationId)
           .collection('messages');
 
+
+  
+
+Future<void> _markMessagesRead() async {
+  final db = FirebaseFirestore.instance;
+  final conversationRef =
+      db.collection('conversations').doc(_conversationId);
+
+  await db.runTransaction((transaction) async {
+    final snapshot = await transaction.get(conversationRef);
+
+    if (!snapshot.exists) return;
+
+    final data = snapshot.data() ?? {};
+    final unreadCounts = Map<String, dynamic>.from(
+      data['unreadCounts'] ?? {},
+    );
+
+    unreadCounts[_myUid] = 0;
+
+    transaction.update(conversationRef, {
+      'unreadCounts': unreadCounts,
+    });
+  });
+}
+
+
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _markMessagesRead();
+  });
+}
+  
+
   @override
   void dispose() {
     _messageController.dispose();
@@ -10462,25 +10498,44 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
           db.collection('conversations').doc(_conversationId);
 
       final batch = db.batch();
-      final messageRef = _messagesRef.doc();
+     final messageRef = _messagesRef.doc();
+final conversationRef =
+    db.collection('conversations').doc(_conversationId);
 
-      batch.set(messageRef, {
-        'senderUid': _myUid,
-        'receiverUid': widget.friendUid,
-        'text': text,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+await db.runTransaction((transaction) async {
+  final conversationSnapshot =
+      await transaction.get(conversationRef);
 
-      batch.set(
-        conversationRef,
-        {
-          'participants': [_myUid, widget.friendUid],
-          'lastMessage': text,
-          'lastMessageAt': FieldValue.serverTimestamp(),
-          'lastSenderUid': _myUid,
-        },
-        SetOptions(merge: true),
-      );
+  final existingData = conversationSnapshot.data() ?? {};
+
+  final existingCounts = Map<String, dynamic>.from(
+    existingData['unreadCounts'] ?? <String, dynamic>{},
+  );
+
+  final currentUnread =
+      (existingCounts[widget.friendUid] as num?)?.toInt() ?? 0;
+
+  existingCounts[widget.friendUid] = currentUnread + 1;
+
+  transaction.set(messageRef, {
+    'senderUid': _myUid,
+    'receiverUid': widget.friendUid,
+    'text': text,
+    'createdAt': FieldValue.serverTimestamp(),
+  });
+
+  transaction.set(
+    conversationRef,
+    {
+      'participants': [_myUid, widget.friendUid],
+      'lastMessage': text,
+      'lastMessageAt': FieldValue.serverTimestamp(),
+      'lastSenderUid': _myUid,
+      'unreadCounts': existingCounts,
+    },
+    SetOptions(merge: true),
+  );
+});
 
       await batch.commit();
     } catch (e) {
@@ -10818,11 +10873,49 @@ class _MessagesListSection extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white70),
                   ),
-                  trailing: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: _chatGold,
-                    size: 16,
-                  ),
+                  trailing: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+    Builder(
+      builder: (context) {
+        final unreadCounts = Map<String, dynamic>.from(
+          data['unreadCounts'] ?? {},
+        );
+        final unread =
+            (unreadCounts[currentUser.uid] as num?)?.toInt() ?? 0;
+
+        if (unread <= 0) {
+          return const SizedBox.shrink();
+        }
+
+        return Container(
+          margin: const EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 7,
+            vertical: 4,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.red,
+            shape: BoxShape.circle,
+          ),
+          child: Text(
+            unread > 99 ? '99+' : '$unread',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      },
+    ),
+    const Icon(
+      Icons.arrow_forward_ios_rounded,
+      color: _chatGold,
+      size: 16,
+    ),
+  ],
+),
                   onTap: () {
                     Navigator.push(
                       context,
