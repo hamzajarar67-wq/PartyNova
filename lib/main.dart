@@ -9960,17 +9960,26 @@ class _FriendsListSection extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 10),
-              _friendPopupButton(
-                text: 'Message',
-                background: const Color(0xFFFF1688),
-                foreground: Colors.white,
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Messaging will be connected later.')));
-                },
-              ),
-              const SizedBox(height: 10),
-              _friendPopupButton(
+_friendPopupButton(
+  text: 'Message',
+  background: const Color(0xFFFF1688),
+  foreground: Colors.white,
+  onPressed: () {
+    Navigator.pop(dialogContext);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PartyNovaChatPage(
+          friendUid: friendUid,
+          friendName: name,
+          friendPhotoBase64: photo,
+        ),
+      ),
+    );
+  },
+),
+const SizedBox(height: 10),
+_friendPopupButton(
                 text: 'Cancel',
                 background: const Color(0xFFFF1688),
                 foreground: Colors.white,
@@ -10348,4 +10357,495 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
 }
 
 
-                
+
+
+
+String _partyNovaConversationId(String uidA, String uidB) {
+  final ids = [uidA, uidB]..sort();
+  return '${ids[0]}_${ids[1]}';
+}
+
+const Color _chatBackground = Color(0xFF09070B);
+const Color _chatPink = Color(0xFFFF1688);
+const Color _chatGold = Color(0xFFFFD780);
+
+DateTime _chatExpiryCutoff() {
+  return DateTime.now().subtract(const Duration(days: 7));
+}
+
+Uint8List? _chatPhotoBytes(String base64Photo) {
+  if (base64Photo.trim().isEmpty) return null;
+
+  try {
+    return base64Decode(base64Photo);
+  } catch (_) {
+    return null;
+  }
+}
+
+String _chatTimeLabel(Timestamp? timestamp) {
+  if (timestamp == null) return 'Sending...';
+
+  final time = timestamp.toDate().toLocal();
+  final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+  final minute = time.minute.toString().padLeft(2, '0');
+  final period = time.hour >= 12 ? 'PM' : 'AM';
+
+  return '$hour:$minute $period';
+}
+
+
+
+
+
+
+
+class PartyNovaChatPage extends StatefulWidget {
+  final String friendUid;
+  final String friendName;
+  final String friendPhotoBase64;
+
+  const PartyNovaChatPage({
+    super.key,
+    required this.friendUid,
+    required this.friendName,
+    required this.friendPhotoBase64,
+  });
+
+  @override
+  State<PartyNovaChatPage> createState() => _PartyNovaChatPageState();
+}
+
+class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
+  final TextEditingController _messageController =
+      TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  bool _sending = false;
+
+  String get _myUid => FirebaseAuth.instance.currentUser!.uid;
+
+  String get _conversationId =>
+      _partyNovaConversationId(_myUid, widget.friendUid);
+
+  CollectionReference<Map<String, dynamic>> get _messagesRef =>
+      FirebaseFirestore.instance
+          .collection('conversations')
+          .doc(_conversationId)
+          .collection('messages');
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendMessage() async {
+    final text = _messageController.text.trim();
+
+    if (text.isEmpty || _sending) return;
+
+    if (FirebaseAuth.instance.currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in again.')),
+      );
+      return;
+    }
+
+    setState(() => _sending = true);
+    _messageController.clear();
+
+    try {
+      final db = FirebaseFirestore.instance;
+      final conversationRef =
+          db.collection('conversations').doc(_conversationId);
+
+      final batch = db.batch();
+      final messageRef = _messagesRef.doc();
+
+      batch.set(messageRef, {
+        'senderUid': _myUid,
+        'receiverUid': widget.friendUid,
+        'text': text,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      batch.set(
+        conversationRef,
+        {
+          'participants': [_myUid, widget.friendUid],
+          'lastMessage': text,
+          'lastMessageAt': FieldValue.serverTimestamp(),
+          'lastSenderUid': _myUid,
+        },
+        SetOptions(merge: true),
+      );
+
+      await batch.commit();
+    } catch (e) {
+      if (mounted) {
+        _messageController.text = text;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Message could not be sent: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: _chatBackground,
+      appBar: AppBar(
+        backgroundColor: _chatBackground,
+        foregroundColor: _chatGold,
+        title: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: _chatPink,
+              backgroundImage: _chatPhotoBytes(widget.friendPhotoBase64) != null
+                  ? MemoryImage(
+                      _chatPhotoBytes(widget.friendPhotoBase64)!,
+                    )
+                  : null,
+              child: _chatPhotoBytes(widget.friendPhotoBase64) == null
+                  ? const Icon(Icons.person, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                widget.friendName,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _messagesRef
+                  .orderBy('createdAt', descending: true)
+                  .limit(200)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text(
+                      'Could not load messages.',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                if (!snapshot.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: _chatPink,
+                    ),
+                  );
+                }
+
+                final cutoff = _chatExpiryCutoff();
+
+                final messages = snapshot.data!.docs.where((doc) {
+                  final data = doc.data();
+                  final createdAt = data['createdAt'];
+
+                  if (createdAt is! Timestamp) return false;
+
+                  return createdAt.toDate().isAfter(cutoff);
+                }).toList();
+
+                if (messages.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      'Start your conversation 💬',
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                  );
+                }
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  reverse: true,
+                  padding: const EdgeInsets.all(12),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final data = messages[index].data();
+                    final isMine = data['senderUid'] == _myUid;
+                    final text = data['text'] as String? ?? '';
+                    final timestamp = data['createdAt'] as Timestamp?;
+
+                    return Align(
+                      alignment: isMine
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.78,
+                        ),
+                        margin: const EdgeInsets.symmetric(vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 13,
+                          vertical: 9,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isMine
+                              ? _chatPink
+                              : const Color(0xFF25212B),
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(
+                            color: isMine ? _chatPink : _chatGold,
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              text,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _chatTimeLabel(timestamp),
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(
+                color: Color(0xFF111018),
+                border: Border(
+                  top: BorderSide(color: _chatGold, width: 0.6),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _messageController,
+                      minLines: 1,
+                      maxLines: 4,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message...',
+                        hintStyle:
+                            const TextStyle(color: Colors.white54),
+                        filled: true,
+                        fillColor: const Color(0xFF25212B),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 11,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _sending ? null : _sendMessage,
+                    style: IconButton.styleFrom(
+                      backgroundColor: _chatPink,
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: _sending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.send_rounded),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MessagesListSection extends StatelessWidget {
+  const _MessagesListSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return const Center(
+        child: Text(
+          'Please sign in to view messages.',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('conversations')
+          .where('participants', arrayContains: currentUser.uid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text(
+              'Could not load conversations.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: _chatPink),
+          );
+        }
+
+        final conversations = snapshot.data!.docs.toList();
+
+        conversations.sort((a, b) {
+          final aTime = a.data()['lastMessageAt'];
+          final bTime = b.data()['lastMessageAt'];
+
+          final aDate = aTime is Timestamp
+              ? aTime.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0);
+          final bDate = bTime is Timestamp
+              ? bTime.toDate()
+              : DateTime.fromMillisecondsSinceEpoch(0);
+
+          return bDate.compareTo(aDate);
+        });
+
+        if (conversations.isEmpty) {
+          return const Center(
+            child: Text(
+              'Your conversations will appear here.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: conversations.length,
+          itemBuilder: (context, index) {
+            final conversation = conversations[index];
+            final data = conversation.data();
+            final participants = List<String>.from(
+              data['participants'] ?? const [],
+            );
+
+            final friendUid = participants.firstWhere(
+              (uid) => uid != currentUser.uid,
+              orElse: () => '',
+            );
+
+            if (friendUid.isEmpty) return const SizedBox.shrink();
+
+            return StreamBuilder<
+                DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('publicProfiles')
+                  .doc(friendUid)
+                  .snapshots(),
+              builder: (context, profileSnapshot) {
+                final profile = profileSnapshot.data?.data() ?? {};
+                final friendName =
+                    profile['displayName'] as String? ??
+                    profile['name'] as String? ??
+                    'User';
+
+                final photo =
+                    profile['photoBase64'] as String? ?? '';
+
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: _chatPink,
+                    backgroundImage: _chatPhotoBytes(photo) != null
+                        ? MemoryImage(_chatPhotoBytes(photo)!)
+                        : null,
+                    child: _chatPhotoBytes(photo) == null
+                        ? const Icon(Icons.person, color: Colors.white)
+                        : null,
+                  ),
+                  title: Text(
+                    friendName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  subtitle: Text(
+                    data['lastMessage'] as String? ?? 'Start chatting',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
+                  trailing: const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: _chatGold,
+                    size: 16,
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PartyNovaChatPage(
+                          friendUid: friendUid,
+                          friendName: friendName,
+                          friendPhotoBase64: photo,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+
+
+
+
