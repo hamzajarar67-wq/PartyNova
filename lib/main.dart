@@ -8623,7 +8623,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 keyboardType: TextInputType.multiline,
                 textInputAction: TextInputAction.newline,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 17,
                 ),
                 cursorColor: pink,
@@ -9391,26 +9391,40 @@ class _SocialBottomNavIcon extends StatelessWidget {
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
-          .collection('friendRequests')
-          .where('receiverUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'pending')
+          .collection('conversations')
+          .where('participants', arrayContains: uid)
           .snapshots(),
-      builder: (context, snapshot) {
-        final count = snapshot.data?.docs
-                .where((doc) => doc.data()['seenByReceiver'] != true)
-                .length ??
-            0;
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54),
-            if (count > 0)
-              Positioned(
-                right: -10,
-                top: -7,
-                child: _RequestCountBadge(count: count),
-              ),
-          ],
+      builder: (context, conversationSnapshot) {
+        final hasUnreadMessages = conversationSnapshot.data?.docs.any((doc) {
+          final counts = Map<String, dynamic>.from(doc.data()['unreadCounts'] ?? {});
+          return ((counts[uid] as num?)?.toInt() ?? 0) > 0;
+        }) ?? false;
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('friendRequests')
+              .where('receiverUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'pending')
+              .snapshots(),
+          builder: (context, requestSnapshot) {
+            final requestCount = requestSnapshot.data?.docs
+                    .where((doc) => doc.data()['seenByReceiver'] != true)
+                    .length ?? 0;
+            final showBadge = requestCount > 0 || hasUnreadMessages;
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54),
+                if (showBadge)
+                  Positioned(
+                    right: -10,
+                    top: -7,
+                    child: hasUnreadMessages
+                        ? const _RequestCountBadge(count: 1)
+                        : _RequestCountBadge(count: requestCount),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -9429,28 +9443,39 @@ class _SocialBottomNavLabel extends StatelessWidget {
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
-          .collection('friendRequests')
-          .where('receiverUid', isEqualTo: uid)
-          .where('status', isEqualTo: 'pending')
+          .collection('conversations')
+          .where('participants', arrayContains: uid)
           .snapshots(),
-      builder: (context, snapshot) {
-        final count = snapshot.data?.docs
-                .where((doc) => doc.data()['seenByReceiver'] != true)
-                .length ??
-            0;
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
-            if (count > 0) ...[
-              const SizedBox(width: 3),
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              ),
-            ],
-          ],
+      builder: (context, conversationSnapshot) {
+        final hasUnreadMessages = conversationSnapshot.data?.docs.any((doc) {
+          final counts = Map<String, dynamic>.from(doc.data()['unreadCounts'] ?? {});
+          return ((counts[uid] as num?)?.toInt() ?? 0) > 0;
+        }) ?? false;
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: FirebaseFirestore.instance
+              .collection('friendRequests')
+              .where('receiverUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'pending')
+              .snapshots(),
+          builder: (context, requestSnapshot) {
+            final count = requestSnapshot.data?.docs
+                    .where((doc) => doc.data()['seenByReceiver'] != true)
+                    .length ?? 0;
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
+                if (count > 0 || hasUnreadMessages) ...[
+                  const SizedBox(width: 3),
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  ),
+                ],
+              ],
+            );
+          },
         );
       },
     );
@@ -9502,7 +9527,7 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
   }
 
   void _handleTabChange() {
-    if (!_controller.indexIsChanging && _controller.index == 2) {
+    if (!_controller.indexIsChanging && _controller.index == 0) {
       _markIncomingRequestsSeen();
     }
   }
@@ -9557,8 +9582,6 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
               unselectedLabelColor: Colors.black54,
               labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
               tabs: [
-                const Tab(text: 'Friend'),
-                const Tab(text: 'Message'),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: _incomingPendingStream(),
                   builder: (context, snapshot) {
@@ -9580,6 +9603,8 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
                     );
                   },
                 ),
+                const Tab(text: 'Messages'),
+                const Tab(text: 'Friends'),
               ],
             ),
           ),
@@ -9587,9 +9612,9 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
             child: TabBarView(
               controller: _controller,
               children: const [
-                _FriendsListSection(),
-                const _MessagesListSection(),
                 _IncomingRequestsSection(),
+                _MessagesListSection(),
+                _FriendsListSection(),
               ],
             ),
           ),
@@ -9966,6 +9991,7 @@ _friendPopupButton(
   foreground: Colors.white,
   onPressed: () {
     Navigator.pop(dialogContext);
+    context.findAncestorStateOfType<_PartyNovaSocialTabState>()?._controller.index = 1;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -10365,9 +10391,9 @@ String _partyNovaConversationId(String uidA, String uidB) {
   return '${ids[0]}_${ids[1]}';
 }
 
-const Color _chatBackground = Color(0xFF09070B);
-const Color _chatPink = Color(0xFFFF1688);
-const Color _chatGold = Color(0xFFFFD780);
+const Color _chatBackground = Colors.white;
+const Color _chatPink = Colors.black; // Retained name for compatibility; chat accent is black, never pink.
+const Color _chatGold = Color(0xFFB58A2A);
 
 DateTime _chatExpiryCutoff() {
   return DateTime.now().subtract(const Duration(days: 7));
@@ -10438,26 +10464,25 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
   
 
 Future<void> _markMessagesRead() async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  if (currentUser == null) return;
   final db = FirebaseFirestore.instance;
-  final conversationRef =
-      db.collection('conversations').doc(_conversationId);
-
-  await db.runTransaction((transaction) async {
-    final snapshot = await transaction.get(conversationRef);
-
-    if (!snapshot.exists) return;
-
-    final data = snapshot.data() ?? {};
-    final unreadCounts = Map<String, dynamic>.from(
-      data['unreadCounts'] ?? {},
-    );
-
-    unreadCounts[_myUid] = 0;
-
-    transaction.update(conversationRef, {
-      'unreadCounts': unreadCounts,
+  final conversationRef = db.collection('conversations').doc(_conversationId);
+  try {
+    await db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(conversationRef);
+      if (!snapshot.exists) return;
+      final data = snapshot.data() ?? <String, dynamic>{};
+      final participants = List<String>.from(data['participants'] ?? const []);
+      if (!participants.contains(currentUser.uid)) return;
+      final unreadCounts = Map<String, dynamic>.from(data['unreadCounts'] ?? {});
+      if (((unreadCounts[currentUser.uid] as num?)?.toInt() ?? 0) == 0) return;
+      unreadCounts[currentUser.uid] = 0;
+      transaction.update(conversationRef, {'unreadCounts': unreadCounts});
     });
-  });
+  } catch (e) {
+    debugPrint('Mark messages read failed: $e');
+  }
 }
 
 
@@ -10481,6 +10506,10 @@ void initState() {
     final text = _messageController.text.trim();
 
     if (text.isEmpty || _sending) return;
+    if (widget.friendUid.trim().isEmpty || widget.friendUid == FirebaseAuth.instance.currentUser?.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This conversation is not valid.')));
+      return;
+    }
 
     if (FirebaseAuth.instance.currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -10521,7 +10550,7 @@ void initState() {
     transaction.set(
       conversationRef,
       {
-        'participants': [_myUid, widget.friendUid],
+        'participants': ([_myUid, widget.friendUid]..sort()),
         'lastMessage': text,
         'lastMessageAt': FieldValue.serverTimestamp(),
         'lastSenderUid': _myUid,
@@ -10549,18 +10578,20 @@ void initState() {
       backgroundColor: _chatBackground,
       appBar: AppBar(
         backgroundColor: _chatBackground,
-        foregroundColor: _chatGold,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        surfaceTintColor: Colors.white,
         title: Row(
           children: [
             CircleAvatar(
-              backgroundColor: _chatPink,
+              backgroundColor: const Color(0xFF101B36),
               backgroundImage: _chatPhotoBytes(widget.friendPhotoBase64) != null
                   ? MemoryImage(
                       _chatPhotoBytes(widget.friendPhotoBase64)!,
                     )
                   : null,
               child: _chatPhotoBytes(widget.friendPhotoBase64) == null
-                  ? const Icon(Icons.person, color: Colors.white)
+                  ? const Icon(Icons.person, color: Color(0xFFFFC857))
                   : null,
             ),
             const SizedBox(width: 10),
@@ -10569,7 +10600,7 @@ void initState() {
                 widget.friendName,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
                 ),
@@ -10591,7 +10622,7 @@ void initState() {
                   return const Center(
                     child: Text(
                       'Could not load messages.',
-                      style: TextStyle(color: Colors.white),
+                      style: TextStyle(color: Colors.black),
                     ),
                   );
                 }
@@ -10599,7 +10630,7 @@ void initState() {
                 if (!snapshot.hasData) {
                   return const Center(
                     child: CircularProgressIndicator(
-                      color: _chatPink,
+                      color: Colors.black,
                     ),
                   );
                 }
@@ -10619,7 +10650,7 @@ void initState() {
                   return const Center(
                     child: Text(
                       'Start your conversation 💬',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Colors.black54),
                     ),
                   );
                 }
@@ -10649,13 +10680,11 @@ void initState() {
                           vertical: 9,
                         ),
                         decoration: BoxDecoration(
-                          color: isMine
-                              ? _chatPink
-                              : const Color(0xFF25212B),
+                          color: Colors.black,
                           borderRadius: BorderRadius.circular(15),
                           border: Border.all(
-                            color: isMine ? _chatPink : _chatGold,
-                            width: 0.6,
+                            color: Colors.black,
+                            width: 0.8,
                           ),
                         ),
                         child: Column(
@@ -10671,7 +10700,7 @@ void initState() {
                             const SizedBox(height: 4),
                             Text(
                               _chatTimeLabel(timestamp),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white70,
                                 fontSize: 10,
                               ),
@@ -10690,9 +10719,9 @@ void initState() {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Color(0xFF111018),
+                color: Colors.white,
                 border: Border(
-                  top: BorderSide(color: _chatGold, width: 0.6),
+                  top: BorderSide(color: Color(0xFFE0E0E0), width: 0.8),
                 ),
               ),
               child: Row(
@@ -10702,13 +10731,13 @@ void initState() {
                       controller: _messageController,
                       minLines: 1,
                       maxLines: 4,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         hintStyle:
-                            const TextStyle(color: Colors.white54),
+                            const TextStyle(color: Colors.black45),
                         filled: true,
-                        fillColor: const Color(0xFF25212B),
+                        fillColor: const Color(0xFFF4F4F4),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 14,
                           vertical: 11,
@@ -10725,7 +10754,7 @@ void initState() {
                   IconButton(
                     onPressed: _sending ? null : _sendMessage,
                     style: IconButton.styleFrom(
-                      backgroundColor: _chatPink,
+                      backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
                     ),
                     icon: _sending
@@ -10760,7 +10789,7 @@ class _MessagesListSection extends StatelessWidget {
       return const Center(
         child: Text(
           'Please sign in to view messages.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
       );
     }
@@ -10775,14 +10804,14 @@ class _MessagesListSection extends StatelessWidget {
           return const Center(
             child: Text(
               'Could not load conversations.',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: Colors.black54),
             ),
           );
         }
 
         if (!snapshot.hasData) {
           return const Center(
-            child: CircularProgressIndicator(color: _chatPink),
+            child: CircularProgressIndicator(color: Colors.black),
           );
         }
 
@@ -10806,7 +10835,7 @@ class _MessagesListSection extends StatelessWidget {
           return const Center(
             child: Text(
               'Your conversations will appear here.',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: Colors.black54),
             ),
           );
         }
@@ -10836,8 +10865,8 @@ class _MessagesListSection extends StatelessWidget {
               builder: (context, profileSnapshot) {
                 final profile = profileSnapshot.data?.data() ?? {};
                 final friendName =
-                    profile['displayName'] as String? ??
                     profile['name'] as String? ??
+                    profile['displayName'] as String? ??
                     'User';
 
                 final photo =
@@ -10845,26 +10874,26 @@ class _MessagesListSection extends StatelessWidget {
 
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: _chatPink,
+                    backgroundColor: const Color(0xFF101B36),
                     backgroundImage: _chatPhotoBytes(photo) != null
                         ? MemoryImage(_chatPhotoBytes(photo)!)
                         : null,
                     child: _chatPhotoBytes(photo) == null
-                        ? const Icon(Icons.person, color: Colors.white)
+                        ? const Icon(Icons.person, color: Color(0xFFFFC857))
                         : null,
                   ),
                   title: Text(
                     friendName,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   subtitle: Text(
-                    data['lastMessage'] as String? ?? 'Start chatting',
+                    data['lastMessage'] as String? ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: Colors.black54),
                   ),
                   trailing: Row(
   mainAxisSize: MainAxisSize.min,
