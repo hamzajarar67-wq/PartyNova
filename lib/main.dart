@@ -9916,12 +9916,29 @@ class _FriendsListSection extends StatelessWidget {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friendship was not found.')));
                       return;
                     }
-                    await batch.commit();
-                    if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend removed successfully.')));
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not remove friend. Please try again.')));
+                                        await batch.commit();
+
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext);
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Friend removed successfully.'),
+                      ),
+                    );
+                  } catch (e, stackTrace) {
                     debugPrint('Friend removal failed: $e');
+                    debugPrint('Friend removal stack trace: $stackTrace');
+
+                    if (!context.mounted) return;
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Could not remove friend: $e'),
+                        duration: const Duration(seconds: 8),
+                      ),
+                    );
                   }
                 },
               ),
@@ -9932,7 +9949,14 @@ class _FriendsListSection extends StatelessWidget {
                 foreground: Colors.white,
                 onPressed: () {
                   Navigator.pop(dialogContext);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: friendUid)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PartyNovaPublicProfilePage(
+                        firebaseUid: friendUid,
+                      ),
+                    ),
+                  );
                 },
               ),
               const SizedBox(height: 10),
