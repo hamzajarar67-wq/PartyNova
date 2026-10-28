@@ -10493,49 +10493,43 @@ void initState() {
     _messageController.clear();
 
     try {
-      final db = FirebaseFirestore.instance;
-      final conversationRef =
-          db.collection('conversations').doc(_conversationId);
+  final db = FirebaseFirestore.instance;
+  final conversationRef =
+      db.collection('conversations').doc(_conversationId);
+  final messageRef = _messagesRef.doc();
 
-      final batch = db.batch();
-     final messageRef = _messagesRef.doc();
-final conversationRef =
-    db.collection('conversations').doc(_conversationId);
+  await db.runTransaction((transaction) async {
+    final snapshot = await transaction.get(conversationRef);
+    final data = snapshot.data() ?? <String, dynamic>{};
 
-await db.runTransaction((transaction) async {
-  final conversationSnapshot =
-      await transaction.get(conversationRef);
+    final unreadCounts = Map<String, dynamic>.from(
+      data['unreadCounts'] ?? <String, dynamic>{},
+    );
 
-  final existingData = conversationSnapshot.data() ?? {};
+    final currentUnread =
+        (unreadCounts[widget.friendUid] as num?)?.toInt() ?? 0;
 
-  final existingCounts = Map<String, dynamic>.from(
-    existingData['unreadCounts'] ?? <String, dynamic>{},
-  );
+    unreadCounts[widget.friendUid] = currentUnread + 1;
 
-  final currentUnread =
-      (existingCounts[widget.friendUid] as num?)?.toInt() ?? 0;
+    transaction.set(messageRef, {
+      'senderUid': _myUid,
+      'receiverUid': widget.friendUid,
+      'text': text,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
 
-  existingCounts[widget.friendUid] = currentUnread + 1;
-
-  transaction.set(messageRef, {
-    'senderUid': _myUid,
-    'receiverUid': widget.friendUid,
-    'text': text,
-    'createdAt': FieldValue.serverTimestamp(),
+    transaction.set(
+      conversationRef,
+      {
+        'participants': [_myUid, widget.friendUid],
+        'lastMessage': text,
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'lastSenderUid': _myUid,
+        'unreadCounts': unreadCounts,
+      },
+      SetOptions(merge: true),
+    );
   });
-
-  transaction.set(
-    conversationRef,
-    {
-      'participants': [_myUid, widget.friendUid],
-      'lastMessage': text,
-      'lastMessageAt': FieldValue.serverTimestamp(),
-      'lastSenderUid': _myUid,
-      'unreadCounts': existingCounts,
-    },
-    SetOptions(merge: true),
-  );
-});
 
       await batch.commit();
     } catch (e) {
