@@ -9395,10 +9395,12 @@ class _SocialBottomNavIcon extends StatelessWidget {
           .where('participants', arrayContains: uid)
           .snapshots(),
       builder: (context, conversationSnapshot) {
-        final hasUnreadMessages = conversationSnapshot.data?.docs.any((doc) {
+        final unreadMessageCount = (conversationSnapshot.data?.docs ?? const [])
+            .fold<int>(0, (total, doc) {
           final counts = Map<String, dynamic>.from(doc.data()['unreadCounts'] ?? {});
-          return ((counts[uid] as num?)?.toInt() ?? 0) > 0;
-        }) ?? false;
+          return total + ((counts[uid] as num?)?.toInt() ?? 0);
+        });
+        final hasUnreadMessages = unreadMessageCount > 0;
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('friendRequests')
@@ -9418,9 +9420,9 @@ class _SocialBottomNavIcon extends StatelessWidget {
                   Positioned(
                     right: -10,
                     top: -7,
-                    child: hasUnreadMessages
-                        ? const _RequestCountBadge(count: 1)
-                        : _RequestCountBadge(count: requestCount),
+                    child: _RequestCountBadge(
+                      count: requestCount + unreadMessageCount,
+                    ),
                   ),
               ],
             );
@@ -10403,7 +10405,10 @@ Uint8List? _chatPhotoBytes(String base64Photo) {
   if (base64Photo.trim().isEmpty) return null;
 
   try {
-    return base64Decode(base64Photo);
+    var value = base64Photo.trim();
+    final comma = value.indexOf(',');
+    if (value.startsWith('data:') && comma >= 0) value = value.substring(comma + 1);
+    return base64Decode(value);
   } catch (_) {
     return null;
   }
@@ -10476,10 +10481,20 @@ Future<void> _markMessagesRead() async {
       final participants = List<String>.from(data['participants'] ?? const []);
       if (!participants.contains(currentUser.uid)) return;
       final unreadCounts = Map<String, dynamic>.from(data['unreadCounts'] ?? {});
-      if (((unreadCounts[currentUser.uid] as num?)?.toInt() ?? 0) == 0) return;
       unreadCounts[currentUser.uid] = 0;
-      transaction.update(conversationRef, {'unreadCounts': unreadCounts});
+      transaction.set(conversationRef, {'unreadCounts': unreadCounts}, SetOptions(merge: true));
     });
+    // Mark received messages as seen; the UI reads this field for the sender's Seen label.
+    final received = await _messagesRef
+        .where('receiverUid', isEqualTo: currentUser.uid)
+        .get();
+    for (var i = 0; i < received.docs.length; i += 400) {
+      final batch = db.batch();
+      for (final doc in received.docs.skip(i).take(400)) {
+        batch.set(doc.reference, {'seenBy': FieldValue.arrayUnion([currentUser.uid])}, SetOptions(merge: true));
+      }
+      await batch.commit();
+    }
   } catch (e) {
     debugPrint('Mark messages read failed: $e');
   }
@@ -10543,7 +10558,10 @@ void initState() {
     transaction.set(messageRef, {
       'senderUid': _myUid,
       'receiverUid': widget.friendUid,
+      'senderName': FirebaseAuth.instance.currentUser?.displayName ?? 'You',
+      'senderPhotoURL': FirebaseAuth.instance.currentUser?.photoURL ?? '',
       'text': text,
+      'seenBy': <String>[_myUid],
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -10577,10 +10595,10 @@ void initState() {
     return Scaffold(
       backgroundColor: _chatBackground,
       appBar: AppBar(
-        backgroundColor: _chatBackground,
+        backgroundColor: const Color(0xFFB9E8FF),
         foregroundColor: Colors.black,
         elevation: 0,
-        surfaceTintColor: Colors.white,
+        surfaceTintColor: const Color(0xFFB9E8FF),
         title: Row(
           children: [
             CircleAvatar(
@@ -10666,47 +10684,84 @@ void initState() {
                     final text = data['text'] as String? ?? '';
                     final timestamp = data['createdAt'] as Timestamp?;
 
+                    final bubbleColor = isMine ? Colors.white : Colors.black;
+                    final textColor = isMine ? Colors.black : Colors.white;
+                    final senderName = (data['senderName'] as String?)?.trim().isNotEmpty == true
+                        ? (data['senderName'] as String).trim()
+                        : (isMine
+                            ? (FirebaseAuth.instance.currentUser?.displayName?.trim().isNotEmpty == true
+                                ? FirebaseAuth.instance.currentUser!.displayName!.trim()
+                                : 'You')
+                            : widget.friendName);
+                    final senderPhoto = isMine ? '' : widget.friendPhotoBase64;
+                    final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
+                    final isLastMessage = index == 0;
+                    final seenByOther = data['seenBy'] is List &&
+                        (data['seenBy'] as List).contains(widget.friendUid);
+
                     return Align(
-                      alignment: isMine
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        constraints: BoxConstraints(
-                          maxWidth: MediaQuery.of(context).size.width * 0.78,
-                        ),
-                        margin: const EdgeInsets.symmetric(vertical: 5),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 13,
-                          vertical: 9,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(15),
-                          border: Border.all(
-                            color: Colors.black,
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              text,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
+                      alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (!isMine) ...[
+                            GestureDetector(
+                              onTap: () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => PartyNovaPublicProfilePage(firebaseUid: widget.friendUid),
+                              )),
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: const Color(0xFF101B36),
+                                backgroundImage: senderPhotoBytes == null ? null : MemoryImage(senderPhotoBytes),
+                                child: senderPhotoBytes == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _chatTimeLabel(timestamp),
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 10,
+                            const SizedBox(width: 6),
+                          ],
+                          Flexible(
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+                              margin: const EdgeInsets.symmetric(vertical: 5),
+                              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: bubbleColor,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: isMine ? const Color(0xFFE0E0E0) : Colors.black, width: 0.8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(senderName, style: TextStyle(color: textColor.withOpacity(0.75), fontSize: 11, fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 3),
+                                  Text(text, style: TextStyle(color: textColor, fontSize: 15)),
+                                  const SizedBox(height: 4),
+                                  Row(mainAxisSize: MainAxisSize.min, children: [
+                                    Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.white70, fontSize: 10)),
+                                    if (isMine) ...[
+                                      const SizedBox(width: 5),
+                                      Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.black54, fontSize: 10)),
+                                    ],
+                                  ]),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (isMine) ...[
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () => Navigator.push(context, MaterialPageRoute(
+                                builder: (_) => PartyNovaPublicProfilePage(firebaseUid: _myUid),
+                              )),
+                              child: CircleAvatar(
+                                radius: 16,
+                                backgroundColor: const Color(0xFF101B36),
+                                backgroundImage: FirebaseAuth.instance.currentUser?.photoURL == null ? null : NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!),
+                                child: FirebaseAuth.instance.currentUser?.photoURL == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
                     );
                   },
@@ -10815,7 +10870,10 @@ class _MessagesListSection extends StatelessWidget {
           );
         }
 
-        final conversations = snapshot.data!.docs.toList();
+        final conversations = snapshot.data!.docs.where((doc) {
+          final data = doc.data();
+          return (data['lastMessage'] as String? ?? '').trim().isNotEmpty;
+        }).toList();
 
         conversations.sort((a, b) {
           final aTime = a.data()['lastMessageAt'];
