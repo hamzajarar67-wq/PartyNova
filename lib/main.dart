@@ -10042,10 +10042,10 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(firebaseUid)
-            .snapshots(),
+  stream: FirebaseFirestore.instance
+      .collection('publicProfiles')
+      .doc(firebaseUid)
+      .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
