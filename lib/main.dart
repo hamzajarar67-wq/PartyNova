@@ -10531,8 +10531,7 @@ void initState() {
     );
   });
 
-      await batch.commit();
-    } catch (e) {
+          } catch (e) {
       if (mounted) {
         _messageController.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
