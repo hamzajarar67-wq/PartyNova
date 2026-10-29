@@ -11271,16 +11271,20 @@ class _MessagesListSection extends StatelessWidget {
           )
           .snapshots(),
       builder: (context, snapshot) {
-        // Show the actual Firestore error on the screen.
-        if (snapshot.hasError) {
+                if (snapshot.hasError) {
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(
-                'Conversation error:\n${snapshot.error}',
+              child: SelectableText(
+                'Conversation error:\n'
+                '${snapshot.error}\n\n'
+                'Logged-in Firebase UID:\n'
+                '${currentUser.uid}\n\n'
+                'Firebase Project ID:\n'
+                '${FirebaseFirestore.instance.app.options.projectId}',
                 style: const TextStyle(
                   color: Colors.red,
-                  fontSize: 14,
+                  fontSize: 13,
                 ),
                 textAlign: TextAlign.center,
               ),
