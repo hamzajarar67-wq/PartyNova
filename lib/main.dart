@@ -10453,6 +10453,12 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
   final ScrollController _scrollController = ScrollController();
 
   bool _sending = false;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _friendProfileSubscription;
+StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _myProfileSubscription;
+  String _latestFriendName = '';
+  String _latestFriendPhotoBase64 = '';
+  String _latestMyName = '';
+  String _latestMyPhotoBase64 = '';
 
   String get _myUid => FirebaseAuth.instance.currentUser!.uid;
 
@@ -10519,18 +10525,54 @@ Future<void> _markMessagesRead() async {
 @override
 void initState() {
   super.initState();
+
+  _friendProfileSubscription = _friendProfileStream.listen((snapshot) {
+    if (!mounted) return;
+
+    final profile = snapshot.data() ?? <String, dynamic>{};
+
+    setState(() {
+      _latestFriendName =
+          (profile['name'] as String?)?.trim().isNotEmpty == true
+              ? (profile['name'] as String).trim()
+              : widget.friendName;
+
+      _latestFriendPhotoBase64 =
+          (profile['photoBase64'] as String?) ??
+              widget.friendPhotoBase64;
+    });
+  });
+
+  _myProfileSubscription = _myProfileStream.listen((snapshot) {
+    if (!mounted) return;
+
+    final profile = snapshot.data() ?? <String, dynamic>{};
+
+    setState(() {
+      _latestMyName =
+          (profile['name'] as String?)?.trim().isNotEmpty == true
+              ? (profile['name'] as String).trim()
+              : 'You';
+
+      _latestMyPhotoBase64 =
+          (profile['photoBase64'] as String?) ?? '';
+    });
+  });
+
   WidgetsBinding.instance.addPostFrameCallback((_) {
     _markMessagesRead();
   });
 }
   
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+@override
+void dispose() {
+  _friendProfileSubscription?.cancel();
+  _myProfileSubscription?.cancel();
+  _messageController.dispose();
+  _scrollController.dispose();
+  super.dispose();
+}
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
