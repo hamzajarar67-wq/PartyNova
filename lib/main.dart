@@ -1476,7 +1476,7 @@ Widget _socialDesignSection({
         ),
         const SizedBox(height: 16),
         Container(
-         width: double.infinity,
+          width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -10933,18 +10933,26 @@ void dispose() {
         SetOptions(merge: true),
       );
 
-      // Do not wait for the server before allowing the chat UI to update;
-      // Firestore displays pending batch writes locally and syncs them online.
-      batch.commit().catchError((Object error) {
-        debugPrint('PARTYNOVA SEND ERROR: $error');
-      });
+      // Firestore renders the pending write locally immediately. Await the
+      // server acknowledgement so rejected writes are reported instead of
+      // silently disappearing from the chat.
+      await batch.commit();
     } catch (e) {
       debugPrint('PARTYNOVA SEND ERROR: $e');
       if (mounted) {
-        _messageController.text = text;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Message could not be sent: $e')),
-        );
+        // Restore the text so the user does not lose a message rejected by
+        // Firestore rules or a network failure.
+        if (_messageController.text.trim().isEmpty) {
+          _messageController.text = text;
+        }
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('Message not saved: ${e.toString()}'),
+              duration: const Duration(seconds: 5),
+            ),
+          );
       }
     } finally {
       if (mounted) _sending.value = false;
@@ -11025,11 +11033,9 @@ void dispose() {
                 }
 
                 if (!snapshot.hasData) {
-                  return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.black,
-                    ),
-                  );
+                  // Keep chat opening calm: no flashing spinner while the
+                  // first Firestore snapshot is arriving.
+                  return const SizedBox.expand();
                 }
 
                 final cutoff = _chatExpiryCutoff();
