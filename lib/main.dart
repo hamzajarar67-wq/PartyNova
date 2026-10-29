@@ -10751,13 +10751,19 @@ class PartyNovaChatPage extends StatefulWidget {
   State<PartyNovaChatPage> createState() => _PartyNovaChatPageState();
 }
 
-class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
+class _PartyNovaCh
+  atPageState extends State<PartyNovaChatPage> {
   final TextEditingController _messageController =
       TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
   final ValueNotifier<bool> _sending = ValueNotifier<bool>(false);
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _friendProfileSubscription;
+
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _messagesSnapshots;
+late final Stream<DocumentSnapshot<Map<String, dynamic>>> _friendProfileSnapshots;
+late final Stream<DocumentSnapshot<Map<String, dynamic>>> _myProfileSnapshots;
+
+StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _friendProfileSubscription;
 StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _myProfileSubscription;
   String _latestFriendName = '';
   String _latestFriendPhotoBase64 = '';
@@ -10829,8 +10835,15 @@ Future<void> _markMessagesRead() async {
 @override
 void initState() {
   super.initState();
+    _friendProfileSnapshots = _friendProfileStream;
+  _myProfileSnapshots = _myProfileStream;
 
-  _friendProfileSubscription = _friendProfileStream.listen((snapshot) {
+  _messagesSnapshots = _messagesRef
+      .orderBy('createdAt', descending: true)
+      .limit(200)
+      .snapshots();
+
+  _friendProfileSubscription = _friendProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
 
     final profile = snapshot.data() ?? <String, dynamic>{};
@@ -10847,7 +10860,7 @@ void initState() {
     });
   });
 
-  _myProfileSubscription = _myProfileStream.listen((snapshot) {
+  _myProfileSubscription = _myProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
 
     final profile = snapshot.data() ?? <String, dynamic>{};
@@ -10969,7 +10982,7 @@ void dispose() {
         elevation: 0,
         surfaceTintColor: const Color(0xFFB9E8FF),
         title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-  stream: _friendProfileStream,
+ stream: _friendProfileSnapshots,
   builder: (context, profileSnapshot) {
     final profile = profileSnapshot.data?.data();
 
@@ -11018,10 +11031,7 @@ void dispose() {
         children: [
           Expanded(
             child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _messagesRef
-                  .orderBy('createdAt', descending: true)
-                  .limit(200)
-                  .snapshots(),
+              stream: _messagesSnapshots,
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return const Center(
@@ -11040,15 +11050,17 @@ void dispose() {
 
                 final cutoff = _chatExpiryCutoff();
 
-                final messages = snapshot.data!.docs.where((doc) {
-                  final data = doc.data();
-                  final createdAt = data['createdAt'];
+final messages = snapshot.data!.docs.where((doc) {
+  final data = doc.data();
+  final createdAt = data['createdAt'];
 
-                  if (createdAt is! Timestamp) return false;
+  // Show newly sent messages while the server timestamp is pending.
+  if (createdAt is! Timestamp) {
+    return doc.metadata.hasPendingWrites;
+  }
 
-                  return createdAt.toDate().isAfter(cutoff);
-                }).toList();
-
+  return createdAt.toDate().isAfter(cutoff);
+}).toList();
                 if (messages.isEmpty) {
                   return const Center(
                     child: Text(
