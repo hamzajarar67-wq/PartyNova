@@ -10777,15 +10777,19 @@ transaction.set(
 
                     final bubbleColor = isMine ? Colors.white : Colors.black;
                     final textColor = isMine ? Colors.black : Colors.white;
-                    final senderName = (data['senderName'] as String?)?.trim().isNotEmpty == true
-                        ? (data['senderName'] as String).trim()
-                        : (isMine
-                            ? (FirebaseAuth.instance.currentUser?.displayName?.trim().isNotEmpty == true
-                                ? FirebaseAuth.instance.currentUser!.displayName!.trim()
-                                : 'You')
-                            : widget.friendName);
-                    final senderPhoto = isMine ? '' : widget.friendPhotoBase64;
-                    final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
+                    final senderName = isMine
+    ? (_latestMyName.trim().isNotEmpty ? _latestMyName : 'You')
+    : (_latestFriendName.trim().isNotEmpty
+        ? _latestFriendName
+        : widget.friendName);
+
+final senderPhoto = isMine
+    ? _latestMyPhotoBase64
+    : (_latestFriendPhotoBase64.isNotEmpty
+        ? _latestFriendPhotoBase64
+        : widget.friendPhotoBase64);
+
+final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
                     final isLastMessage = index == 0;
                     final seenByOther = data['seenBy'] is List &&
                         (data['seenBy'] as List).contains(widget.friendUid);
