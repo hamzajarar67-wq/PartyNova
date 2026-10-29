@@ -10756,7 +10756,7 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
       TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  bool _sending = false;
+  final ValueNotifier<bool> _sending = ValueNotifier<bool>(false);
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _friendProfileSubscription;
 StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _myProfileSubscription;
   String _latestFriendName = '';
@@ -10873,6 +10873,7 @@ void initState() {
 void dispose() {
   _friendProfileSubscription?.cancel();
   _myProfileSubscription?.cancel();
+  _sending.dispose();
   _messageController.dispose();
   _scrollController.dispose();
   super.dispose();
@@ -10881,7 +10882,7 @@ void dispose() {
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
 
-    if (text.isEmpty || _sending) return;
+if (text.isEmpty || _sending.value) return;
     if (widget.friendUid.trim().isEmpty || widget.friendUid == FirebaseAuth.instance.currentUser?.uid) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This conversation is not valid.')));
       return;
@@ -10894,7 +10895,7 @@ void dispose() {
       return;
     }
 
-    setState(() => _sending = true);
+    _sending.value = true;
     _messageController.clear();
 
     try {
@@ -10963,7 +10964,7 @@ transaction.set(
         );
       }
     } finally {
-      if (mounted) setState(() => _sending = false);
+if (mounted) _sending.value = false;
     }
   }
 
@@ -11205,39 +11206,43 @@ child: senderPhotoBytes == null
                           vertical: 11,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onSubmitted: (_) => _sendMessage(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: _sending ? null : _sendMessage,
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
-                    ),
-                    icon: _sending
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.send_rounded),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+  borderRadius: BorderRadius.circular(24),
+  borderSide: BorderSide.none,
+),
+),
+onSubmitted: (_) => _sendMessage(),
+),
+),
+ValueListenableBuilder<bool>(
+  valueListenable: _sending,
+  builder: (context, sending, _) {
+    return IconButton(
+      onPressed: sending ? null : _sendMessage,
+      style: IconButton.styleFrom(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
       ),
+      icon: sending
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
+          : const Icon(Icons.send_rounded),
     );
-  }
+  },
+),
+],
+),
+),
+),
+],
+),
+);
+}
 }
 
 
