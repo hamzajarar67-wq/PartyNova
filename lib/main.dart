@@ -10456,8 +10456,18 @@ class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
 
   String get _myUid => FirebaseAuth.instance.currentUser!.uid;
 
+Stream<DocumentSnapshot<Map<String, dynamic>>> get _friendProfileStream =>
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.friendUid)
+        .snapshots();
+
+  
+
   String get _conversationId =>
       _partyNovaConversationId(_myUid, widget.friendUid);
+
+  
 
   CollectionReference<Map<String, dynamic>> get _messagesRef =>
       FirebaseFirestore.instance
