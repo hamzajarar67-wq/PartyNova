@@ -11269,13 +11269,17 @@ class _MessagesListSection extends StatelessWidget {
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Center(
-            child: Text(
-              'Could not load conversations.',
-              style: TextStyle(color: Colors.black54),
-            ),
-          );
-        }
+  debugPrint(
+    'PARTYNOVA CONVERSATIONS ERROR: ${snapshot.error}',
+  );
+
+  return const Center(
+    child: Text(
+      'Could not load conversations.',
+      style: TextStyle(color: Colors.black54),
+    ),
+  );
+}
 
         if (!snapshot.hasData) {
           return const Center(
