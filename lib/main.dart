@@ -10851,9 +10851,17 @@ final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
                               child: CircleAvatar(
                                 radius: 16,
                                 backgroundColor: const Color(0xFF101B36),
-                                backgroundImage: FirebaseAuth.instance.currentUser?.photoURL == null ? null : NetworkImage(FirebaseAuth.instance.currentUser!.photoURL!),
-                                child: FirebaseAuth.instance.currentUser?.photoURL == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
-                              ),
+backgroundImage: senderPhotoBytes == null
+    ? null
+    : MemoryImage(senderPhotoBytes),
+child: senderPhotoBytes == null
+    ? const Icon(
+        Icons.person,
+        size: 18,
+        color: Color(0xFFFFC857),
+      )
+    : null,
+),
                             ),
                           ],
                         ],
