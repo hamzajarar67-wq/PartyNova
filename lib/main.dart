@@ -10904,7 +10904,7 @@ void dispose() {
       final db = FirebaseFirestore.instance;
       final conversationRef = db.collection('conversations').doc(_conversationId);
       final messageRef = _messagesRef.doc();
-      final now = Timestamp.now();
+      final now = FieldValue.serverTimestamp();
 
       // A batch is queued locally by Firestore, so the message can appear
       // immediately without waiting for a transaction read round-trip.
