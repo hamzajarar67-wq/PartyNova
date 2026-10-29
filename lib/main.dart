@@ -2774,14 +2774,14 @@ Future<void> _saveProfile() async {
         .hasMatch(userId)) {
       try {
         await firestore
-            .collection('publicProfiles')
-            .doc(widget.uid)
-            .set({
-          'userId': userId,
-          'name': name,
-          'photoBase64': _photoBase64,
-          'updatedAt': FieldValue.serverTimestamp(),
-        });
+    .collection('publicProfiles')
+    .doc(widget.uid)
+    .set({
+  'userId': userId,
+  'name': name,
+  'photoBase64': _photoBase64,
+  'updatedAt': FieldValue.serverTimestamp(),
+}, SetOptions(merge: true));
       } catch (syncError) {
         debugPrint(
           'Public profile sync failed: $syncError',
