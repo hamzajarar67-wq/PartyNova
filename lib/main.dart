@@ -10625,33 +10625,51 @@ transaction.set(
         foregroundColor: Colors.black,
         elevation: 0,
         surfaceTintColor: const Color(0xFFB9E8FF),
-        title: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: const Color(0xFF101B36),
-              backgroundImage: _chatPhotoBytes(widget.friendPhotoBase64) != null
-                  ? MemoryImage(
-                      _chatPhotoBytes(widget.friendPhotoBase64)!,
-                    )
-                  : null,
-              child: _chatPhotoBytes(widget.friendPhotoBase64) == null
-                  ? const Icon(Icons.person, color: Color(0xFFFFC857))
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                widget.friendName,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+  stream: _friendProfileStream,
+  builder: (context, profileSnapshot) {
+    final profile = profileSnapshot.data?.data();
+
+    final latestName =
+        (profile?['name'] as String?)?.trim().isNotEmpty == true
+            ? (profile!['name'] as String).trim()
+            : widget.friendName;
+
+    final latestPhoto =
+        (profile?['photoBase64'] as String?) ??
+        widget.friendPhotoBase64;
+
+    final photoBytes = _chatPhotoBytes(latestPhoto);
+
+    return Row(
+      children: [
+        CircleAvatar(
+          backgroundColor: const Color(0xFF101B36),
+          backgroundImage:
+              photoBytes != null ? MemoryImage(photoBytes) : null,
+          child: photoBytes == null
+              ? const Icon(
+                  Icons.person,
+                  color: Color(0xFFFFC857),
+                )
+              : null,
         ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            latestName,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    );
+  },
+),
       ),
       body: Column(
         children: [
