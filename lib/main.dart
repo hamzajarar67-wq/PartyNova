@@ -1476,7 +1476,7 @@ Widget _socialDesignSection({
         ),
         const SizedBox(height: 16),
         Container(
-          width: double.infinity,
+         width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -10881,14 +10881,16 @@ void dispose() {
 
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
+    if (text.isEmpty || _sending.value) return;
 
-if (text.isEmpty || _sending.value) return;
-    if (widget.friendUid.trim().isEmpty || widget.friendUid == FirebaseAuth.instance.currentUser?.uid) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This conversation is not valid.')));
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (widget.friendUid.trim().isEmpty || widget.friendUid == currentUser?.uid) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This conversation is not valid.')),
+      );
       return;
     }
-
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please sign in again.')),
       );
@@ -10899,63 +10901,44 @@ if (text.isEmpty || _sending.value) return;
     _messageController.clear();
 
     try {
-  final db = FirebaseFirestore.instance;
-  final conversationRef =
-      db.collection('conversations').doc(_conversationId);
-  final messageRef = _messagesRef.doc();
+      final db = FirebaseFirestore.instance;
+      final conversationRef = db.collection('conversations').doc(_conversationId);
+      final messageRef = _messagesRef.doc();
+      final now = Timestamp.now();
 
-  await db.runTransaction((transaction) async {
-    final snapshot = await transaction.get(conversationRef);
-    final data = snapshot.data() ?? <String, dynamic>{};
+      // A batch is queued locally by Firestore, so the message can appear
+      // immediately without waiting for a transaction read round-trip.
+      // A local timestamp also avoids the temporary repeated "Sending..." label.
+      final batch = db.batch();
+      batch.set(messageRef, {
+        'senderUid': _myUid,
+        'receiverUid': widget.friendUid,
+        'senderName': ((currentUser.displayName ?? '').trim().isNotEmpty ? currentUser.displayName : (_latestMyName.trim().isNotEmpty ? _latestMyName : 'You')),
+        'senderPhotoURL': currentUser.photoURL ?? '',
+        'text': text,
+        'seenBy': <String>[_myUid],
+        'createdAt': now,
+      });
+      batch.set(
+        conversationRef,
+        {
+          'participants': ([_myUid, widget.friendUid]..sort()),
+          'lastMessage': text,
+          'lastMessageAt': now,
+          'lastSenderUid': _myUid,
+          'unreadCounts': <String, dynamic>{
+            widget.friendUid: FieldValue.increment(1),
+          },
+        },
+        SetOptions(merge: true),
+      );
 
-    final unreadCounts = Map<String, dynamic>.from(
-      data['unreadCounts'] ?? <String, dynamic>{},
-    );
-
-    final currentUnread =
-        (unreadCounts[widget.friendUid] as num?)?.toInt() ?? 0;
-
-    unreadCounts[widget.friendUid] = currentUnread + 1;
-
-    transaction.set(messageRef, {
-      'senderUid': _myUid,
-      'receiverUid': widget.friendUid,
-      'senderName': FirebaseAuth.instance.currentUser?.displayName ?? 'You',
-      'senderPhotoURL': FirebaseAuth.instance.currentUser?.photoURL ?? '',
-      'text': text,
-      'seenBy': <String>[_myUid],
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    final conversationData = <String, dynamic>{
-  'lastMessage': text,
-  'lastMessageAt': FieldValue.serverTimestamp(),
-  'lastSenderUid': _myUid,
-  'unreadCounts': unreadCounts,
-};
-
-// Sirf nayi conversation mein participants add honge.
-// Existing conversation ka participants order change nahi hoga.
-if (!snapshot.exists) {
-  conversationData['participants'] = ([_myUid, widget.friendUid]..sort());
-} else {
-  final participants = List<String>.from(data['participants'] ?? const []);
-
-  if (!participants.contains(_myUid) ||
-      !participants.contains(widget.friendUid) ||
-      participants.length != 2) {
-    throw StateError('Conversation participants are invalid.');
-  }
-}
-
-transaction.set(
-  conversationRef,
-  conversationData,
-  SetOptions(merge: true),
-);
-  });
-
-          } catch (e) {
+      // Do not wait for the server before allowing the chat UI to update;
+      // Firestore displays pending batch writes locally and syncs them online.
+      batch.commit().catchError((Object error) {
+        debugPrint('PARTYNOVA SEND ERROR: $error');
+      });
+    } catch (e) {
       debugPrint('PARTYNOVA SEND ERROR: $e');
       if (mounted) {
         _messageController.text = text;
@@ -10964,7 +10947,7 @@ transaction.set(
         );
       }
     } finally {
-if (mounted) _sending.value = false;
+      if (mounted) _sending.value = false;
     }
   }
 
@@ -11222,16 +11205,7 @@ ValueListenableBuilder<bool>(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
-      icon: sending
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-              ),
-            )
-          : const Icon(Icons.send_rounded),
+      icon: const Icon(Icons.send_rounded),
     );
   },
 ),
@@ -11251,159 +11225,109 @@ class _MessagesListSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = FirebaseAuth.instance.currentUser;
-
-    if (currentUser == null) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
       return const Center(
-        child: Text(
-          'Please sign in to view messages.',
-          style: TextStyle(color: Colors.black54),
-        ),
+        child: Text('Please sign in to view messages.',
+            style: TextStyle(color: Colors.black54)),
       );
     }
 
+    final firestore = FirebaseFirestore.instance;
+
+    // Messages now uses the same accepted-friends source as Friends.
+    // This avoids the failing conversations collection list query.
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('conversations')
-          .where(
-            'participants',
-            arrayContains: currentUser.uid,
-          )
+      stream: firestore
+          .collection('friendRequests')
+          .where('senderUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'accepted')
           .snapshots(),
-      builder: (context, snapshot) {
-                if (snapshot.hasError) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: SelectableText(
-                'Conversation error:\n'
-                '${snapshot.error}\n\n'
-                'Logged-in Firebase UID:\n'
-                '${currentUser.uid}\n\n'
-                'Firebase Project ID:\n'
-                '${FirebaseFirestore.instance.app.options.projectId}',
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontSize: 13,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
+      builder: (context, outgoing) {
+        if (outgoing.hasError) {
+          return const Center(child: Text('Could not load messages.'));
         }
-
-        if (!snapshot.hasData) {
+        if (!outgoing.hasData) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Colors.black,
-            ),
+            child: CircularProgressIndicator(color: _chatGold),
           );
         }
 
-        final conversations = snapshot.data!.docs.where((doc) {
-          final data = doc.data();
-
-          return (data['lastMessage'] as String? ?? '')
-              .trim()
-              .isNotEmpty;
-        }).toList();
-
-        conversations.sort((a, b) {
-          final aTime = a.data()['lastMessageAt'];
-          final bTime = b.data()['lastMessageAt'];
-
-          final aDate = aTime is Timestamp
-              ? aTime.toDate()
-              : DateTime.fromMillisecondsSinceEpoch(0);
-
-          final bDate = bTime is Timestamp
-              ? bTime.toDate()
-              : DateTime.fromMillisecondsSinceEpoch(0);
-
-          return bDate.compareTo(aDate);
-        });
-
-        if (conversations.isEmpty) {
-          return const Center(
-            child: Text(
-              'Your conversations will appear here.',
-              style: TextStyle(color: Colors.black54),
-            ),
-          );
-        }
-
-        return Container(
-          color: const Color(0xFFEAF8FF),
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 7),
-            itemCount: conversations.length,
-            itemBuilder: (context, index) {
-              final conversation = conversations[index];
-              final data = conversation.data();
-
-              final participants = List<String>.from(
-                data['participants'] ?? const [],
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: firestore
+              .collection('friendRequests')
+              .where('receiverUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'accepted')
+              .snapshots(),
+          builder: (context, incoming) {
+            if (incoming.hasError) {
+              return const Center(child: Text('Could not load messages.'));
+            }
+            if (!incoming.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(color: _chatGold),
               );
+            }
 
-              final friendUid = participants.firstWhere(
-                (uid) => uid != currentUser.uid,
-                orElse: () => '',
-              );
-
-              if (friendUid.isEmpty) {
-                return const SizedBox.shrink();
+            final allDocs = <DocumentSnapshot<Map<String, dynamic>>>[
+              ...outgoing.data!.docs,
+              ...incoming.data!.docs,
+            ];
+            final unique = <String, DocumentSnapshot<Map<String, dynamic>>>{};
+            for (final doc in allDocs) {
+              final data = doc.data();
+              if (data == null) continue;
+              final otherUid = data['senderUid'] == uid
+                  ? data['receiverUid']
+                  : data['senderUid'];
+              if (otherUid is String && otherUid.isNotEmpty && otherUid != uid) {
+                unique[otherUid] = doc;
               }
+            }
 
-              return StreamBuilder<
-                  DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-    .collection('publicProfiles')
-    .doc(friendUid)
-    .snapshots(),
-                builder: (context, profileSnapshot) {
-                  final profile =
-                      profileSnapshot.data?.data() ?? {};
+            final friends = unique.values.toList();
+            if (friends.isEmpty) {
+              return const _SocialEmptySection(
+                title: 'Messages',
+                subtitle: 'Your accepted friends will appear here.',
+                icon: Icons.chat_bubble_rounded,
+              );
+            }
 
-                  final storedName = profile['name'] as String?;
-                  final displayName =
-                      profile['displayName'] as String?;
-
-                  final friendName =
-                      storedName?.trim().isNotEmpty == true
-                          ? storedName!.trim()
-                          : displayName?.trim().isNotEmpty == true
-                              ? displayName!.trim()
-                              : 'PartyNova User';
-
-                  final photo =
-                      profile['photoBase64'] as String? ?? '';
-
-                  final photoBytes = _chatPhotoBytes(photo);
-
-                  final unreadCounts = Map<String, dynamic>.from(
-                    data['unreadCounts'] ?? {},
-                  );
-
-                  final unread =
-                      (unreadCounts[currentUser.uid] as num?)
-                              ?.toInt() ??
-                          0;
+            return Container(
+              color: const Color(0xFFEAF8FF),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                itemCount: friends.length,
+                itemBuilder: (context, index) {
+                  final doc = friends[index];
+                  final data = doc.data()!;
+                  final isSender = data['senderUid'] == uid;
+                  final friendUid = (isSender
+                          ? data['receiverUid']
+                          : data['senderUid'])
+                      .toString();
+                  final friendName = ((isSender
+                              ? data['receiverName']
+                              : data['senderName']) ??
+                          'PartyNova User')
+                      .toString()
+                      .trim();
+                  final friendPhoto = ((isSender
+                              ? data['receiverPhotoBase64']
+                              : data['senderPhotoBase64']) ??
+                          '')
+                      .toString();
+                  final photoBytes = _chatPhotoBytes(friendPhoto);
 
                   return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 5,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(13),
                       border: Border.all(
-                        color: const Color(0xFFFF1688)
-                            .withValues(alpha: 0.35),
+                        color: const Color(0xFFFF1688).withValues(alpha: 0.35),
                       ),
                     ),
                     child: ListTile(
@@ -11411,18 +11335,14 @@ class _MessagesListSection extends StatelessWidget {
                       leading: CircleAvatar(
                         radius: 26,
                         backgroundColor: const Color(0xFFEDEDED),
-                        backgroundImage: photoBytes != null
-                            ? MemoryImage(photoBytes)
-                            : null,
+                        backgroundImage:
+                            photoBytes == null ? null : MemoryImage(photoBytes),
                         child: photoBytes == null
-                            ? const Icon(
-                                Icons.person_rounded,
-                                color: Colors.black54,
-                              )
+                            ? const Icon(Icons.person_rounded, color: Colors.black54)
                             : null,
                       ),
                       title: Text(
-                        friendName,
+                        friendName.isEmpty ? 'PartyNova User' : friendName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -11431,44 +11351,14 @@ class _MessagesListSection extends StatelessWidget {
                           fontSize: 15,
                         ),
                       ),
-                      subtitle: Text(
-                        data['lastMessage'] as String? ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 13,
-                        ),
+                      subtitle: const Text(
+                        'Tap to open chat',
+                        style: TextStyle(color: Colors.black54, fontSize: 13),
                       ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (unread > 0)
-                            Container(
-                              margin: const EdgeInsets.only(right: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 4,
-                              ),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Text(
-                                unread > 99 ? '99+' : '$unread',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: _chatGold,
-                            size: 16,
-                          ),
-                        ],
+                      trailing: const Icon(
+                        Icons.chat_bubble_rounded,
+                        color: _chatGold,
+                        size: 21,
                       ),
                       onTap: () {
                         Navigator.push(
@@ -11476,8 +11366,10 @@ class _MessagesListSection extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => PartyNovaChatPage(
                               friendUid: friendUid,
-                              friendName: friendName,
-                              friendPhotoBase64: photo,
+                              friendName: friendName.isEmpty
+                                  ? 'PartyNova User'
+                                  : friendName,
+                              friendPhotoBase64: friendPhoto,
                             ),
                           ),
                         );
@@ -11485,9 +11377,9 @@ class _MessagesListSection extends StatelessWidget {
                     ),
                   );
                 },
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );
