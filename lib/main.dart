@@ -9799,36 +9799,92 @@ class _BlackRequestAction extends StatelessWidget {
       );
 }
 
+
 class _FriendsListSection extends StatelessWidget {
   const _FriendsListSection();
 
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return const Center(child: Text('Please log in again.'));
+
+    if (uid == null) {
+      return const Center(
+        child: Text('Please log in again.'),
+      );
+    }
+
     final firestore = FirebaseFirestore.instance;
+
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: firestore.collection('friendRequests').where('senderUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
+      stream: firestore
+          .collection('friendRequests')
+          .where('senderUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'accepted')
+          .snapshots(),
       builder: (context, outgoing) {
-        if (outgoing.hasError) return const Center(child: Text('Could not load friends.'));
-        if (!outgoing.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        if (outgoing.hasError) {
+          return const Center(
+            child: Text('Could not load friends.'),
+          );
+        }
+
+        if (!outgoing.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFFF1688),
+            ),
+          );
+        }
+
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: firestore.collection('friendRequests').where('receiverUid', isEqualTo: uid).where('status', isEqualTo: 'accepted').snapshots(),
+          stream: firestore
+              .collection('friendRequests')
+              .where('receiverUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'accepted')
+              .snapshots(),
           builder: (context, incoming) {
-            if (incoming.hasError) return const Center(child: Text('Could not load friends.'));
-            if (!incoming.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
-            final docs = <DocumentSnapshot<Map<String, dynamic>>>[
+            if (incoming.hasError) {
+              return const Center(
+                child: Text('Could not load friends.'),
+              );
+            }
+
+            if (!incoming.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Color(0xFFFF1688),
+                ),
+              );
+            }
+
+            final docs =
+                <DocumentSnapshot<Map<String, dynamic>>>[
               ...outgoing.data!.docs,
               ...incoming.data!.docs,
             ];
-            final unique = <String, DocumentSnapshot<Map<String, dynamic>>>{};
+
+            final unique =
+                <String, DocumentSnapshot<Map<String, dynamic>>>{};
+
             for (final doc in docs) {
               final data = doc.data()!;
-              final friendUid = data['senderUid'] == uid ? data['receiverUid'] : data['senderUid'];
+              final friendUid = data['senderUid'] == uid
+                  ? data['receiverUid']
+                  : data['senderUid'];
+
               unique[friendUid.toString()] = doc;
             }
+
             final friends = unique.values.toList();
-            if (friends.isEmpty) return const _SocialEmptySection(title: 'Friends', subtitle: 'Accepted friends will appear here.', icon: Icons.people_rounded);
+
+            if (friends.isEmpty) {
+              return const _SocialEmptySection(
+                title: 'Friends',
+                subtitle: 'Accepted friends will appear here.',
+                icon: Icons.people_rounded,
+              );
+            }
+
             return Container(
               color: const Color(0xFFEAF8FF),
               child: ListView.builder(
@@ -9838,189 +9894,432 @@ class _FriendsListSection extends StatelessWidget {
                   final doc = friends[index];
                   final data = doc.data()!;
                   final isSender = data['senderUid'] == uid;
-                  final friendUid = (isSender ? data['receiverUid'] : data['senderUid']).toString();
-                  final name = ((isSender ? data['receiverName'] : data['senderName']) ?? 'PartyNova User').toString();
-                  final partyId = ((isSender ? data['receiverPartyNovaUid'] : data['senderPartyNovaUid']) ?? '').toString();
-                  final photo = ((isSender ? data['receiverPhotoBase64'] : data['senderPhotoBase64']) ?? '').toString();
-                  final bytes = getCachedProfilePhoto(photo);
-                  return Card(
-                    color: Colors.white,
-                    child: ListTile(
-                      leading: CircleAvatar(backgroundImage: bytes == null ? null : MemoryImage(bytes), child: bytes == null ? const Icon(Icons.person_rounded) : null),
-                      title: Text(name, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                      subtitle: Text('ID: $partyId', style: const TextStyle(color: Colors.black54)),
-                      onTap: () async {
-  await showDialog<void>(
-    context: context,
-    builder: (dialogContext) {
-      return AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(
-            color: Color(0xFFFF1688),
-            width: 1.5,
-          ),
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-        content: SizedBox(
-          width: 300,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircleAvatar(
-                radius: 42,
-                backgroundColor: const Color(0xFFFFE3F1),
-                backgroundImage:
-                    bytes == null ? null : MemoryImage(bytes),
-                child: bytes == null
-                    ? const Icon(
-                        Icons.person_rounded,
-                        size: 42,
-                        color: Color(0xFFFF1688),
-                      )
-                    : null,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                name,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                'PartyNova ID: $partyId',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.black54,
-                  fontSize: 13,
-                ),
-              ),
-              const SizedBox(height: 22),
 
-              // Four full-width actions with one consistent colour and size.
-              _friendPopupButton(
-                text: 'Delete',
-                background: const Color(0xFFFF1688),
-                foreground: Colors.white,
-                onPressed: () async {
-                  final confirm = await showDialog<bool>(
-                    context: dialogContext,
-                    builder: (confirmContext) => AlertDialog(
-                      backgroundColor: Colors.white,
-                      title: const Text('Remove friend?', style: TextStyle(color: Colors.black)),
-                      content: const Text('This removes the friendship only. It will not delete either account.', style: TextStyle(color: Colors.black87)),
-                      actions: [
-                        TextButton(onPressed: () => Navigator.pop(confirmContext, false), child: const Text('Cancel')),
-                        TextButton(onPressed: () => Navigator.pop(confirmContext, true), child: const Text('Remove', style: TextStyle(color: Color(0xFFFF1688)))),
-                      ],
-                    ),
-                  );
-                  if (confirm != true) return;
-                  try {
-                    final currentUid = FirebaseAuth.instance.currentUser?.uid;
-                    if (currentUid == null) throw StateError('Not signed in');
-                    final db = FirebaseFirestore.instance;
-                    final batch = db.batch();
-                    final pairs = <QuerySnapshot<Map<String, dynamic>>>[];
-                    pairs.add(await db.collection('friendRequests').where('senderUid', isEqualTo: currentUid).where('receiverUid', isEqualTo: friendUid).get());
-                    pairs.add(await db.collection('friendRequests').where('senderUid', isEqualTo: friendUid).where('receiverUid', isEqualTo: currentUid).get());
-                    var removed = 0;
-                    for (final result in pairs) {
-                      for (final friendshipDoc in result.docs) {
-                        if ((friendshipDoc.data()['status'] ?? '').toString() == 'accepted') {
-                          batch.delete(friendshipDoc.reference);
-                          removed++;
-                        }
-                      }
-                    }
-                    if (removed == 0) {
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friendship was not found.')));
-                      return;
-                    }
-                                        await batch.commit();
+                  final friendUid = (isSender
+                          ? data['receiverUid']
+                          : data['senderUid'])
+                      .toString();
 
-                    if (dialogContext.mounted) {
-                      Navigator.pop(dialogContext);
-                    }
+                  final fallbackName = (isSender
+                          ? data['receiverName']
+                          : data['senderName'] ??
+                              'PartyNova User')
+                      .toString();
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Friend removed successfully.'),
-                      ),
-                    );
-                  } catch (e, stackTrace) {
-                    debugPrint('Friend removal failed: $e');
-                    debugPrint('Friend removal stack trace: $stackTrace');
+                  final partyId = (isSender
+                          ? data['receiverPartyNovaUid']
+                          : data['senderPartyNovaUid'] ??
+                              '')
+                      .toString();
 
-                    if (!context.mounted) return;
+                  final fallbackPhoto = (isSender
+                          ? data['receiverPhotoBase64']
+                          : data['senderPhotoBase64'] ??
+                              '')
+                      .toString();
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Could not remove friend: $e'),
-                        duration: const Duration(seconds: 8),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              _friendPopupButton(
-                text: 'Profile',
-                background: const Color(0xFFFF1688),
-                foreground: Colors.white,
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PartyNovaPublicProfilePage(
-                        firebaseUid: friendUid,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 10),
-_friendPopupButton(
-  text: 'Message',
-  background: const Color(0xFFFF1688),
-  foreground: Colors.white,
-  onPressed: () {
-    Navigator.pop(dialogContext);
-    context.findAncestorStateOfType<_PartyNovaSocialTabState>()?._controller.index = 1;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PartyNovaChatPage(
-          friendUid: friendUid,
-          friendName: name,
-          friendPhotoBase64: photo,
-        ),
-      ),
-    );
-  },
-),
-const SizedBox(height: 10),
-_friendPopupButton(
-                text: 'Cancel',
-                background: const Color(0xFFFF1688),
-                foreground: Colors.white,
-                onPressed: () => Navigator.pop(dialogContext),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-},
-                      ),
+                  return StreamBuilder<
+                      DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: firestore
+                        .collection('users')
+                        .doc(friendUid)
+                        .snapshots(),
+                    builder: (context, profileSnapshot) {
+                      final profile =
+                          profileSnapshot.data?.data() ??
+                              <String, dynamic>{};
+
+                      final liveName =
+                          (profile['name'] as String?)?.trim() ??
+                              '';
+
+                      final name = liveName.isNotEmpty
+                          ? liveName
+                          : fallbackName.trim().isNotEmpty
+                              ? fallbackName.trim()
+                              : 'PartyNova User';
+
+                      final livePhoto =
+                          (profile['photoBase64'] as String?) ??
+                              '';
+
+                      final photo = livePhoto.isNotEmpty
+                          ? livePhoto
+                          : fallbackPhoto;
+
+                      final bytes = _chatPhotoBytes(photo);
+
+                      return Card(
+                        color: Colors.white,
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundImage: bytes == null
+                                ? null
+                                : MemoryImage(bytes),
+                            child: bytes == null
+                                ? const Icon(Icons.person_rounded)
+                                : null,
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          subtitle: Text(
+                            'ID: $partyId',
+                            style: const TextStyle(
+                              color: Colors.black54,
+                            ),
+                          ),
+                          onTap: () async {
+                            await showDialog<void>(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(20),
+                                    side: const BorderSide(
+                                      color: Color(0xFFFF1688),
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  contentPadding:
+                                      const EdgeInsets.fromLTRB(
+                                    20,
+                                    20,
+                                    20,
+                                    12,
+                                  ),
+                                  content: SizedBox(
+                                    width: 300,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        CircleAvatar(
+                                          radius: 42,
+                                          backgroundColor:
+                                              const Color(0xFFFFE3F1),
+                                          backgroundImage: bytes == null
+                                              ? null
+                                              : MemoryImage(bytes),
+                                          child: bytes == null
+                                              ? const Icon(
+                                                  Icons.person_rounded,
+                                                  size: 42,
+                                                  color:
+                                                      Color(0xFFFF1688),
+                                                )
+                                              : null,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          name,
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          'PartyNova ID: $partyId',
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            color: Colors.black54,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 22),
+
+                                        _friendPopupButton(
+                                          text: 'Delete',
+                                          background:
+                                              const Color(0xFFFF1688),
+                                          foreground: Colors.white,
+                                          onPressed: () async {
+                                            final confirm =
+                                                await showDialog<bool>(
+                                              context: dialogContext,
+                                              builder:
+                                                  (confirmContext) =>
+                                                      AlertDialog(
+                                                backgroundColor:
+                                                    Colors.white,
+                                                title: const Text(
+                                                  'Remove friend?',
+                                                  style: TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                                content: const Text(
+                                                  'This removes the friendship only. It will not delete either account.',
+                                                  style: TextStyle(
+                                                    color: Colors.black87,
+                                                  ),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                      confirmContext,
+                                                      false,
+                                                    ),
+                                                    child: const Text(
+                                                      'Cancel',
+                                                    ),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                      confirmContext,
+                                                      true,
+                                                    ),
+                                                    child: const Text(
+                                                      'Remove',
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xFFFF1688,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+
+                                            if (confirm != true) return;
+
+                                            try {
+                                              final currentUid =
+                                                  FirebaseAuth.instance
+                                                      .currentUser
+                                                      ?.uid;
+
+                                              if (currentUid == null) {
+                                                throw StateError(
+                                                  'Not signed in',
+                                                );
+                                              }
+
+                                              final db =
+                                                  FirebaseFirestore
+                                                      .instance;
+                                              final batch = db.batch();
+
+                                              final pairs =
+                                                  <QuerySnapshot<
+                                                      Map<String,
+                                                          dynamic>>>[];
+
+                                              pairs.add(
+                                                await db
+                                                    .collection(
+                                                      'friendRequests',
+                                                    )
+                                                    .where(
+                                                      'senderUid',
+                                                      isEqualTo:
+                                                          currentUid,
+                                                    )
+                                                    .where(
+                                                      'receiverUid',
+                                                      isEqualTo:
+                                                          friendUid,
+                                                    )
+                                                    .get(),
+                                              );
+
+                                              pairs.add(
+                                                await db
+                                                    .collection(
+                                                      'friendRequests',
+                                                    )
+                                                    .where(
+                                                      'senderUid',
+                                                      isEqualTo:
+                                                          friendUid,
+                                                    )
+                                                    .where(
+                                                      'receiverUid',
+                                                      isEqualTo:
+                                                          currentUid,
+                                                    )
+                                                    .get(),
+                                              );
+
+                                              var removed = 0;
+
+                                              for (final result
+                                                  in pairs) {
+                                                for (final friendshipDoc
+                                                    in result.docs) {
+                                                  if ((friendshipDoc
+                                                              .data()[
+                                                          'status'] ??
+                                                      '')
+                                                      .toString() ==
+                                                      'accepted') {
+                                                    batch.delete(
+                                                      friendshipDoc
+                                                          .reference,
+                                                    );
+                                                    removed++;
+                                                  }
+                                                }
+                                              }
+
+                                              if (removed == 0) {
+                                                if (dialogContext
+                                                    .mounted) {
+                                                  Navigator.pop(
+                                                    dialogContext,
+                                                  );
+                                                }
+
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Friendship was not found.',
+                                                    ),
+                                                  ),
+                                                );
+                                                return;
+                                              }
+
+                                              await batch.commit();
+
+                                              if (dialogContext
+                                                  .mounted) {
+                                                Navigator.pop(
+                                                  dialogContext,
+                                                );
+                                              }
+
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Friend removed successfully.',
+                                                  ),
+                                                ),
+                                              );
+                                            } catch (e, stackTrace) {
+                                              debugPrint(
+                                                'Friend removal failed: $e',
+                                              );
+                                              debugPrint(
+                                                'Friend removal stack trace: $stackTrace',
+                                              );
+
+                                              if (!context.mounted) {
+                                                return;
+                                              }
+
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Could not remove friend: $e',
+                                                  ),
+                                                  duration:
+                                                      const Duration(
+                                                    seconds: 8,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        _friendPopupButton(
+                                          text: 'Profile',
+                                          background:
+                                              const Color(0xFFFF1688),
+                                          foreground: Colors.white,
+                                          onPressed: () {
+                                            Navigator.pop(
+                                              dialogContext,
+                                            );
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    PartyNovaPublicProfilePage(
+                                                  firebaseUid:
+                                                      friendUid,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        _friendPopupButton(
+                                          text: 'Message',
+                                          background:
+                                              const Color(0xFFFF1688),
+                                          foreground: Colors.white,
+                                          onPressed: () {
+                                            Navigator.pop(
+                                              dialogContext,
+                                            );
+
+                                            context
+                                                .findAncestorStateOfType<
+                                                    _PartyNovaSocialTabState>()
+                                                ?._controller
+                                                .index = 1;
+
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    PartyNovaChatPage(
+                                                  friendUid: friendUid,
+                                                  friendName: name,
+                                                  friendPhotoBase64:
+                                                      photo,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+
+                                        const SizedBox(height: 10),
+
+                                        _friendPopupButton(
+                                          text: 'Cancel',
+                                          background:
+                                              const Color(0xFFFF1688),
+                                          foreground: Colors.white,
+                                          onPressed: () =>
+                                              Navigator.pop(
+                                            dialogContext,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -10031,6 +10330,11 @@ _friendPopupButton(
     );
   }
 }
+
+
+
+
+
 
 
 Widget _friendPopupButton({
