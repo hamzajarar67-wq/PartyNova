@@ -10849,6 +10849,7 @@ transaction.set(
   }
 }
 
+
 class _MessagesListSection extends StatelessWidget {
   const _MessagesListSection();
 
@@ -10888,7 +10889,9 @@ class _MessagesListSection extends StatelessWidget {
 
         final conversations = snapshot.data!.docs.where((doc) {
           final data = doc.data();
-          return (data['lastMessage'] as String? ?? '').trim().isNotEmpty;
+          return (data['lastMessage'] as String? ?? '')
+              .trim()
+              .isNotEmpty;
         }).toList();
 
         conversations.sort((a, b) {
@@ -10898,6 +10901,7 @@ class _MessagesListSection extends StatelessWidget {
           final aDate = aTime is Timestamp
               ? aTime.toDate()
               : DateTime.fromMillisecondsSinceEpoch(0);
+
           final bDate = bTime is Timestamp
               ? bTime.toDate()
               : DateTime.fromMillisecondsSinceEpoch(0);
@@ -10914,127 +10918,169 @@ class _MessagesListSection extends StatelessWidget {
           );
         }
 
-        return ListView.builder(
-          itemCount: conversations.length,
-          itemBuilder: (context, index) {
-            final conversation = conversations[index];
-            final data = conversation.data();
-            final participants = List<String>.from(
-              data['participants'] ?? const [],
-            );
-
-            final friendUid = participants.firstWhere(
-              (uid) => uid != currentUser.uid,
-              orElse: () => '',
-            );
-
-            if (friendUid.isEmpty) return const SizedBox.shrink();
-
-            return StreamBuilder<
-                DocumentSnapshot<Map<String, dynamic>>>(
-              stream: FirebaseFirestore.instance
-                  .collection('publicProfiles')
-                  .doc(friendUid)
-                  .snapshots(),
-              builder: (context, profileSnapshot) {
-                final profile = profileSnapshot.data?.data() ?? {};
-                final friendName =
-                    profile['name'] as String? ??
-                    profile['displayName'] as String? ??
-                    'User';
-
-                final photo =
-                    profile['photoBase64'] as String? ?? '';
-
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF101B36),
-                    backgroundImage: _chatPhotoBytes(photo) != null
-                        ? MemoryImage(_chatPhotoBytes(photo)!)
-                        : null,
-                    child: _chatPhotoBytes(photo) == null
-                        ? const Icon(Icons.person, color: Color(0xFFFFC857))
-                        : null,
-                  ),
-                  title: Text(
-                    friendName,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  subtitle: Text(
-                    data['lastMessage'] as String? ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.black54),
-                  ),
-                  trailing: Row(
-  mainAxisSize: MainAxisSize.min,
-  children: [
-    Builder(
-      builder: (context) {
-        final unreadCounts = Map<String, dynamic>.from(
-          data['unreadCounts'] ?? {},
-        );
-        final unread =
-            (unreadCounts[currentUser.uid] as num?)?.toInt() ?? 0;
-
-        if (unread <= 0) {
-          return const SizedBox.shrink();
-        }
-
         return Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(
-            horizontal: 7,
-            vertical: 4,
-          ),
-          decoration: const BoxDecoration(
-            color: Colors.red,
-            shape: BoxShape.circle,
-          ),
-          child: Text(
-            unread > 99 ? '99+' : '$unread',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        );
-      },
-    ),
-    const Icon(
-      Icons.arrow_forward_ios_rounded,
-      color: _chatGold,
-      size: 16,
-    ),
-  ],
-),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PartyNovaChatPage(
-                          friendUid: friendUid,
-                          friendName: friendName,
-                          friendPhotoBase64: photo,
+          color: const Color(0xFFEAF8FF),
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            itemCount: conversations.length,
+            itemBuilder: (context, index) {
+              final conversation = conversations[index];
+              final data = conversation.data();
+
+              final participants = List<String>.from(
+                data['participants'] ?? const [],
+              );
+
+              final friendUid = participants.firstWhere(
+                (uid) => uid != currentUser.uid,
+                orElse: () => '',
+              );
+
+              if (friendUid.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return StreamBuilder<
+                  DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('publicProfiles')
+                    .doc(friendUid)
+                    .snapshots(),
+                builder: (context, profileSnapshot) {
+                  final profile = profileSnapshot.data?.data() ?? {};
+
+                  final storedName = profile['name'] as String?;
+                  final displayName = profile['displayName'] as String?;
+
+                  final friendName =
+                      storedName?.trim().isNotEmpty == true
+                          ? storedName!.trim()
+                          : displayName?.trim().isNotEmpty == true
+                              ? displayName!.trim()
+                              : 'PartyNova User';
+
+                  final photo =
+                      profile['photoBase64'] as String? ?? '';
+
+                  final photoBytes = _chatPhotoBytes(photo);
+
+                  final unreadCounts = Map<String, dynamic>.from(
+                    data['unreadCounts'] ?? {},
+                  );
+
+                  final unread =
+                      (unreadCounts[currentUser.uid] as num?)
+                              ?.toInt() ??
+                          0;
+
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(
+                        color: const Color(0xFFFF1688)
+                            .withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+
+                      leading: CircleAvatar(
+                        radius: 26,
+                        backgroundColor: const Color(0xFFEDEDED),
+                        backgroundImage: photoBytes != null
+                            ? MemoryImage(photoBytes)
+                            : null,
+                        child: photoBytes == null
+                            ? const Icon(
+                                Icons.person_rounded,
+                                color: Colors.black54,
+                              )
+                            : null,
+                      ),
+
+                      title: Text(
+                        friendName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
                         ),
                       ),
-                    );
-                  },
-                );
-              },
-            );
-          },
+
+                      subtitle: Text(
+                        data['lastMessage'] as String? ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (unread > 0)
+                            Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                unread > 99 ? '99+' : '$unread',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: _chatGold,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PartyNovaChatPage(
+                              friendUid: friendUid,
+                              friendName: friendName,
+                              friendPhotoBase64: photo,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         );
       },
     );
   }
 }
-
-
-
 
 
