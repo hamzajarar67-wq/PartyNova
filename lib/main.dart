@@ -10579,6 +10579,7 @@ void initState() {
   });
 
           } catch (e) {
+      debugPrint('PARTYNOVA SEND ERROR: $e');
       if (mounted) {
         _messageController.text = text;
         ScaffoldMessenger.of(context).showSnackBar(
