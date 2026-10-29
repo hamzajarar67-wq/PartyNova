@@ -11265,30 +11265,40 @@ class _MessagesListSection extends StatelessWidget {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
           .collection('conversations')
-          .where('participants', arrayContains: currentUser.uid)
+          .where(
+            'participants',
+            arrayContains: currentUser.uid,
+          )
           .snapshots(),
       builder: (context, snapshot) {
+        // Show the actual Firestore error on the screen.
         if (snapshot.hasError) {
-  debugPrint(
-    'PARTYNOVA CONVERSATIONS ERROR: ${snapshot.error}',
-  );
-
-  return const Center(
-    child: Text(
-      'Could not load conversations.',
-      style: TextStyle(color: Colors.black54),
-    ),
-  );
-}
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Conversation error:\n${snapshot.error}',
+                style: const TextStyle(
+                  color: Colors.red,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        }
 
         if (!snapshot.hasData) {
           return const Center(
-            child: CircularProgressIndicator(color: Colors.black),
+            child: CircularProgressIndicator(
+              color: Colors.black,
+            ),
           );
         }
 
         final conversations = snapshot.data!.docs.where((doc) {
           final data = doc.data();
+
           return (data['lastMessage'] as String? ?? '')
               .trim()
               .isNotEmpty;
@@ -11341,16 +11351,18 @@ class _MessagesListSection extends StatelessWidget {
               }
 
               return StreamBuilder<
-    DocumentSnapshot<Map<String, dynamic>>>(
-  stream: FirebaseFirestore.instance
-      .collection('users')
-      .doc(friendUid)
-      .snapshots(),
+                  DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(friendUid)
+                    .snapshots(),
                 builder: (context, profileSnapshot) {
-                  final profile = profileSnapshot.data?.data() ?? {};
+                  final profile =
+                      profileSnapshot.data?.data() ?? {};
 
                   final storedName = profile['name'] as String?;
-                  final displayName = profile['displayName'] as String?;
+                  final displayName =
+                      profile['displayName'] as String?;
 
                   final friendName =
                       storedName?.trim().isNotEmpty == true
@@ -11392,7 +11404,6 @@ class _MessagesListSection extends StatelessWidget {
                     ),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-
                       leading: CircleAvatar(
                         radius: 26,
                         backgroundColor: const Color(0xFFEDEDED),
@@ -11406,7 +11417,6 @@ class _MessagesListSection extends StatelessWidget {
                               )
                             : null,
                       ),
-
                       title: Text(
                         friendName,
                         maxLines: 1,
@@ -11417,7 +11427,6 @@ class _MessagesListSection extends StatelessWidget {
                           fontSize: 15,
                         ),
                       ),
-
                       subtitle: Text(
                         data['lastMessage'] as String? ?? '',
                         maxLines: 1,
@@ -11427,7 +11436,6 @@ class _MessagesListSection extends StatelessWidget {
                           fontSize: 13,
                         ),
                       ),
-
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -11458,7 +11466,6 @@ class _MessagesListSection extends StatelessWidget {
                           ),
                         ],
                       ),
-
                       onTap: () {
                         Navigator.push(
                           context,
@@ -11482,5 +11489,3 @@ class _MessagesListSection extends StatelessWidget {
     );
   }
 }
-
-
