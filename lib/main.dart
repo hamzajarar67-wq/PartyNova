@@ -10461,6 +10461,11 @@ Stream<DocumentSnapshot<Map<String, dynamic>>> get _friendProfileStream =>
         .collection('users')
         .doc(widget.friendUid)
         .snapshots();
+  Stream<DocumentSnapshot<Map<String, dynamic>>> get _myProfileStream =>
+    FirebaseFirestore.instance
+        .collection('users')
+        .doc(_myUid)
+        .snapshots();
 
   
 
