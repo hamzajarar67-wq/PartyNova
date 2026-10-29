@@ -10565,17 +10565,32 @@ void initState() {
       'createdAt': FieldValue.serverTimestamp(),
     });
 
-    transaction.set(
-      conversationRef,
-      {
-        'participants': ([_myUid, widget.friendUid]..sort()),
-        'lastMessage': text,
-        'lastMessageAt': FieldValue.serverTimestamp(),
-        'lastSenderUid': _myUid,
-        'unreadCounts': unreadCounts,
-      },
-      SetOptions(merge: true),
-    );
+    final conversationData = <String, dynamic>{
+  'lastMessage': text,
+  'lastMessageAt': FieldValue.serverTimestamp(),
+  'lastSenderUid': _myUid,
+  'unreadCounts': unreadCounts,
+};
+
+// Sirf nayi conversation mein participants add honge.
+// Existing conversation ka participants order change nahi hoga.
+if (!snapshot.exists) {
+  conversationData['participants'] = ([_myUid, widget.friendUid]..sort());
+} else {
+  final participants = List<String>.from(data['participants'] ?? const []);
+
+  if (!participants.contains(_myUid) ||
+      !participants.contains(widget.friendUid) ||
+      participants.length != 2) {
+    throw StateError('Conversation participants are invalid.');
+  }
+}
+
+transaction.set(
+  conversationRef,
+  conversationData,
+  SetOptions(merge: true),
+);
   });
 
           } catch (e) {
