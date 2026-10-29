@@ -11028,11 +11028,11 @@ class _MessagesListSection extends StatelessWidget {
               }
 
               return StreamBuilder<
-                  DocumentSnapshot<Map<String, dynamic>>>(
-                stream: FirebaseFirestore.instance
-                    .collection('publicProfiles')
-                    .doc(friendUid)
-                    .snapshots(),
+    DocumentSnapshot<Map<String, dynamic>>>(
+  stream: FirebaseFirestore.instance
+      .collection('users')
+      .doc(friendUid)
+      .snapshots(),
                 builder: (context, profileSnapshot) {
                   final profile = profileSnapshot.data?.data() ?? {};
 
