@@ -11273,10 +11273,6 @@ ValueListenableBuilder<bool>(
 
 
 
-
-        
-
-                  
 class _MessagesListSection extends StatelessWidget {
   const _MessagesListSection();
 
@@ -11365,9 +11361,15 @@ class _MessagesListSection extends StatelessWidget {
 
             return Container(
               color: const Color(0xFFEAF8FF),
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 7),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 4),
                 itemCount: friends.length,
+                separatorBuilder: (context, index) => const Divider(
+                  height: 1,
+                  indent: 76,
+                  endIndent: 12,
+                  color: Color(0xFFD8E8F0),
+                ),
                 itemBuilder: (context, index) {
                   final doc = friends[index];
                   final data = doc.data()!;
@@ -11393,6 +11395,7 @@ class _MessagesListSection extends StatelessWidget {
                       .toString();
 
                   final photoBytes = _chatPhotoBytes(friendPhoto);
+
                   final conversationId =
                       _partyNovaConversationId(uid, friendUid);
 
@@ -11412,64 +11415,9 @@ class _MessagesListSection extends StatelessWidget {
                       final unreadCount =
                           (counts[uid] as num?)?.toInt() ?? 0;
 
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 5,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(
-                            color: const Color(0xFFFF1688)
-                                .withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            radius: 26,
-                            backgroundColor: const Color(0xFFEDEDED),
-                            backgroundImage: photoBytes == null
-                                ? null
-                                : MemoryImage(photoBytes),
-                            child: photoBytes == null
-                                ? const Icon(
-                                    Icons.person_rounded,
-                                    color: Colors.black54,
-                                  )
-                                : null,
-                          ),
-                          title: Text(
-                            friendName.isEmpty
-                                ? 'PartyNova User'
-                                : friendName,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          subtitle: const Text(
-                            'Tap to open chat',
-                            style: TextStyle(
-                              color: Colors.black54,
-                              fontSize: 13,
-                            ),
-                          ),
-                          trailing: unreadCount > 0
-                              ? _RequestCountBadge(count: unreadCount)
-                              : const Icon(
-                                  Icons.chat_bubble_rounded,
-                                  color: _chatGold,
-                                  size: 21,
-                                ),
+                      return Material(
+                        color: Colors.transparent,
+                        child: InkWell(
                           onTap: () {
                             Navigator.push(
                               context,
@@ -11484,6 +11432,47 @@ class _MessagesListSection extends StatelessWidget {
                               ),
                             );
                           },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 15,
+                              vertical: 11,
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 26,
+                                  backgroundColor:
+                                      const Color(0xFFEDEDED),
+                                  backgroundImage: photoBytes == null
+                                      ? null
+                                      : MemoryImage(photoBytes),
+                                  child: photoBytes == null
+                                      ? const Icon(
+                                          Icons.person_rounded,
+                                          color: Colors.black54,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    friendName.isEmpty
+                                        ? 'PartyNova User'
+                                        : friendName,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                ),
+                                if (unreadCount > 0)
+                                  _RequestCountBadge(count: unreadCount),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -11497,3 +11486,6 @@ class _MessagesListSection extends StatelessWidget {
     );
   }
 }
+        
+
+                  
