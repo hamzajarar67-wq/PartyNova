@@ -99,6 +99,9 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Generate App Icon
+        run: dart run flutter_launcher_icons
+
       - name: Configure image cropper Android UI
         shell: bash
         run: |
@@ -251,7 +254,6 @@ jobs:
           styles.write_text(content)
           print("Configured:", styles)
 
-          # Remove the old Android 15 workaround for image_cropper 10+.
           old_style = Path(
               "android/app/src/main/res/values-v35/styles.xml"
           )
