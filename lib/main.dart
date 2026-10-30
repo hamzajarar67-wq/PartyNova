@@ -9605,7 +9605,36 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
                     );
                   },
                 ),
-                const Tab(text: 'Messages'),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+  stream: FirebaseFirestore.instance
+      .collection('conversations')
+      .where('participants', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+      .snapshots(),
+  builder: (context, snapshot) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final count = uid == null
+        ? 0
+        : (snapshot.data?.docs ?? []).fold<int>(0, (total, doc) {
+            final counts = Map<String, dynamic>.from(
+              doc.data()['unreadCounts'] ?? {},
+            );
+            return total + ((counts[uid] as num?)?.toInt() ?? 0);
+          });
+
+    return Tab(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Messages'),
+          if (count > 0) ...[
+            const SizedBox(width: 5),
+            _RequestCountBadge(count: count),
+          ],
+        ],
+      ),
+    );
+  },
+),
                 const Tab(text: 'Friends'),
               ],
             ),
@@ -11342,62 +11371,221 @@ class _MessagesListSection extends StatelessWidget {
                           '')
                       .toString();
                   final photoBytes = _chatPhotoBytes(friendPhoto);
+                  final conversationId = _partyNovaConversationId(uid, friendUid);
 
-                  return Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(13),
-                      border: Border.all(
-                        color: const Color(0xFFFF1688).withValues(alpha: 0.35),
-                      ),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        radius: 26,
-                        backgroundColor: const Color(0xFFEDEDED),
-                        backgroundImage:
-                            photoBytes == null ? null : MemoryImage(photoBytes),
-                        child: photoBytes == null
-                            ? const Icon(Icons.person_rounded, color: Colors.black54)
-                            : null,
-                      ),
-                      title: Text(
-                        friendName.isEmpty ? 'PartyNova User' : friendName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
+
+
+                  
+class _MessagesListSection extends StatelessWidget {
+  const _MessagesListSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid == null) {
+      return const Center(
+        child: Text(
+          'Please sign in to view messages.',
+          style: TextStyle(color: Colors.black54),
+        ),
+      );
+    }
+
+    final firestore = FirebaseFirestore.instance;
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: firestore
+          .collection('friendRequests')
+          .where('senderUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'accepted')
+          .snapshots(),
+      builder: (context, outgoing) {
+        if (outgoing.hasError) {
+          return const Center(child: Text('Could not load messages.'));
+        }
+
+        if (!outgoing.hasData) {
+          return const Center(
+            child: CircularProgressIndicator(color: _chatGold),
+          );
+        }
+
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: firestore
+              .collection('friendRequests')
+              .where('receiverUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'accepted')
+              .snapshots(),
+          builder: (context, incoming) {
+            if (incoming.hasError) {
+              return const Center(child: Text('Could not load messages.'));
+            }
+
+            if (!incoming.hasData) {
+              return const Center(
+                child: CircularProgressIndicator(color: _chatGold),
+              );
+            }
+
+            final allDocs =
+                <DocumentSnapshot<Map<String, dynamic>>>[
+              ...outgoing.data!.docs,
+              ...incoming.data!.docs,
+            ];
+
+            final unique =
+                <String, DocumentSnapshot<Map<String, dynamic>>>{};
+
+            for (final doc in allDocs) {
+              final data = doc.data();
+              if (data == null) continue;
+
+              final otherUid = data['senderUid'] == uid
+                  ? data['receiverUid']
+                  : data['senderUid'];
+
+              if (otherUid is String &&
+                  otherUid.isNotEmpty &&
+                  otherUid != uid) {
+                unique[otherUid] = doc;
+              }
+            }
+
+            final friends = unique.values.toList();
+
+            if (friends.isEmpty) {
+              return const _SocialEmptySection(
+                title: 'Messages',
+                subtitle: 'Your accepted friends will appear here.',
+                icon: Icons.chat_bubble_rounded,
+              );
+            }
+
+            return Container(
+              color: const Color(0xFFEAF8FF),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 7),
+                itemCount: friends.length,
+                itemBuilder: (context, index) {
+                  final doc = friends[index];
+                  final data = doc.data()!;
+
+                  final isSender = data['senderUid'] == uid;
+
+                  final friendUid = (isSender
+                          ? data['receiverUid']
+                          : data['senderUid'])
+                      .toString();
+
+                  final friendName = ((isSender
+                              ? data['receiverName']
+                              : data['senderName']) ??
+                          'PartyNova User')
+                      .toString()
+                      .trim();
+
+                  final friendPhoto = ((isSender
+                              ? data['receiverPhotoBase64']
+                              : data['senderPhotoBase64']) ??
+                          '')
+                      .toString();
+
+                  final photoBytes = _chatPhotoBytes(friendPhoto);
+                  final conversationId =
+                      _partyNovaConversationId(uid, friendUid);
+
+                  return StreamBuilder<
+                      DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: firestore
+                        .collection('conversations')
+                        .doc(conversationId)
+                        .snapshots(),
+                    builder: (context, conversationSnapshot) {
+                      final counts = Map<String, dynamic>.from(
+                        conversationSnapshot.data
+                                ?.data()?['unreadCounts'] ??
+                            {},
+                      );
+
+                      final unreadCount =
+                          (counts[uid] as num?)?.toInt() ?? 0;
+
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 5,
                         ),
-                      ),
-                      subtitle: const Text(
-                        'Tap to open chat',
-                        style: TextStyle(color: Colors.black54, fontSize: 13),
-                      ),
-                      trailing: const Icon(
-                        Icons.chat_bubble_rounded,
-                        color: _chatGold,
-                        size: 21,
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => PartyNovaChatPage(
-                              friendUid: friendUid,
-                              friendName: friendName.isEmpty
-                                  ? 'PartyNova User'
-                                  : friendName,
-                              friendPhotoBase64: friendPhoto,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                            color: const Color(0xFFFF1688)
+                                .withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: CircleAvatar(
+                            radius: 26,
+                            backgroundColor: const Color(0xFFEDEDED),
+                            backgroundImage: photoBytes == null
+                                ? null
+                                : MemoryImage(photoBytes),
+                            child: photoBytes == null
+                                ? const Icon(
+                                    Icons.person_rounded,
+                                    color: Colors.black54,
+                                  )
+                                : null,
+                          ),
+                          title: Text(
+                            friendName.isEmpty
+                                ? 'PartyNova User'
+                                : friendName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                          subtitle: const Text(
+                            'Tap to open chat',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 13,
+                            ),
+                          ),
+                          trailing: unreadCount > 0
+                              ? _RequestCountBadge(count: unreadCount)
+                              : const Icon(
+                                  Icons.chat_bubble_rounded,
+                                  color: _chatGold,
+                                  size: 21,
+                                ),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PartyNovaChatPage(
+                                  friendUid: friendUid,
+                                  friendName: friendName.isEmpty
+                                      ? 'PartyNova User'
+                                      : friendName,
+                                  friendPhotoBase64: friendPhoto,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
               ),
