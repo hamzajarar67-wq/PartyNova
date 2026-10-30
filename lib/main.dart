@@ -11316,7 +11316,9 @@ class _MessagesListSection extends StatelessWidget {
               .snapshots(),
           builder: (context, incoming) {
             if (incoming.hasError) {
-              return const Center(child: Text('Could not load messages.'));
+              return const Center(
+                child: Text('Could not load messages.'),
+              );
             }
 
             if (!incoming.hasData) {
@@ -11362,14 +11364,13 @@ class _MessagesListSection extends StatelessWidget {
             return Container(
               color: const Color(0xFFEAF8FF),
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                itemCount: friends.length,
-                separatorBuilder: (context, index) => const Divider(
-                  height: 1,
-                  indent: 76,
-                  endIndent: 12,
-                  color: Color(0xFFD8E8F0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
                 ),
+                itemCount: friends.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 9),
                 itemBuilder: (context, index) {
                   final doc = friends[index];
                   final data = doc.data()!;
@@ -11418,6 +11419,7 @@ class _MessagesListSection extends StatelessWidget {
                       return Material(
                         color: Colors.transparent,
                         child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -11432,10 +11434,14 @@ class _MessagesListSection extends StatelessWidget {
                               ),
                             );
                           },
-                          child: Padding(
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 11,
+                              horizontal: 13,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
                             ),
                             child: Row(
                               children: [
@@ -11469,7 +11475,9 @@ class _MessagesListSection extends StatelessWidget {
                                   ),
                                 ),
                                 if (unreadCount > 0)
-                                  _RequestCountBadge(count: unreadCount),
+                                  _RequestCountBadge(
+                                    count: unreadCount,
+                                  ),
                               ],
                             ),
                           ),
@@ -11486,6 +11494,4 @@ class _MessagesListSection extends StatelessWidget {
     );
   }
 }
-        
 
-                  
