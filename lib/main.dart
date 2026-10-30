@@ -10751,8 +10751,7 @@ class PartyNovaChatPage extends StatefulWidget {
   State<PartyNovaChatPage> createState() => _PartyNovaChatPageState();
 }
 
-class _PartyNovaCh
-  atPageState extends State<PartyNovaChatPage> {
+class _PartyNovaChatPageState extends State<PartyNovaChatPage> {
   final TextEditingController _messageController =
       TextEditingController();
   final ScrollController _scrollController = ScrollController();
