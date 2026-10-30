@@ -10871,37 +10871,27 @@ void initState() {
       .limit(200)
       .snapshots();
 
+  // Keep profile values in memory without rebuilding the whole chat page.
+  // Rebuilding every message row on profile snapshots caused visible DP flicker.
   _friendProfileSubscription = _friendProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
-
     final profile = snapshot.data() ?? <String, dynamic>{};
-
-    setState(() {
-      _latestFriendName =
-          (profile['name'] as String?)?.trim().isNotEmpty == true
-              ? (profile['name'] as String).trim()
-              : widget.friendName;
-
-      _latestFriendPhotoBase64 =
-          (profile['photoBase64'] as String?) ??
-              widget.friendPhotoBase64;
-    });
+    _latestFriendName =
+        (profile['name'] as String?)?.trim().isNotEmpty == true
+            ? (profile['name'] as String).trim()
+            : widget.friendName;
+    _latestFriendPhotoBase64 =
+        (profile['photoBase64'] as String?) ?? widget.friendPhotoBase64;
   });
 
   _myProfileSubscription = _myProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
-
     final profile = snapshot.data() ?? <String, dynamic>{};
-
-    setState(() {
-      _latestMyName =
-          (profile['name'] as String?)?.trim().isNotEmpty == true
-              ? (profile['name'] as String).trim()
-              : 'You';
-
-      _latestMyPhotoBase64 =
-          (profile['photoBase64'] as String?) ?? '';
-    });
+    _latestMyName =
+        (profile['name'] as String?)?.trim().isNotEmpty == true
+            ? (profile['name'] as String).trim()
+            : 'You';
+    _latestMyPhotoBase64 = (profile['photoBase64'] as String?) ?? '';
   });
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
