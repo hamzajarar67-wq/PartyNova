@@ -11070,6 +11070,11 @@ final messages = snapshot.data!.docs.where((doc) {
                 }
 
                 return ListView.builder(
+                    findChildIndexCallback: (Key key) {
+    final messageId = (key as ValueKey<String>).value;
+    final index = messages.indexWhere((doc) => doc.id == messageId);
+    return index == -1 ? null : index;
+  },
                   controller: _scrollController,
                   reverse: true,
                   padding: const EdgeInsets.all(12),
@@ -11100,6 +11105,7 @@ final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
                         (data['seenBy'] as List).contains(widget.friendUid);
 
                     return Align(
+  key: ValueKey<String>(messages[index].id),
                       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
