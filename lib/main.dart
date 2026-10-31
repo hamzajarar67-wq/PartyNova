@@ -10830,27 +10830,58 @@ Stream<DocumentSnapshot<Map<String, dynamic>>> get _friendProfileStream =>
 Future<void> _markMessagesRead() async {
   final currentUser = FirebaseAuth.instance.currentUser;
   if (currentUser == null) return;
+
   final db = FirebaseFirestore.instance;
-  final conversationRef = db.collection('conversations').doc(_conversationId);
+  final conversationRef =
+      db.collection('conversations').doc(_conversationId);
+
   try {
-    await db.runTransaction((transaction) async {
+    // Clear only this user's unread counter and remember whether work is needed.
+    final hadUnreadMessages = await db.runTransaction<bool>((transaction) async {
       final snapshot = await transaction.get(conversationRef);
-      if (!snapshot.exists) return;
+      if (!snapshot.exists) return false;
+
       final data = snapshot.data() ?? <String, dynamic>{};
-      final participants = List<String>.from(data['participants'] ?? const []);
-      if (!participants.contains(currentUser.uid)) return;
-      final unreadCounts = Map<String, dynamic>.from(data['unreadCounts'] ?? {});
-      unreadCounts[currentUser.uid] = 0;
-      transaction.set(conversationRef, {'unreadCounts': unreadCounts}, SetOptions(merge: true));
+      final participants =
+          List<String>.from(data['participants'] ?? const <String>[]);
+      if (!participants.contains(currentUser.uid)) return false;
+
+      final unreadCounts =
+          Map<String, dynamic>.from(data['unreadCounts'] ?? {});
+      final unread = (unreadCounts[currentUser.uid] as num?)?.toInt() ?? 0;
+
+      if (unread > 0) {
+        unreadCounts[currentUser.uid] = 0;
+        transaction.set(
+          conversationRef,
+          {'unreadCounts': unreadCounts},
+          SetOptions(merge: true),
+        );
+      }
+
+      return unread > 0;
     });
-    // Mark received messages as seen; the UI reads this field for the sender's Seen label.
+
+    // Do not touch old message documents when there is nothing unread.
+    if (!hadUnreadMessages) return;
+
     final received = await _messagesRef
         .where('receiverUid', isEqualTo: currentUser.uid)
         .get();
-    for (var i = 0; i < received.docs.length; i += 400) {
+
+    final unseenDocs = received.docs.where((doc) {
+      final seenBy = List<String>.from(doc.data()['seenBy'] ?? const []);
+      return !seenBy.contains(currentUser.uid);
+    }).toList();
+
+    for (var i = 0; i < unseenDocs.length; i += 400) {
       final batch = db.batch();
-      for (final doc in received.docs.skip(i).take(400)) {
-        batch.set(doc.reference, {'seenBy': FieldValue.arrayUnion([currentUser.uid])}, SetOptions(merge: true));
+      for (final doc in unseenDocs.skip(i).take(400)) {
+        batch.set(
+          doc.reference,
+          {'seenBy': FieldValue.arrayUnion([currentUser.uid])},
+          SetOptions(merge: true),
+        );
       }
       await batch.commit();
     }
@@ -10871,27 +10902,35 @@ void initState() {
       .limit(200)
       .snapshots();
 
-  // Keep profile values in memory without rebuilding the whole chat page.
-  // Rebuilding every message row on profile snapshots caused visible DP flicker.
   _friendProfileSubscription = _friendProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
+
     final profile = snapshot.data() ?? <String, dynamic>{};
+
+    // Keep send-message metadata current without rebuilding the whole chat.
     _latestFriendName =
         (profile['name'] as String?)?.trim().isNotEmpty == true
             ? (profile['name'] as String).trim()
             : widget.friendName;
+
     _latestFriendPhotoBase64 =
-        (profile['photoBase64'] as String?) ?? widget.friendPhotoBase64;
+        (profile['photoBase64'] as String?) ??
+            widget.friendPhotoBase64;
   });
 
   _myProfileSubscription = _myProfileSnapshots.listen((snapshot) {
     if (!mounted) return;
+
     final profile = snapshot.data() ?? <String, dynamic>{};
+
+    // Profile StreamBuilders update only the widgets that display profile data.
     _latestMyName =
         (profile['name'] as String?)?.trim().isNotEmpty == true
             ? (profile['name'] as String).trim()
             : 'You';
-    _latestMyPhotoBase64 = (profile['photoBase64'] as String?) ?? '';
+
+    _latestMyPhotoBase64 =
+        (profile['photoBase64'] as String?) ?? '';
   });
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
