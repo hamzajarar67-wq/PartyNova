@@ -9542,6 +9542,8 @@ class _RequestCountBadge extends StatelessWidget {
       );
 }
 
+
+
 class PartyNovaSocialTab extends StatefulWidget {
   const PartyNovaSocialTab({super.key});
 
@@ -9569,34 +9571,40 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
   }
 
   void _handleTabChange() {
-    if (!_controller.indexIsChanging && _controller.index == 0) {
+    if (!_controller.indexIsChanging && _controller.index == 2) {
       _markIncomingRequestsSeen();
     }
   }
 
   Future<void> _markIncomingRequestsSeen() async {
     if (_markingSeen) return;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
+
     _markingSeen = true;
+
     try {
       final requests = await FirebaseFirestore.instance
           .collection('friendRequests')
           .where('receiverUid', isEqualTo: uid)
           .where('status', isEqualTo: 'pending')
           .get();
+
       final unseen = requests.docs
           .where((doc) => doc.data()['seenByReceiver'] != true)
           .toList();
 
       for (var i = 0; i < unseen.length; i += 400) {
         final batch = FirebaseFirestore.instance.batch();
+
         for (final doc in unseen.skip(i).take(400)) {
           batch.update(doc.reference, {
             'seenByReceiver': true,
             'seenAt': FieldValue.serverTimestamp(),
           });
         }
+
         await batch.commit();
       }
     } catch (e) {
@@ -9608,8 +9616,8 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
 
   @override
   Widget build(BuildContext context) {
-    const pink = Color(0xFFFF1688);
     const black = Color(0xFF09070B);
+
     return Container(
       color: Colors.white,
       child: Column(
@@ -9622,15 +9630,63 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
               indicatorWeight: 3,
               labelColor: black,
               unselectedLabelColor: Colors.black54,
-              labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+              labelStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+              ),
               tabs: [
+                const Tab(text: 'Friend List'),
+                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                  stream: FirebaseFirestore.instance
+                      .collection('conversations')
+                      .where(
+                        'participants',
+                        arrayContains:
+                            FirebaseAuth.instance.currentUser?.uid,
+                      )
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+                    final count = uid == null
+                        ? 0
+                        : (snapshot.data?.docs ?? []).fold<int>(
+                            0,
+                            (total, doc) {
+                              final counts = Map<String, dynamic>.from(
+                                doc.data()['unreadCounts'] ?? {},
+                              );
+
+                              return total +
+                                  ((counts[uid] as num?)?.toInt() ?? 0);
+                            },
+                          );
+
+                    return Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('Message List'),
+                          if (count > 0) ...[
+                            const SizedBox(width: 5),
+                            _RequestCountBadge(count: count),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                   stream: _incomingPendingStream(),
                   builder: (context, snapshot) {
                     final count = snapshot.data?.docs
-                            .where((doc) => doc.data()['seenByReceiver'] != true)
+                            .where(
+                              (doc) =>
+                                  doc.data()['seenByReceiver'] != true,
+                            )
                             .length ??
                         0;
+
                     return Tab(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -9645,46 +9701,6 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
                     );
                   },
                 ),
-                StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-  stream: FirebaseFirestore.instance
-      .collection('conversations')
-      .where(
-        'participants',
-        arrayContains: FirebaseAuth.instance.currentUser?.uid,
-      )
-      .snapshots(),
-  builder: (context, snapshot) {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-
-    final count = uid == null
-        ? 0
-        : (snapshot.data?.docs ?? const []).fold<int>(
-            0,
-            (total, doc) {
-              final counts = Map<String, dynamic>.from(
-                doc.data()['unreadCounts'] ?? {},
-              );
-
-              return total +
-                  ((counts[uid] as num?)?.toInt() ?? 0);
-            },
-          );
-
-    return Tab(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text('Messages'),
-          if (count > 0) ...[
-            const SizedBox(width: 5),
-            _RequestCountBadge(count: count),
-          ],
-        ],
-      ),
-    );
-  },
-),
-                const Tab(text: 'Friends'),
               ],
             ),
           ),
@@ -9692,9 +9708,9 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
             child: TabBarView(
               controller: _controller,
               children: const [
-                _IncomingRequestsSection(),
-                _MessagesListSection(),
                 _FriendsListSection(),
+                _MessagesListSection(),
+                _IncomingRequestsSection(),
               ],
             ),
           ),
@@ -9703,6 +9719,10 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
     );
   }
 }
+
+
+        
+                
 
 Stream<QuerySnapshot<Map<String, dynamic>>> _incomingPendingStream() {
   final uid = FirebaseAuth.instance.currentUser?.uid;
