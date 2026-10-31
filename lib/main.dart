@@ -9390,8 +9390,14 @@ class _SocialBottomNavIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
     if (uid == null) {
-      return Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54);
+      return Icon(
+        icon,
+        color: selected
+            ? const Color(0xFFFFD700)
+            : Colors.white54,
+      );
     }
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -9400,12 +9406,17 @@ class _SocialBottomNavIcon extends StatelessWidget {
           .where('participants', arrayContains: uid)
           .snapshots(),
       builder: (context, conversationSnapshot) {
-        final unreadMessageCount = (conversationSnapshot.data?.docs ?? const [])
-            .fold<int>(0, (total, doc) {
-          final counts = Map<String, dynamic>.from(doc.data()['unreadCounts'] ?? {});
-          return total + ((counts[uid] as num?)?.toInt() ?? 0);
+        final unreadMessageCount =
+            (conversationSnapshot.data?.docs ?? const [])
+                .fold<int>(0, (total, doc) {
+          final counts = Map<String, dynamic>.from(
+            doc.data()['unreadCounts'] ?? {},
+          );
+
+          return total +
+              ((counts[uid] as num?)?.toInt() ?? 0);
         });
-        final hasUnreadMessages = unreadMessageCount > 0;
+
         return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: FirebaseFirestore.instance
               .collection('friendRequests')
@@ -9414,19 +9425,43 @@ class _SocialBottomNavIcon extends StatelessWidget {
               .snapshots(),
           builder: (context, requestSnapshot) {
             final requestCount = requestSnapshot.data?.docs
-                    .where((doc) => doc.data()['seenByReceiver'] != true)
-                    .length ?? 0;
-            final showBadge = requestCount > 0 || hasUnreadMessages;
+                    .where(
+                      (doc) =>
+                          doc.data()['seenByReceiver'] != true,
+                    )
+                    .length ??
+                0;
+
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(icon, color: selected ? const Color(0xFFFFD700) : Colors.white54),
-                if (showBadge)
+                Icon(
+                  icon,
+                  color: selected
+                      ? const Color(0xFFFFD700)
+                      : Colors.white54,
+                ),
+
+                if (requestCount > 0)
                   Positioned(
                     right: -10,
                     top: -7,
                     child: _RequestCountBadge(
-                      count: requestCount + unreadMessageCount,
+                      count: requestCount,
+                    ),
+                  ),
+
+                if (unreadMessageCount > 0)
+                  Positioned(
+                    right: -5,
+                    top: -5,
+                    child: Container(
+                      width: 9,
+                      height: 9,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
               ],
@@ -9613,18 +9648,27 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
                 StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
   stream: FirebaseFirestore.instance
       .collection('conversations')
-      .where('participants', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+      .where(
+        'participants',
+        arrayContains: FirebaseAuth.instance.currentUser?.uid,
+      )
       .snapshots(),
   builder: (context, snapshot) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
     final count = uid == null
         ? 0
-        : (snapshot.data?.docs ?? []).fold<int>(0, (total, doc) {
-            final counts = Map<String, dynamic>.from(
-              doc.data()['unreadCounts'] ?? {},
-            );
-            return total + ((counts[uid] as num?)?.toInt() ?? 0);
-          });
+        : (snapshot.data?.docs ?? const []).fold<int>(
+            0,
+            (total, doc) {
+              final counts = Map<String, dynamic>.from(
+                doc.data()['unreadCounts'] ?? {},
+              );
+
+              return total +
+                  ((counts[uid] as num?)?.toInt() ?? 0);
+            },
+          );
 
     return Tab(
       child: Row(
