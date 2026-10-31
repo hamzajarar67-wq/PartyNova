@@ -11488,15 +11488,13 @@ class _MessagesListSection extends StatelessWidget {
                       .trim();
 
                   final friendPhoto = ((isSender
-                              ? data['receiverPhotoBase64']
-                              : data['senderPhotoBase64']) ??
-                          '')
-                      .toString();
+            ? data['receiverPhotoBase64']
+            : data['senderPhotoBase64']) ??
+        '')
+    .toString();
 
-                  final photoBytes = _chatPhotoBytes(friendPhoto);
-
-                  final conversationId =
-                      _partyNovaConversationId(uid, friendUid);
+final conversationId =
+    _partyNovaConversationId(uid, friendUid);
 
                   return StreamBuilder<
                       DocumentSnapshot<Map<String, dynamic>>>(
@@ -11533,52 +11531,42 @@ class _MessagesListSection extends StatelessWidget {
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 13,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 26,
-                                  backgroundColor:
-                                      const Color(0xFFEDEDED),
-                                  backgroundImage: photoBytes == null
-                                      ? null
-                                      : MemoryImage(photoBytes),
-                                  child: photoBytes == null
-                                      ? const Icon(
-                                          Icons.person_rounded,
-                                          color: Colors.black54,
-                                        )
-                                      : null,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    friendName.isEmpty
-                                        ? 'PartyNova User'
-                                        : friendName,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                                if (unreadCount > 0)
-                                  _RequestCountBadge(
-                                    count: unreadCount,
-                                  ),
-                              ],
-                            ),
-                          ),
+  padding: const EdgeInsets.symmetric(
+    horizontal: 13,
+    vertical: 12,
+  ),
+  decoration: BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(14),
+  ),
+  child: Row(
+    children: [
+      _StableChatAvatar(
+        photoBase64: friendPhoto,
+        radius: 26,
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Text(
+          friendName.isEmpty
+              ? 'PartyNova User'
+              : friendName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
+      ),
+      if (unreadCount > 0)
+        _RequestCountBadge(
+          count: unreadCount,
+        ),
+    ],
+  ),
+),
                         ),
                       );
                     },
@@ -11593,3 +11581,56 @@ class _MessagesListSection extends StatelessWidget {
   }
 }
 
+
+
+class _StableChatAvatar extends StatefulWidget {
+  final String photoBase64;
+  final double radius;
+
+  const _StableChatAvatar({
+    required this.photoBase64,
+    this.radius = 26,
+  });
+
+  @override
+  State<_StableChatAvatar> createState() => _StableChatAvatarState();
+}
+
+class _StableChatAvatarState extends State<_StableChatAvatar> {
+  ImageProvider? _imageProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhoto();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StableChatAvatar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.photoBase64 != widget.photoBase64) {
+      _loadPhoto();
+    }
+  }
+
+  void _loadPhoto() {
+    final bytes = _chatPhotoBytes(widget.photoBase64);
+    _imageProvider = bytes == null ? null : MemoryImage(bytes);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: const Color(0xFFEDEDED),
+      backgroundImage: _imageProvider,
+      child: _imageProvider == null
+          ? const Icon(
+              Icons.person_rounded,
+              color: Colors.black54,
+            )
+          : null,
+    );
+  }
+}
