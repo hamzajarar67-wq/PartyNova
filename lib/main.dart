@@ -1129,7 +1129,12 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
               return Expanded(
                 child: InkWell(
-                  onTap: () => setState(() => _selectedIndex = index),
+                  onTap: () {
+  if (_selectedIndex == index) return;
+  setState(() {
+    _selectedIndex = index;
+  });
+},
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Column(
