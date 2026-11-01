@@ -2441,7 +2441,6 @@ Widget _buildProfileTab(User? user) {
             image: photoImage,
             width: 112,
             height: 112,
-            cacheWidth: 224,
             fit: BoxFit.cover,
             gaplessPlayback: true,
             errorBuilder: (context, error, stackTrace) {
@@ -10678,7 +10677,6 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                   )
                                 : Image(
                                     image: photoImage,
-                                    cacheWidth: 224,
                                     fit: BoxFit.cover,
                                     gaplessPlayback: true,
                                     errorBuilder:
