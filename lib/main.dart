@@ -2802,103 +2802,100 @@ Future<void> _pickDP() async {
 
   
 Future<void> _saveProfile() async {
-  if (_saving || _pickingPhoto) return;
+if (_saving || _pickingPhoto) return;
 
-  final name = _nameController.text.trim();
-  final bio = _bioController.text.trim();
+final name = _nameController.text.trim();
+final bio = _bioController.text.trim();
 
-  if (name.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Name cannot be empty.'),
-      ),
-    );
-    return;
-  }
+if (name.isEmpty) {
+ScaffoldMessenger.of(context).showSnackBar(
+const SnackBar(
+content: Text('Name cannot be empty.'),
+),
+);
+return;
+}
 
-  _saving = true;
+_saving = true;
 
-  try {
-    final firestore = FirebaseFirestore.instance;
+try {
+final firestore = FirebaseFirestore.instance;
 
-    // Update the original private profile.
-    await firestore
-        .collection('users')
-        .doc(widget.uid)
-        .set({
-      'name': name,
-      'bio': bio,
-      'photoBase64': _photoBase64,
-      'updatedAt': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
-
-    // Read the existing PartyNova ID without changing it.
-    final userSnapshot = await firestore
-        .collection('users')
-        .doc(widget.uid)
-        .get();
-
-    final userData = userSnapshot.data();
-    final userId = (userData?['userId'] ?? '').toString();
-    final role = resolvePartyNovaRole(
-      email: FirebaseAuth.instance.currentUser?.email,
-      userId: userId,
-      storedRole: userData?['role']?.toString(),
-    );
-    final profileFrameAsset =
-        (userData?['profileFrameAsset'] ?? '').toString();
-
-    // Keep the public profile in sync with the latest saved profile fields.
-    if (RegExp(r'^(?:\d{6}|\d{8}|\d{10})$')
-        .hasMatch(userId)) {
-      try {
-        await firestore
-    .collection('publicProfiles')
+// Update the user's main profile.
+await firestore
+    .collection('users')
     .doc(widget.uid)
     .set({
-  'userId': userId,
   'name': name,
   'bio': bio,
   'photoBase64': _photoBase64,
-  'profileFrameAsset': profileFrameAsset,
-  'role': role,
   'updatedAt': FieldValue.serverTimestamp(),
 }, SetOptions(merge: true));
-      } catch (syncError) {
-        debugPrint(
-          'Public profile sync failed: $syncError',
-        );
-      }
-    } else {
-      debugPrint(
-        'Public profile sync skipped: invalid PartyNova ID.',
-      );
-    }
 
-    if (!mounted) return;
+// Read the existing profile data without changing the user's ID.
+final userSnapshot = await firestore
+    .collection('users')
+    .doc(widget.uid)
+    .get();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile updated successfully.'),
+final userData = userSnapshot.data();
+final userId = (userData?['userId'] ?? '').toString();
+
+final role = resolvePartyNovaRole(
+  email: FirebaseAuth.instance.currentUser?.email,
+  userId: userId,
+  storedRole: userData?['role']?.toString(),
+);
+
+final profileFrameAsset =
+    (userData?['profileFrameAsset'] ?? '').toString();
+
+// Keep the public profile in sync so other users can see the latest bio.
+if (RegExp(r'^(?:\d{6}|\d{8}|\d{10})$').hasMatch(userId)) {
+  await firestore
+      .collection('publicProfiles')
+      .doc(widget.uid)
+      .set({
+    'userId': userId,
+    'name': name,
+    'bio': bio,
+    'photoBase64': _photoBase64,
+    'profileFrameAsset': profileFrameAsset,
+    'role': role,
+    'updatedAt': FieldValue.serverTimestamp(),
+  }, SetOptions(merge: true));
+} else {
+  debugPrint(
+    'Public profile sync skipped: invalid PartyNova ID.',
+  );
+}
+
+if (!mounted) return;
+
+ScaffoldMessenger.of(context).showSnackBar(
+  const SnackBar(
+    content: Text('Profile updated successfully.'),
+  ),
+);
+
+Navigator.of(context).pop(true);
+
+} catch (e) {
+debugPrint('Profile save failed: $e');
+
+if (mounted) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text(
+        'Could not save profile. Please try again.',
       ),
-    );
+    ),
+  );
+}
 
-    Navigator.of(context).pop(true);
-  } catch (e) {
-    debugPrint('Profile save failed: $e');
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Could not save profile. Please try again.',
-          ),
-        ),
-      );
-    }
-  } finally {
-    _saving = false;
-  }
+} finally {
+_saving = false;
+}
 }
 
 
