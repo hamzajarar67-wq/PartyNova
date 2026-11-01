@@ -14,24 +14,73 @@ import 'dart:io';
 
 
 
-String _cachedProfilePhotoBase64 = '';
-Uint8List? _cachedProfilePhotoBytes;
+// Keep multiple profile photos cached at the same time. A single-photo cache
+// caused different users' avatars to replace one another during list rebuilds.
+const int _maxCachedProfilePhotos = 64;
+final Map<String, Uint8List> _profilePhotoBytesCache = {};
+final Map<String, MemoryImage> _profilePhotoImageCache = {};
 
-Uint8List? getCachedProfilePhoto(String encoded) {
-  if (encoded.isEmpty) return null;
+String _normalizedProfilePhotoData(String encoded) {
+  var value = encoded.trim();
+  if (value.isEmpty) return '';
 
-  if (_cachedProfilePhotoBase64 != encoded) {
-    _cachedProfilePhotoBase64 = encoded;
+  final comma = value.indexOf(',');
+  if (value.startsWith('data:') && comma >= 0) {
+    value = value.substring(comma + 1);
+  }
+  return value;
+}
 
-    try {
-      _cachedProfilePhotoBytes = base64Decode(encoded);
-    } catch (e) {
-      debugPrint('Profile photo decode failed: $e');
-      _cachedProfilePhotoBytes = null;
-    }
+void _trimProfilePhotoCache() {
+  while (_profilePhotoBytesCache.length > _maxCachedProfilePhotos) {
+    final oldestKey = _profilePhotoBytesCache.keys.first;
+    _profilePhotoBytesCache.remove(oldestKey);
+    _profilePhotoImageCache.remove(oldestKey);
   }
 
-  return _cachedProfilePhotoBytes;
+  while (_profilePhotoImageCache.length > _maxCachedProfilePhotos) {
+    _profilePhotoImageCache.remove(_profilePhotoImageCache.keys.first);
+  }
+}
+
+Uint8List? getCachedProfilePhoto(String encoded) {
+  final key = _normalizedProfilePhotoData(encoded);
+  if (key.isEmpty) return null;
+
+  final cached = _profilePhotoBytesCache.remove(key);
+  if (cached != null) {
+    _profilePhotoBytesCache[key] = cached;
+    return cached;
+  }
+
+  try {
+    final bytes = base64Decode(key);
+    _profilePhotoBytesCache[key] = bytes;
+    _trimProfilePhotoCache();
+    return bytes;
+  } catch (e) {
+    debugPrint('Profile photo decode failed: $e');
+    return null;
+  }
+}
+
+ImageProvider? getCachedProfilePhotoImage(String encoded) {
+  final key = _normalizedProfilePhotoData(encoded);
+  if (key.isEmpty) return null;
+
+  final cached = _profilePhotoImageCache.remove(key);
+  if (cached != null) {
+    _profilePhotoImageCache[key] = cached;
+    return cached;
+  }
+
+  final bytes = getCachedProfilePhoto(key);
+  if (bytes == null) return null;
+
+  final image = MemoryImage(bytes);
+  _profilePhotoImageCache[key] = image;
+  _trimProfilePhotoCache();
+  return image;
 }
 
 
@@ -67,6 +116,21 @@ String partyNovaRoleLabel(String role) {
     default:
       return 'MEMBER';
   }
+}
+
+String resolvePartyNovaRole({
+  String? email,
+  String? userId,
+  String? storedRole,
+}) {
+  final emailRole = partyNovaRoleForEmail(email);
+  if (emailRole != 'user') return emailRole;
+
+  if (userId == partyNovaReservedIds[partyNovaOwnerEmail]) return 'owner';
+  if (userId == partyNovaReservedIds[partyNovaAdminEmail]) return 'admin';
+
+  final savedRole = (storedRole ?? '').trim().toLowerCase();
+  return savedRole.isEmpty ? 'user' : savedRole;
 }
 
 BoxDecoration partyNightDecoration() {
@@ -279,7 +343,11 @@ Future<void> syncPartyNovaPublicProfile(User user) async {
   final photoBase64 = (data['photoBase64'] ?? '').toString();
   final bio = (data['bio'] ?? '').toString();
   final profileFrameAsset = (data['profileFrameAsset'] ?? '').toString();
-  final role = (data['role'] ?? '').toString();
+  final role = resolvePartyNovaRole(
+    email: user.email,
+    userId: userId,
+    storedRole: data['role']?.toString(),
+  );
 
   if (!RegExp(r'^(?:\d{6}|\d{8}|\d{10})$').hasMatch(userId)) {
     debugPrint('Public profile sync skipped: invalid PartyNova ID.');
@@ -2242,16 +2310,16 @@ Widget _buildProfileTab(User? user) {
           (data['name'] ?? user.displayName ?? 'PartyNova User')
               .toString();
 
-      final role =
-          (data['role'] ?? partyNovaRoleForEmail(user.email))
-              .toString()
-              .toLowerCase();
+      final savedUserId = (data['userId'] ?? '').toString().trim();
+      final userId = savedUserId.isNotEmpty
+          ? savedUserId
+          : (partyNovaReservedIds[user.email?.trim().toLowerCase()] ?? '');
 
-      final userId = (data['userId'] ?? '').toString().trim().isNotEmpty
-          ? data['userId'].toString().trim()
-          : (user.email?.trim().toLowerCase() == partyNovaOwnerEmail
-              ? '111111'
-              : '');
+      final role = resolvePartyNovaRole(
+        email: user.email,
+        userId: userId,
+        storedRole: data['role']?.toString(),
+      );
 
       final bio = (data['bio'] ?? 'No bio added yet.').toString();
 
@@ -2354,9 +2422,9 @@ Widget _buildProfileTab(User? user) {
         final photoBase64 =
             (data['photoBase64'] ?? '').toString();
 
-        final photoBytes = getCachedProfilePhoto(photoBase64);
+        final photoImage = getCachedProfilePhotoImage(photoBase64);
 
-        if (photoBytes == null) {
+        if (photoImage == null) {
           return const SizedBox(
             width: 112,
             height: 112,
@@ -2369,12 +2437,12 @@ Widget _buildProfileTab(User? user) {
         }
 
         return ClipOval(
-          child: Image.memory(
-            photoBytes,
+          child: Image(
+            image: photoImage,
             width: 112,
             height: 112,
-            fit: BoxFit.cover,
             cacheWidth: 224,
+            fit: BoxFit.cover,
             gaplessPlayback: true,
             errorBuilder: (context, error, stackTrace) {
               return const SizedBox(
@@ -2773,8 +2841,15 @@ Future<void> _saveProfile() async {
 
     final userData = userSnapshot.data();
     final userId = (userData?['userId'] ?? '').toString();
+    final role = resolvePartyNovaRole(
+      email: FirebaseAuth.instance.currentUser?.email,
+      userId: userId,
+      storedRole: userData?['role']?.toString(),
+    );
+    final profileFrameAsset =
+        (userData?['profileFrameAsset'] ?? '').toString();
 
-    // Sync the public profile used by UID search.
+    // Keep the public profile in sync with the latest saved profile fields.
     if (RegExp(r'^(?:\d{6}|\d{8}|\d{10})$')
         .hasMatch(userId)) {
       try {
@@ -2784,7 +2859,10 @@ Future<void> _saveProfile() async {
     .set({
   'userId': userId,
   'name': name,
+  'bio': bio,
   'photoBase64': _photoBase64,
+  'profileFrameAsset': profileFrameAsset,
+  'role': role,
   'updatedAt': FieldValue.serverTimestamp(),
 }, SetOptions(merge: true));
       } catch (syncError) {
@@ -2865,10 +2943,10 @@ Future<void> _saveProfile() async {
                     width: 3,
                   ),
                 ),
-                child: _photoBase64.isNotEmpty
+                child: getCachedProfilePhotoImage(_photoBase64) != null
     ? ClipOval(
-        child: Image.memory(
-          base64Decode(_photoBase64),
+        child: Image(
+          image: getCachedProfilePhotoImage(_photoBase64)!,
           width: 100,
           height: 100,
           fit: BoxFit.cover,
@@ -3378,36 +3456,25 @@ required double size,
 }) {
 final color = _colorForFrame(frameNumber);
 
-Widget avatar;  
-
-if (widget.photoBase64.isNotEmpty) {  
-  try {  
-    avatar = Image.memory(  
-      base64Decode(widget.photoBase64),  
-      width: size,  
-      height: size,  
-      fit: BoxFit.cover,  
-      gaplessPlayback: true,  
-      errorBuilder: (_, __, ___) => Icon(  
-        Icons.person_rounded,  
-        size: size * 0.58,  
-        color: Colors.white,  
-      ),  
-    );  
-  } catch (_) {  
-    avatar = Icon(  
-      Icons.person_rounded,  
-      size: size * 0.58,  
-      color: Colors.white,  
-    );  
-  }  
-} else {  
-  avatar = Icon(  
-    Icons.person_rounded,  
-    size: size * 0.58,  
-    color: Colors.white,  
-  );  
-}  
+final photoImage = getCachedProfilePhotoImage(widget.photoBase64);
+final Widget avatar = photoImage == null
+    ? Icon(
+        Icons.person_rounded,
+        size: size * 0.58,
+        color: Colors.white,
+      )
+    : Image(
+        image: photoImage,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => Icon(
+          Icons.person_rounded,
+          size: size * 0.58,
+          color: Colors.white,
+        ),
+      );  
 
 return Container(  
   width: size + 12,  
@@ -3921,25 +3988,19 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
   }
 
   Widget _avatar(double size) {
-    if (widget.photoBase64.isNotEmpty) {
-      try {
-        return ClipOval(
-          child: Image.memory(
-            base64Decode(widget.photoBase64),
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            errorBuilder: (_, __, ___) =>
-                _defaultAvatar(size),
-          ),
-        );
-      } catch (_) {
-        return _defaultAvatar(size);
-      }
-    }
+    final photoImage = getCachedProfilePhotoImage(widget.photoBase64);
+    if (photoImage == null) return _defaultAvatar(size);
 
-    return _defaultAvatar(size);
+    return ClipOval(
+      child: Image(
+        image: photoImage,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (_, __, ___) => _defaultAvatar(size),
+      ),
+    );
   }
 
   Widget _defaultAvatar(double size) {
@@ -4434,7 +4495,7 @@ class _OrnamentsGalleryPageState
     }
 
     try {
-      _cachedAvatarImage = MemoryImage(base64Decode(data));
+      _cachedAvatarImage = getCachedProfilePhotoImage(data);
     } catch (_) {
       _cachedAvatarImage = null;
     }
@@ -5590,7 +5651,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
           ? data.substring(data.indexOf(',') + 1)
           : data;
 
-      _cachedAvatar = MemoryImage(base64Decode(cleanData));
+      _cachedAvatar = getCachedProfilePhotoImage(cleanData);
       _cachedPhotoBase64 = data;
     } catch (_) {
       _cachedAvatar = null;
@@ -9829,8 +9890,9 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
               final name = (data['senderName'] ?? 'PartyNova User').toString();
               final partyId = (data['senderPartyNovaUid'] ?? '').toString();
               final photo = (data['senderPhotoBase64'] ?? '').toString();
-              final bytes = getCachedProfilePhoto(photo);
+              final photoImage = getCachedProfilePhotoImage(photo);
               return Container(
+                key: ValueKey<String>(doc.id),
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF1688).withValues(alpha: 0.35))),
@@ -9844,8 +9906,8 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                       child: CircleAvatar(
                         radius: 26,
                         backgroundColor: const Color(0xFFEDEDED),
-                        backgroundImage: bytes == null ? null : MemoryImage(bytes),
-                        child: bytes == null ? const Icon(Icons.person_rounded, color: Colors.black54) : null,
+                        backgroundImage: photoImage,
+                        child: photoImage == null ? const Icon(Icons.person_rounded, color: Colors.black54) : null,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -10045,16 +10107,15 @@ class _FriendsListSection extends StatelessWidget {
                           ? livePhoto
                           : fallbackPhoto;
 
-                      final bytes = _chatPhotoBytes(photo);
+                      final photoImage = getCachedProfilePhotoImage(photo);
 
                       return Card(
+                        key: ValueKey<String>(friendUid),
                         color: Colors.white,
                         child: ListTile(
                           leading: CircleAvatar(
-                            backgroundImage: bytes == null
-                                ? null
-                                : MemoryImage(bytes),
-                            child: bytes == null
+                            backgroundImage: photoImage,
+                            child: photoImage == null
                                 ? const Icon(Icons.person_rounded)
                                 : null,
                           ),
@@ -10101,10 +10162,8 @@ class _FriendsListSection extends StatelessWidget {
                                           radius: 42,
                                           backgroundColor:
                                               const Color(0xFFFFE3F1),
-                                          backgroundImage: bytes == null
-                                              ? null
-                                              : MemoryImage(bytes),
-                                          child: bytes == null
+                                          backgroundImage: photoImage,
+                                          child: photoImage == null
                                               ? const Icon(
                                                   Icons.person_rounded,
                                                   size: 42,
@@ -10553,14 +10612,16 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
           final profileFrameAsset =
               (data['profileFrameAsset'] ?? '').toString();
 
-          final role =
-              (data['role'] ?? '').toString().toLowerCase();
+          final role = resolvePartyNovaRole(
+            userId: userId,
+            storedRole: data['role']?.toString(),
+          );
 
           final isOwnerOrAdmin =
               role == 'owner' || role == 'admin';
 
-          final photoBytes =
-              getCachedProfilePhoto(photoBase64);
+          final photoImage =
+              getCachedProfilePhotoImage(photoBase64);
 
           return Container(
             color: _background,
@@ -10609,16 +10670,16 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                           child: SizedBox(
                             width: 106,
                             height: 106,
-                            child: photoBytes == null
+                            child: photoImage == null
                                 ? const Icon(
                                     Icons.person_rounded,
                                     size: 64,
                                     color: Colors.white,
                                   )
-                                : Image.memory(
-                                    photoBytes,
-                                    fit: BoxFit.cover,
+                                : Image(
+                                    image: photoImage,
                                     cacheWidth: 224,
+                                    fit: BoxFit.cover,
                                     gaplessPlayback: true,
                                     errorBuilder:
                                         (context, error, stackTrace) {
@@ -10724,6 +10785,85 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
+                  // Public-profile actions. Block and Report are UI-only for now.
+                  if (firebaseUid != FirebaseAuth.instance.currentUser?.uid) ...[
+                    Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      PopupMenuButton<String>(
+                        tooltip: 'More options',
+                        color: const Color(0xFF171019),
+                        icon: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF21102F),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _gold,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.more_vert_rounded,
+                            color: _gold,
+                            size: 23,
+                          ),
+                        ),
+                        onSelected: (value) {
+                          final action = value == 'block' ? 'Block' : 'Report';
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                '$action option is not active yet.',
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem<String>(
+                            value: 'block',
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.block_rounded,
+                                  color: _gold,
+                                  size: 19,
+                                ),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'Block',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'report',
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.flag_rounded,
+                                  color: _pink,
+                                  size: 19,
+                                ),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'Report',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                    const SizedBox(height: 8),
+                  ],
+
                   // Profile statistics
                   Container(
                     width: double.infinity,
@@ -10804,16 +10944,7 @@ DateTime _chatExpiryCutoff() {
 }
 
 Uint8List? _chatPhotoBytes(String base64Photo) {
-  if (base64Photo.trim().isEmpty) return null;
-
-  try {
-    var value = base64Photo.trim();
-    final comma = value.indexOf(',');
-    if (value.startsWith('data:') && comma >= 0) value = value.substring(comma + 1);
-    return base64Decode(value);
-  } catch (_) {
-    return null;
-  }
+  return getCachedProfilePhoto(base64Photo);
 }
 
 String _chatTimeLabel(Timestamp? timestamp) {
@@ -11121,15 +11252,14 @@ void dispose() {
         (profile?['photoBase64'] as String?) ??
         widget.friendPhotoBase64;
 
-    final photoBytes = _chatPhotoBytes(latestPhoto);
+    final photoImage = getCachedProfilePhotoImage(latestPhoto);
 
     return Row(
       children: [
         CircleAvatar(
           backgroundColor: const Color(0xFF101B36),
-          backgroundImage:
-              photoBytes != null ? MemoryImage(photoBytes) : null,
-          child: photoBytes == null
+          backgroundImage: photoImage,
+          child: photoImage == null
               ? const Icon(
                   Icons.person,
                   color: Color(0xFFFFC857),
@@ -11226,7 +11356,7 @@ final senderPhoto = isMine
         ? _latestFriendPhotoBase64
         : widget.friendPhotoBase64);
 
-final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
+final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                     final isLastMessage = index == 0;
                     final seenByOther = data['seenBy'] is List &&
                         (data['seenBy'] as List).contains(widget.friendUid);
@@ -11246,8 +11376,8 @@ final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
                               child: CircleAvatar(
                                 radius: 16,
                                 backgroundColor: const Color(0xFF101B36),
-                                backgroundImage: senderPhotoBytes == null ? null : MemoryImage(senderPhotoBytes),
-                                child: senderPhotoBytes == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
+                                backgroundImage: senderPhotoImage,
+                                child: senderPhotoImage == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -11289,10 +11419,8 @@ final senderPhotoBytes = _chatPhotoBytes(senderPhoto);
                               child: CircleAvatar(
                                 radius: 16,
                                 backgroundColor: const Color(0xFF101B36),
-backgroundImage: senderPhotoBytes == null
-    ? null
-    : MemoryImage(senderPhotoBytes),
-child: senderPhotoBytes == null
+backgroundImage: senderPhotoImage,
+child: senderPhotoImage == null
     ? const Icon(
         Icons.person,
         size: 18,
@@ -11542,6 +11670,7 @@ final conversationId =
   child: Row(
     children: [
       _StableChatAvatar(
+        key: ValueKey<String>(friendUid),
         photoBase64: friendPhoto,
         radius: 26,
       ),
@@ -11588,6 +11717,7 @@ class _StableChatAvatar extends StatefulWidget {
   final double radius;
 
   const _StableChatAvatar({
+    super.key,
     required this.photoBase64,
     this.radius = 26,
   });
@@ -11615,8 +11745,7 @@ class _StableChatAvatarState extends State<_StableChatAvatar> {
   }
 
   void _loadPhoto() {
-    final bytes = _chatPhotoBytes(widget.photoBase64);
-    _imageProvider = bytes == null ? null : MemoryImage(bytes);
+    _imageProvider = getCachedProfilePhotoImage(widget.photoBase64);
   }
 
   @override
