@@ -11668,10 +11668,11 @@ final conversationId =
   child: Row(
     children: [
       _StableChatAvatar(
-        key: ValueKey<String>(friendUid),
-        photoBase64: friendPhoto,
-        radius: 26,
-      ),
+  key: ValueKey<String>(friendUid),
+  firebaseUid: friendUid,
+  photoBase64: friendPhoto,
+  radius: 26,
+),
       const SizedBox(width: 12),
       Expanded(
         child: Text(
@@ -11710,54 +11711,47 @@ final conversationId =
 
 
 
-class _StableChatAvatar extends StatefulWidget {
+class _StableChatAvatar extends StatelessWidget {
+  final String firebaseUid;
   final String photoBase64;
   final double radius;
 
   const _StableChatAvatar({
     super.key,
+    required this.firebaseUid,
     required this.photoBase64,
     this.radius = 26,
   });
 
   @override
-  State<_StableChatAvatar> createState() => _StableChatAvatarState();
-}
-
-class _StableChatAvatarState extends State<_StableChatAvatar> {
-  ImageProvider? _imageProvider;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPhoto();
-  }
-
-  @override
-  void didUpdateWidget(covariant _StableChatAvatar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.photoBase64 != widget.photoBase64) {
-      _loadPhoto();
-    }
-  }
-
-  void _loadPhoto() {
-    _imageProvider = getCachedProfilePhotoImage(widget.photoBase64);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: widget.radius,
-      backgroundColor: const Color(0xFFEDEDED),
-      backgroundImage: _imageProvider,
-      child: _imageProvider == null
-          ? const Icon(
-              Icons.person_rounded,
-              color: Colors.black54,
-            )
-          : null,
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('publicProfiles')
+          .doc(firebaseUid)
+          .snapshots(),
+      builder: (context, snapshot) {
+        String latestPhoto = photoBase64;
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          final data = snapshot.data!.data();
+          latestPhoto = (data?['photoBase64'] ?? '').toString();
+        }
+
+        final imageProvider = getCachedProfilePhotoImage(latestPhoto);
+
+        return CircleAvatar(
+          radius: radius,
+          backgroundColor: const Color(0xFFEDEDED),
+          backgroundImage: imageProvider,
+          child: imageProvider == null
+              ? const Icon(
+                  Icons.person_rounded,
+                  color: Colors.black54,
+                )
+              : null,
+        );
+      },
     );
   }
 }
