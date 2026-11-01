@@ -10562,20 +10562,20 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      body: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-  stream: FirebaseFirestore.instance
+      body: FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+  future: FirebaseFirestore.instance
       .collection('publicProfiles')
       .doc(firebaseUid)
-      .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text(
-                'Could not load profile. Please check your connection and profile access.',
-                style: TextStyle(color: Colors.white70),
-              ),
-            );
-          }
+      .get(),
+  builder: (context, snapshot) {
+    if (snapshot.hasError) {
+      return const Center(
+        child: Text(
+          'Could not load profile. Please check your connection and profile access.',
+          style: TextStyle(color: Colors.white70),
+        ),
+      );
+    }
 
           if (!snapshot.hasData) {
             return const Center(
