@@ -1787,8 +1787,6 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () async {
-              final profile = await FirebaseFirestore.instance
-                  .collection('users').doc(user.uid).get();
               if (!mounted) return;
               Navigator.push(
                 context,
@@ -1796,7 +1794,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   builder: (_) => PartyRoomScreen(
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
-                    roomPhotoBase64: (profile.data()?['photoBase64'] ?? '').toString(),
+                    roomPhotoBase64: (data['roomPhotoBase64'] ?? '').toString(),
                   ),
                 ),
               );
@@ -1829,34 +1827,41 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                        future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
-                        builder: (context, profileSnapshot) {
-                          final photo = (profileSnapshot.data?.data()?['photoBase64'] ?? '').toString();
-                          final image = getCachedProfilePhotoImage(photo);
-                          return CircleAvatar(
-                            radius: 40,
-                            backgroundColor: const Color(0xFF392047),
-                            backgroundImage: image,
-                            child: image == null
-                                ? const Icon(Icons.person_rounded, color: Colors.white, size: 40)
-                                : null,
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 9),
-                      Text(
-                        roomName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Builder(
+      builder: (context) {
+        final photo = (data['roomPhotoBase64'] ?? '').toString();
+        final image = getCachedProfilePhotoImage(photo);
+
+        return CircleAvatar(
+          radius: 40,
+          backgroundColor: const Color(0xFF392047),
+          backgroundImage: image,
+          child: image == null
+              ? const Icon(
+                  Icons.person_rounded,
+                  color: Colors.white,
+                  size: 40,
+                )
+              : null,
+        );
+      },
+    ),
+    const SizedBox(height: 9),
+    Text(
+      roomName,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
+  ],
+),
                 // Small blue corner ribbon with star marks the owner's home room.
                 Positioned(
                   top: 0, right: 0,
@@ -2518,45 +2523,54 @@ Widget buildUserSearchResult() {
                       ),
                     ),
                     Transform.translate(
-                      offset: const Offset(0, 5),
-                      child: Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.symmetric(horizontal: 7),
-                        padding: const EdgeInsets.fromLTRB(5, 9, 5, 10),
-                        decoration: BoxDecoration(
-                          color: purple,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: pink,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              room['name'].toString(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              'UID: ${room['uid']}',
-                              style: const TextStyle(
-                                color: Color(0xFFFFB9DD),
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
+  offset: const Offset(0, 5),
+  child: Container(
+    width: double.infinity,
+    margin: const EdgeInsets.symmetric(horizontal: 7),
+    padding: const EdgeInsets.fromLTRB(7, 10, 7, 10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Column(
+      children: [
+        Text(
+          room['name'].toString(),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          room['description'].toString().trim().isEmpty
+              ? 'No description'
+              : room['description'].toString().trim(),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Colors.black87,
+            fontSize: 11,
+          ),
+        ),
+        const SizedBox(height: 5),
+        Text(
+          'UID: ${room['uid']}',
+          style: const TextStyle(
+            color: Colors.black54,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    ),
+  ),
+),
+const SizedBox(height: 5),
                   ],
                 ),
               ),
