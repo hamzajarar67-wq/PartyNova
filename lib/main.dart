@@ -1732,16 +1732,18 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       final roomRef = firestore.collection('rooms').doc();
       final now = FieldValue.serverTimestamp();
       await roomRef.set({
-        'roomId': roomRef.id,
-        'roomName': roomName,
-        'ownerUid': user.uid,
-        'ownerUserId': ownerUserId,
-        'ownerName': ownerName,
-        'memberCount': 1,
-        'createdAt': now,
-        'updatedAt': now,
-        'isActive': true,
-      });
+  'roomId': roomRef.id,
+  'roomName': roomName,
+  'ownerUid': user.uid,
+  'ownerUserId': ownerUserId,
+  'ownerName': ownerName,
+  'roomPhotoBase64': ownerPhotoBase64,
+  'roomDescription': '',
+  'memberCount': 1,
+  'createdAt': now,
+  'updatedAt': now,
+  'isActive': true,
+});
 
       if (!mounted) return;
       Navigator.push(
@@ -1878,6 +1880,15 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     );
   }
 
+
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
+    FirebaseFirestore.instance
+        .collection('rooms')
+        .where('isActive', isEqualTo: true)
+        .snapshots();
+
+
+  
   Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
   const pink = Color(0xFFFF4FA3);
@@ -2303,159 +2314,261 @@ Widget buildUserSearchResult() {
 
 
 
-  
-   Widget buildRoomCards() {
-    return Expanded(
-      child: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
-        itemCount: filteredRooms.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 18,
-          childAspectRatio: 0.76,
-        ),
-        itemBuilder: (context, index) {
-          final room = filteredRooms[index];
+  Widget buildRoomCards() {
+  return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: _activeRoomsStream,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return const Expanded(
+          child: Center(
+            child: Text(
+              'Rooms load nahi ho sake. Please try again.',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        );
+      }
 
-          return InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PartyRoomScreen(
-                    roomName: room['name'].toString(),
-                    roomUid: room['uid'].toString(),
+      if (!snapshot.hasData) {
+        return const Expanded(
+          child: Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFFFFD700),
+            ),
+          ),
+        );
+      }
+
+      final searchQuery = _roomSearchQuery.trim().toLowerCase();
+
+      final rooms = snapshot.data!.docs.map((doc) {
+        final data = doc.data();
+
+        return <String, dynamic>{
+          'docId': doc.id,
+          'name': (data['roomName'] ?? '').toString(),
+          'uid': (data['ownerUserId'] ?? '').toString(),
+          'members': data['memberCount'] ?? 0,
+          'photo': (data['roomPhotoBase64'] ?? '').toString(),
+          'description': (data['roomDescription'] ?? '').toString(),
+          'createdAt': data['createdAt'],
+        };
+      }).where((room) {
+        final name = room['name'].toString().toLowerCase();
+        final uid = room['uid'].toString();
+
+        return name.contains(searchQuery) ||
+            uid.contains(searchQuery);
+      }).toList();
+
+      if (_selectedRoomFilter == 1) {
+        rooms.sort((a, b) {
+          final aMembers = int.tryParse(a['members'].toString()) ?? 0;
+          final bMembers = int.tryParse(b['members'].toString()) ?? 0;
+          return bMembers.compareTo(aMembers);
+        });
+      } else {
+        rooms.sort((a, b) {
+          final aDate = a['createdAt'];
+          final bDate = b['createdAt'];
+
+          if (aDate is Timestamp && bDate is Timestamp) {
+            return bDate.compareTo(aDate);
+          }
+          return 0;
+        });
+      }
+
+      if (rooms.isEmpty) {
+        return const Expanded(
+          child: Center(
+            child: Text(
+              'No rooms found',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        );
+      }
+
+      return Expanded(
+        child: GridView.builder(
+          padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+          itemCount: rooms.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 18,
+            childAspectRatio: 0.76,
+          ),
+          itemBuilder: (context, index) {
+            final room = rooms[index];
+            final roomPhoto = room['photo'].toString();
+            final roomImage = getCachedProfilePhotoImage(roomPhoto);
+
+            return InkWell(
+              key: ValueKey(room['docId']),
+              borderRadius: BorderRadius.circular(16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PartyRoomScreen(
+                      roomName: room['name'].toString(),
+                      roomUid: room['uid'].toString(),
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: panel,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFF59304F),
+                    width: 1.2,
                   ),
                 ),
-              );
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: panel,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF59304F),
-                  width: 1.2,
-                ),
-              ),
-              clipBehavior: Clip.none,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(15),
-                      ),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          Container(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFF54244F),
-                                  Color(0xFF21101F),
-                                  Color(0xFF392047),
-                                ],
+                clipBehavior: Clip.none,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(15),
+                        ),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFF54244F),
+                                    Color(0xFF21101F),
+                                    Color(0xFF392047),
+                                  ],
+                                ),
                               ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.groups_rounded,
-                                size: 66,
-                                color: Color(0xFFFFB9DD),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            top: 9,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: pink,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.people_alt_rounded,
-                                    color: Colors.white,
-                                    size: 14,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${room['members']}',
-                                    style: const TextStyle(
+                              child: Center(
+                                child: Container(
+                                  width: 94,
+                                  height: 94,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
                                       color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                      width: 4,
                                     ),
                                   ),
-                                ],
+                                  child: ClipOval(
+                                    child: roomImage != null
+                                        ? Image(
+                                            image: roomImage,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : const ColoredBox(
+                                            color: Color(0xFF392047),
+                                            child: Icon(
+                                              Icons.groups_rounded,
+                                              size: 55,
+                                              color: Color(0xFFFFB9DD),
+                                            ),
+                                          ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Transform.translate(
-                    offset: const Offset(0, 5),
-                    child: Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.symmetric(horizontal: 7),
-                      padding: const EdgeInsets.fromLTRB(5, 9, 5, 10),
-                      decoration: BoxDecoration(
-                        color: purple,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: pink,
-                          width: 1,
+                            Positioned(
+                              top: 9,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: pink,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.people_alt_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${room['members']}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Text(
-                            room['name'].toString(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                    ),
+                    Transform.translate(
+                      offset: const Offset(0, 5),
+                      child: Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.symmetric(horizontal: 7),
+                        padding: const EdgeInsets.fromLTRB(5, 9, 5, 10),
+                        decoration: BoxDecoration(
+                          color: purple,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: pink,
+                            width: 1,
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'UID: ${room['uid']}',
-                            style: const TextStyle(
-                              color: Color(0xFFFFB9DD),
-                              fontSize: 11,
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              room['name'].toString(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 5),
+                            Text(
+                              'UID: ${room['uid']}',
+                              style: const TextStyle(
+                                color: Color(0xFFFFB9DD),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 5),
-                ],
+                    const SizedBox(height: 5),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+   
+    
 
   return Container(
     color: partyBlack,
