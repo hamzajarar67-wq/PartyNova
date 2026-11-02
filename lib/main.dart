@@ -9065,156 +9065,167 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         child: Column(
           children: [
             // Room header.
-            Padding(
+Padding(
   padding: const EdgeInsets.fromLTRB(0, 8, 6, 6),
   child: Row(
     children: [
+      // Room DP - same size, no background or border.
+      ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          width: 82,
+          height: 82,
+          child: getCachedProfilePhotoImage(
+                    widget.roomPhotoBase64,
+                  ) ==
+                  null
+              ? const Icon(
+                  Icons.groups_rounded,
+                  color: gold,
+                  size: 48,
+                )
+              : Image(
+                  image: getCachedProfilePhotoImage(
+                    widget.roomPhotoBase64,
+                  )!,
+                  width: 82,
+                  height: 82,
+                  fit: BoxFit.cover,
+                ),
+        ),
+      ),
+
+      const SizedBox(width: 8),
+
+      // Name background and JOIN area.
       Expanded(
         child: Container(
           constraints: const BoxConstraints(
-            minHeight: 88,
+            minHeight: 82,
           ),
           padding: const EdgeInsets.symmetric(
-            horizontal: 8,
-            vertical: 0,
+            horizontal: 9,
+            vertical: 5,
           ),
           decoration: BoxDecoration(
-            color: panelBlue,
-            border: const Border(
-              top: BorderSide(color: pink, width: 1.5),
-              bottom: BorderSide(color: pink, width: 1.5),
-              right: BorderSide(color: pink, width: 1.5),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withValues(alpha: 0.16),
+                Colors.white.withValues(alpha: 0.07),
+                panelBlue,
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
             borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(22),
-              bottomRight: Radius.circular(22),
+              topRight: Radius.circular(24),
+              bottomRight: Radius.circular(24),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.20),
+                blurRadius: 15,
+                spreadRadius: 1,
+              ),
+            ],
           ),
           child: Row(
             children: [
-                          // Room DP placeholder.
-                          Container(
-                            width: 82,
-                            height: 82,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF301426),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: pink,
-                                width: 1.8,
-                              ),
-                            ),
-                            child: getCachedProfilePhotoImage(widget.roomPhotoBase64) == null
-                                ? const Icon(Icons.groups_rounded, color: gold, size: 48)
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image(
-                                      image: getCachedProfilePhotoImage(widget.roomPhotoBase64)!,
-                                      width: 82,
-                                      height: 82,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 10),
-
-                          // Room name and UID.
-                          Expanded(
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        widget.roomName,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 21,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-      const SizedBox(height: 7),
-      Text(
-        'UID: ${widget.roomUid}',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-
-                          // JOIN button.
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: gold,
-                              foregroundColor: darkBlue,
-                              minimumSize: const Size(58, 46),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                              ),
-                              tapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              shape: const StadiumBorder(),
-                            ),
-                            child: const Text(
-                              'JOIN',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+              // Scrolling room name and UID.
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
+                  children: [
+                    ScrollingRoomName(
+                      text: widget.roomName,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      'UID: ${widget.roomUid}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 5),
-
-                  // Room options and leave buttons in one horizontal row.
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () {},
-                        tooltip: 'Room options',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 42,
-                          minHeight: 46,
-                        ),
-                        icon: const Icon(
-                          Icons.more_horiz_rounded,
-                          color: Colors.white,
-                          size: 35,
-                        ),
-                      ),
-                      const SizedBox(width: 7),
-                      IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        tooltip: 'Leave room',
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(
-                          minWidth: 42,
-                          minHeight: 46,
-                        ),
-                        icon: const Icon(
-                          Icons.power_settings_new_rounded,
-                          color: gold,
-                          size: 32,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
+
+              const SizedBox(width: 6),
+
+              // JOIN button.
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: gold,
+                  foregroundColor: darkBlue,
+                  minimumSize: const Size(58, 46),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                  ),
+                  tapTargetSize:
+                      MaterialTapTargetSize.shrinkWrap,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'JOIN',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      const SizedBox(width: 5),
+
+      // Room options and leave buttons.
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            onPressed: () {},
+            tooltip: 'Room options',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 42,
+              minHeight: 46,
             ),
+            icon: const Icon(
+              Icons.more_horiz_rounded,
+              color: Colors.white,
+              size: 35,
+            ),
+          ),
+          const SizedBox(width: 7),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            tooltip: 'Leave room',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 42,
+              minHeight: 46,
+            ),
+            icon: const Icon(
+              Icons.power_settings_new_rounded,
+              color: gold,
+              size: 32,
+            ),
+          ),
+        ],
+      ),
+    ],
+  ),
+),
+            
+                                
 
             // Fifteen seats: three rows of five.
             Padding(
@@ -9244,7 +9255,126 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   }
 }
   
+class ScrollingRoomName extends StatefulWidget {
+  final String text;
 
+  const ScrollingRoomName({
+    super.key,
+    required this.text,
+  });
+
+  @override
+  State<ScrollingRoomName> createState() =>
+      _ScrollingRoomNameState();
+}
+
+class _ScrollingRoomNameState
+    extends State<ScrollingRoomName>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName = widget.text.length > 30
+        ? widget.text.substring(0, 30)
+        : widget.text;
+
+    const textStyle = TextStyle(
+      color: Colors.white,
+      fontSize: 21,
+      fontWeight: FontWeight.w900,
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: displayName,
+            style: textStyle,
+          ),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        final textWidth = painter.width;
+
+        if (textWidth <= constraints.maxWidth) {
+          return SizedBox(
+            height: 27,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                displayName,
+                maxLines: 1,
+                style: textStyle,
+              ),
+            ),
+          );
+        }
+
+        const gap = 45.0;
+        final distance = textWidth + gap;
+
+        return SizedBox(
+          height: 27,
+          child: ClipRect(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                final offset =
+                    _controller.value * distance;
+
+                return Transform.translate(
+                  offset: Offset(-offset, 0),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: textWidth,
+                        child: Text(
+                          displayName,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: textStyle,
+                        ),
+                      ),
+                      const SizedBox(width: gap),
+                      SizedBox(
+                        width: textWidth,
+                        child: Text(
+                          displayName,
+                          maxLines: 1,
+                          softWrap: false,
+                          style: textStyle,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
 
 class PartyNovaSearchPage extends StatefulWidget {
   const PartyNovaSearchPage({super.key});
