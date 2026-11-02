@@ -1609,6 +1609,175 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   );
 }
 
+
+
+
+
+Future<void> _createRoom() async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please log in first.')),
+    );
+    return;
+  }
+
+  final controller = TextEditingController();
+
+  final roomName = await showDialog<String>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFF21101F),
+        title: const Text(
+          'Create New Room',
+          style: TextStyle(
+            color: Color(0xFFFFD780),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          maxLength: 40,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Enter room name',
+            hintStyle: const TextStyle(color: Colors.white54),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFFFF1688)),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(
+                color: Color(0xFFFFD780),
+                width: 1.5,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text(
+              'CANCEL',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF1688),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext, controller.text.trim());
+            },
+            child: const Text('CREATE'),
+          ),
+        ],
+      );
+    },
+  );
+
+  controller.dispose();
+
+  if (roomName == null || !mounted) return;
+
+  if (roomName.length < 3 || roomName.length > 40) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Room name must be 3 to 40 characters.'),
+      ),
+    );
+    return;
+  }
+
+  try {
+    final firestore = FirebaseFirestore.instance;
+
+    final userSnapshot = await firestore
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!userSnapshot.exists) {
+      throw StateError('Your user profile was not found.');
+    }
+
+    final userData = userSnapshot.data()!;
+    final partyNovaUid = (userData['userId'] ?? '').toString();
+    final ownerName = (userData['name'] ?? '').toString();
+
+    if (partyNovaUid.isEmpty || ownerName.isEmpty) {
+      throw StateError('Your profile name or PartyNova UID is missing.');
+    }
+
+    // Firestore automatically generates a unique Room ID.
+    final roomRef = firestore.collection('rooms').doc();
+    final now = FieldValue.serverTimestamp();
+
+    await roomRef.set({
+      'roomId': roomRef.id,
+      'roomName': roomName,
+      'ownerUid': user.uid,
+      'ownerUserId': partyNovaUid,
+      'ownerName': ownerName,
+      'memberCount': 1,
+      'createdAt': now,
+      'updatedAt': now,
+      'isActive': true,
+    });
+
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF21101F),
+        title: const Text(
+          'Room Created!',
+          style: TextStyle(
+            color: Color(0xFFFFD780),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: SelectableText(
+          'Room Name: $roomName\nRoom ID: ${roomRef.id}',
+          style: const TextStyle(
+            color: Colors.white,
+            height: 1.6,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text(
+              'OK',
+              style: TextStyle(color: Color(0xFFFFD780)),
+            ),
+          ),
+        ],
+      ),
+    );
+  } catch (error) {
+    debugPrint('Create room failed: $error');
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Room creation failed: $error'),
+      ),
+    );
+  }
+}
+
+
+
+
+  
+
    Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
   const pink = Color(0xFFFF4FA3);
@@ -1847,7 +2016,10 @@ Widget buildUserSearchResult() {
         // Create Room box
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
-          child: Container(
+         child: InkWell(
+  borderRadius: BorderRadius.circular(17),
+  onTap: _createRoom,
+  child: Container(
             width: double.infinity,
             height: 112,
             decoration: BoxDecoration(
