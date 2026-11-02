@@ -9066,28 +9066,32 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           children: [
             // Room header.
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 10, 6, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      constraints: const BoxConstraints(
-                        minHeight: 96,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: panelBlue,
-                        border: Border.all(
-                          color: pink,
-                          width: 1.5,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
+  padding: const EdgeInsets.fromLTRB(0, 8, 6, 6),
+  child: Row(
+    children: [
+      Expanded(
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 88,
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 0,
+          ),
+          decoration: BoxDecoration(
+            color: panelBlue,
+            border: const Border(
+              top: BorderSide(color: pink, width: 1.5),
+              bottom: BorderSide(color: pink, width: 1.5),
+              right: BorderSide(color: pink, width: 1.5),
+            ),
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(22),
+              bottomRight: Radius.circular(22),
+            ),
+          ),
+          child: Row(
+            children: [
                           // Room DP placeholder.
                           Container(
                             width: 82,
@@ -9116,28 +9120,26 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
                           // Room name and UID.
                           Expanded(
-                            child: Column(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.center,
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  widget.roomName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 7),
-                                Text(
-                                  'UID: ${widget.roomUid}',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+  child: Column(
+    mainAxisAlignment: MainAxisAlignment.center,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        widget.roomName,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 21,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+      const SizedBox(height: 7),
+      Text(
+        'UID: ${widget.roomUid}',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
                                     color: Colors.white70,
                                     fontSize: 15,
                                   ),
