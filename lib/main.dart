@@ -1782,7 +1782,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                 MaterialPageRoute(
                   builder: (_) => PartyRoomScreen(
                     roomName: roomName,
-                    roomUid: room.id,
+                    roomUid: (data['ownerUserId'] ?? '').toString(),
                   ),
                 ),
               );
@@ -9032,11 +9032,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                   Expanded(
                     child: Container(
                       constraints: const BoxConstraints(
-                        minHeight: 116,
+                        minHeight: 96,
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
-                        vertical: 12,
+                        vertical: 7,
                       ),
                       decoration: BoxDecoration(
                         color: panelBlue,
@@ -9129,8 +9129,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                   ),
                   const SizedBox(width: 5),
 
-                  // Room options and leave buttons.
-                  Column(
+                  // Room options and leave buttons in one horizontal row.
+                  Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
@@ -9138,27 +9138,28 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         tooltip: 'Room options',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
-                          minWidth: 34,
-                          minHeight: 42,
+                          minWidth: 42,
+                          minHeight: 46,
                         ),
                         icon: const Icon(
                           Icons.more_horiz_rounded,
                           color: Colors.white,
-                          size: 29,
+                          size: 35,
                         ),
                       ),
+                      const SizedBox(width: 7),
                       IconButton(
                         onPressed: () => Navigator.pop(context),
                         tooltip: 'Leave room',
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
-                          minWidth: 34,
-                          minHeight: 42,
+                          minWidth: 42,
+                          minHeight: 46,
                         ),
                         icon: const Icon(
                           Icons.power_settings_new_rounded,
                           color: gold,
-                          size: 27,
+                          size: 32,
                         ),
                       ),
                     ],
