@@ -1656,8 +1656,8 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 26,
+                    fontWeight: FontWeight.w700,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Type your room name',
@@ -1724,6 +1724,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       final data = userSnapshot.data()!;
       final ownerUserId = (data['userId'] ?? '').toString();
       final ownerName = (data['name'] ?? 'PartyNova User').toString();
+      final ownerPhotoBase64 = (data['photoBase64'] ?? '').toString();
       if (ownerUserId.isEmpty || ownerName.isEmpty) {
         throw StateError('Your profile information is incomplete.');
       }
@@ -1743,8 +1744,15 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your room has been created.')),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PartyRoomScreen(
+            roomName: roomName,
+            roomUid: ownerUserId,
+            roomPhotoBase64: ownerPhotoBase64,
+          ),
+        ),
       );
     } catch (error) {
       debugPrint('Create room failed: $error');
@@ -1773,66 +1781,96 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         final data = room.data();
         final roomName = (data['roomName'] ?? '').toString();
         return Padding(
-          padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
+          padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: () {
+            onTap: () async {
+              final profile = await FirebaseFirestore.instance
+                  .collection('users').doc(user.uid).get();
+              if (!mounted) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => PartyRoomScreen(
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
+                    roomPhotoBase64: (profile.data()?['photoBase64'] ?? '').toString(),
                   ),
                 ),
               );
             },
-            child: Container(
-              width: double.infinity,
-              constraints: const BoxConstraints(minHeight: 190),
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF54244F), Color(0xFF21101F), Color(0xFF392047)],
-                ),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
-                    builder: (context, profileSnapshot) {
-                      final profile = profileSnapshot.data?.data();
-                      final photo = (profile?['photoBase64'] ?? '').toString();
-                      final image = getCachedProfilePhotoImage(photo);
-                      return CircleAvatar(
-                        radius: 43,
-                        backgroundColor: const Color(0xFF392047),
-                        backgroundImage: image,
-                        child: image == null
-                            ? const Icon(Icons.person_rounded, color: Colors.white, size: 44)
-                            : null,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    roomName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Lower layer creates the double-box / raised-layer effect.
+                Positioned(
+                  left: 9, right: 0, top: 9, bottom: 0,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF152E50),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: const Color(0xFF3C78B8), width: 1.2),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(minHeight: 156),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF54244F), Color(0xFF21101F), Color(0xFF392047)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+                        builder: (context, profileSnapshot) {
+                          final photo = (profileSnapshot.data?.data()?['photoBase64'] ?? '').toString();
+                          final image = getCachedProfilePhotoImage(photo);
+                          return CircleAvatar(
+                            radius: 40,
+                            backgroundColor: const Color(0xFF392047),
+                            backgroundImage: image,
+                            child: image == null
+                                ? const Icon(Icons.person_rounded, color: Colors.white, size: 40)
+                                : null,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 9),
+                      Text(
+                        roomName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                // Small blue corner ribbon with star marks the owner's home room.
+                Positioned(
+                  top: 0, right: 0,
+                  child: Container(
+                    width: 42, height: 38,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF2477D4),
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(17),
+                        bottomLeft: Radius.circular(14),
+                      ),
+                    ),
+                    child: const Icon(Icons.star_rounded, color: Colors.white, size: 21),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -8696,11 +8734,13 @@ class _GlossySettingsBox extends StatelessWidget {
 class PartyRoomScreen extends StatefulWidget {
   final String roomName;
   final String roomUid;
+  final String roomPhotoBase64;
 
   const PartyRoomScreen({
     super.key,
     required this.roomName,
     required this.roomUid,
+    this.roomPhotoBase64 = '',
   });
 
   @override
@@ -9060,11 +9100,17 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                                 width: 1.8,
                               ),
                             ),
-                            child: const Icon(
-                              Icons.groups_rounded,
-                              color: gold,
-                              size: 48,
-                            ),
+                            child: getCachedProfilePhotoImage(widget.roomPhotoBase64) == null
+                                ? const Icon(Icons.groups_rounded, color: gold, size: 48)
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image(
+                                      image: getCachedProfilePhotoImage(widget.roomPhotoBase64)!,
+                                      width: 82,
+                                      height: 82,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
                           ),
                           const SizedBox(width: 10),
 
