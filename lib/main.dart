@@ -2011,88 +2011,91 @@ Widget buildUserSearchResult() {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Create Room box
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
-         child: InkWell(
-  borderRadius: BorderRadius.circular(17),
-  onTap: _createRoom,
-  child: Container(
-            width: double.infinity,
-            height: 112,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF54244F),
-                  Color(0xFF21101F),
-                  Color(0xFF392047),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(17),
-              border: Border.all(
-                color: gold,
-                width: 1.5,
-              ),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.add_circle_rounded,
-                  color: gold,
-                  size: 35,
-                ),
-                SizedBox(height: 7),
-                Text(
-                  'CREATE ROOM',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    // Create Room box
+    Padding(
+      padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(17),
+        onTap: _createRoom,
+        child: Container(
+          width: double.infinity,
+          height: 112,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF54244F),
+                Color(0xFF21101F),
+                Color(0xFF392047),
               ],
             ),
-          ),
-        ),
-
-        // My Room heading
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'MY ROOM',
-            style: TextStyle(
+            borderRadius: BorderRadius.circular(17),
+            border: Border.all(
               color: gold,
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 2,
+              width: 1.5,
             ),
           ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Four options in one box
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color: panel,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: const Color(0xFF59304F),
-                width: 1.2,
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.add_circle_rounded,
+                color: gold,
+                size: 35,
               ),
-            ),
-            child: Row(
-              children: List.generate(myRoomFilters.length, (index) {
-                final selected = _selectedMyRoomFilter == index;
+              SizedBox(height: 7),
+              Text(
+                'CREATE ROOM',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+
+    // My Room heading
+    const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        'MY ROOM',
+        style: TextStyle(
+          color: gold,
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 2,
+        ),
+      ),
+    ),
+
+    const SizedBox(height: 12),
+
+    // Four options in one box
+    Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: panel,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF59304F),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          children: List.generate(myRoomFilters.length, (index) {
+            final selected = _selectedMyRoomFilter == index;
+
+            // Keep your existing GestureDetector code here.
 
                 return Expanded(
                   child: GestureDetector(
