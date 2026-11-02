@@ -11000,7 +11000,7 @@ StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _myProfileSubscripti
 
 Stream<DocumentSnapshot<Map<String, dynamic>>> get _friendProfileStream =>
     FirebaseFirestore.instance
-        .collection('users')
+        .collection('publicProfiles')
         .doc(widget.friendUid)
         .snapshots();
   Stream<DocumentSnapshot<Map<String, dynamic>>> get _myProfileStream =>
