@@ -1862,7 +1862,9 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     ),
   ],
 ),
-                // Small blue corner ribbon with star marks the owner's home room.
+),
+
+// Small blue corner ribbon with star marks the owner's home room.
                 Positioned(
                   top: 0, right: 0,
                   child: Container(
