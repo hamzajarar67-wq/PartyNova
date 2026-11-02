@@ -9229,7 +9229,7 @@ Padding(
 
             // Fifteen seats: three rows of five.
             Padding(
-              padding: const EdgeInsets.fromLTRB(5, 14, 5, 0),
+              padding: const EdgeInsets.fromLTRB(5, 34, 5, 0),
               child: Column(
                 children: [
                   _buildSeatRow(1),
