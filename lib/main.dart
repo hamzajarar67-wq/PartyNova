@@ -1779,22 +1779,27 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
+
         final room = snapshot.data!.docs.first;
         final data = room.data();
         final roomName = (data['roomName'] ?? '').toString();
+        final roomDescription = (data['roomDescription'] ?? '').toString().trim();
+        final roomPhoto = (data['roomPhotoBase64'] ?? '').toString();
+        final ownerUid = (data['ownerUid'] ?? '').toString();
+        final roomImage = getCachedProfilePhotoImage(roomPhoto);
+
         return Padding(
-          padding: const EdgeInsets.fromLTRB(14, 16, 14, 16),
+          padding: const EdgeInsets.fromLTRB(14, 38, 14, 16),
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
-            onTap: () async {
-              if (!mounted) return;
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => PartyRoomScreen(
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
-                    roomPhotoBase64: (data['roomPhotoBase64'] ?? '').toString(),
+                    roomPhotoBase64: roomPhoto,
                   ),
                 ),
               );
@@ -1802,81 +1807,118 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Lower layer creates the double-box / raised-layer effect.
-                Positioned(
-                  left: 9, right: 0, top: 9, bottom: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF152E50),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFF3C78B8), width: 1.2),
-                    ),
-                  ),
-                ),
                 Container(
                   width: double.infinity,
-                  constraints: const BoxConstraints(minHeight: 156),
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF54244F), Color(0xFF21101F), Color(0xFF392047)],
-                    ),
+                    color: const Color(0xFF152E50),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
+                    border: Border.all(
+                      color: const Color(0xFF3C78B8),
+                      width: 2,
+                    ),
                   ),
                   child: Column(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Builder(
-      builder: (context) {
-        final photo = (data['roomPhotoBase64'] ?? '').toString();
-        final image = getCachedProfilePhotoImage(photo);
-
-        return CircleAvatar(
-          radius: 40,
-          backgroundColor: const Color(0xFF392047),
-          backgroundImage: image,
-          child: image == null
-              ? const Icon(
-                  Icons.person_rounded,
-                  color: Colors.white,
-                  size: 40,
-                )
-              : null,
-        );
-      },
-    ),
-    const SizedBox(height: 9),
-    Text(
-      roomName,
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.center,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  ],
-),
-),
-
-// Small blue corner ribbon with star marks the owner's home room.
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 88),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE0FFF7),
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(16),
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              roomName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFF174B40),
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (roomDescription.isNotEmpty) ...[
+                              const SizedBox(height: 5),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  roomDescription.split(RegExp(r'\r?\n')).first,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFF39766A),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 Positioned(
-                  top: 0, right: 0,
+                  top: -34,
+                  left: 18,
+                  right: 18,
+                  height: 132,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: roomImage != null
+                        ? Image(image: roomImage, fit: BoxFit.cover)
+                        : FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            future: ownerUid.isEmpty
+                                ? null
+                                : _getLegacyRoomProfile(ownerUid),
+                            builder: (context, profileSnapshot) {
+                              final profileData = profileSnapshot.data?.data();
+                              final profilePhoto =
+                                  (profileData?['photoBase64'] ?? '').toString();
+                              final fallbackImage =
+                                  getCachedProfilePhotoImage(profilePhoto);
+                              if (fallbackImage != null) {
+                                return Image(
+                                  image: fallbackImage,
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                              return const ColoredBox(
+                                color: Color(0xFF392047),
+                                child: Icon(
+                                  Icons.groups_rounded,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+                Positioned(
+                  top: -34,
+                  left: 18,
                   child: Container(
-                    width: 42, height: 38,
+                    width: 42,
+                    height: 38,
                     decoration: const BoxDecoration(
                       color: Color(0xFF2477D4),
                       borderRadius: BorderRadius.only(
-                        topRight: Radius.circular(17),
-                        bottomLeft: Radius.circular(14),
+                        topLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(14),
                       ),
                     ),
-                    child: const Icon(Icons.star_rounded, color: Colors.white, size: 21),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
                 ),
               ],
@@ -1886,7 +1928,6 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       },
     );
   }
-
 
 final Map<String, Future<DocumentSnapshot<Map<String, dynamic>>>>
     _legacyRoomProfileFutures = {};
@@ -2337,194 +2378,145 @@ Widget buildUserSearchResult() {
 
 
   Widget buildRoomCards() {
-  return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    stream: _activeRoomsStream,
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return const Expanded(
-          child: Center(
-            child: Text(
-              'Rooms load nahi ho sake. Please try again.',
-              style: TextStyle(color: Colors.white70),
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _activeRoomsStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Expanded(
+            child: Center(
+              child: Text(
+                'Rooms load nahi ho sake. Please try again.',
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
-          ),
-        );
-      }
+          );
+        }
 
-      if (!snapshot.hasData) {
-        return const Expanded(
-          child: Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFFFFD700),
+        if (!snapshot.hasData) {
+          return const Expanded(
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFFFFD700)),
             ),
-          ),
-        );
-      }
+          );
+        }
 
-      final searchQuery = _roomSearchQuery.trim().toLowerCase();
+        final searchQuery = _roomSearchQuery.trim().toLowerCase();
+        final rooms = snapshot.data!.docs.map((doc) {
+          final data = doc.data();
+          return <String, dynamic>{
+            'docId': doc.id,
+            'name': (data['roomName'] ?? '').toString(),
+            'uid': (data['ownerUserId'] ?? '').toString(),
+            'ownerUid': (data['ownerUid'] ?? '').toString(),
+            'members': data['memberCount'] ?? 0,
+            'photo': (data['roomPhotoBase64'] ?? '').toString(),
+            'description': (data['roomDescription'] ?? '').toString(),
+            'createdAt': data['createdAt'],
+          };
+        }).where((room) {
+          final name = room['name'].toString().toLowerCase();
+          final uid = room['uid'].toString();
+          return name.contains(searchQuery) || uid.contains(searchQuery);
+        }).toList();
 
-      final rooms = snapshot.data!.docs.map((doc) {
-        final data = doc.data();
+        if (_selectedRoomFilter == 1) {
+          rooms.sort((a, b) {
+            final aMembers = int.tryParse(a['members'].toString()) ?? 0;
+            final bMembers = int.tryParse(b['members'].toString()) ?? 0;
+            return bMembers.compareTo(aMembers);
+          });
+        } else {
+          rooms.sort((a, b) {
+            final aDate = a['createdAt'];
+            final bDate = b['createdAt'];
+            if (aDate is Timestamp && bDate is Timestamp) {
+              return bDate.compareTo(aDate);
+            }
+            return 0;
+          });
+        }
 
-        return <String, dynamic>{
-  'docId': doc.id,
-  'name': (data['roomName'] ?? '').toString(),
-  'uid': (data['ownerUserId'] ?? '').toString(),
-  'ownerUid': (data['ownerUid'] ?? '').toString(),
-  'members': data['memberCount'] ?? 0,
-  'photo': (data['roomPhotoBase64'] ?? '').toString(),
-  'description': (data['roomDescription'] ?? '').toString(),
-  'createdAt': data['createdAt'],
-};
-      }).where((room) {
-        final name = room['name'].toString().toLowerCase();
-        final uid = room['uid'].toString();
-
-        return name.contains(searchQuery) ||
-            uid.contains(searchQuery);
-      }).toList();
-
-      if (_selectedRoomFilter == 1) {
-        rooms.sort((a, b) {
-          final aMembers = int.tryParse(a['members'].toString()) ?? 0;
-          final bMembers = int.tryParse(b['members'].toString()) ?? 0;
-          return bMembers.compareTo(aMembers);
-        });
-      } else {
-        rooms.sort((a, b) {
-          final aDate = a['createdAt'];
-          final bDate = b['createdAt'];
-
-          if (aDate is Timestamp && bDate is Timestamp) {
-            return bDate.compareTo(aDate);
-          }
-          return 0;
-        });
-      }
-
-      if (rooms.isEmpty) {
-        return const Expanded(
-          child: Center(
-            child: Text(
-              'No rooms found',
-              style: TextStyle(color: Colors.white70),
+        if (rooms.isEmpty) {
+          return const Expanded(
+            child: Center(
+              child: Text('No rooms found', style: TextStyle(color: Colors.white70)),
             ),
-          ),
-        );
-      }
+          );
+        }
 
-      return Expanded(
-        child: GridView.builder(
-          padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
-          itemCount: rooms.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 18,
-            childAspectRatio: 0.76,
-          ),
-          itemBuilder: (context, index) {
-            final room = rooms[index];
-final roomPhoto = room['photo'].toString();
-final roomOwnerUid = room['ownerUid'].toString();
+        return Expanded(
+          child: GridView.builder(
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 20),
+            itemCount: rooms.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 18,
+              childAspectRatio: 0.76,
+            ),
+            itemBuilder: (context, index) {
+              final room = rooms[index];
+              final roomPhoto = room['photo'].toString();
+              final roomOwnerUid = room['ownerUid'].toString();
+              final roomImage = getCachedProfilePhotoImage(roomPhoto);
 
-final roomImage = getCachedProfilePhotoImage(roomPhoto);
-            return InkWell(
-              key: ValueKey(room['docId']),
-              borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PartyRoomScreen(
-                      roomName: room['name'].toString(),
-                      roomUid: room['uid'].toString(),
+              return InkWell(
+                key: ValueKey(room['docId']),
+                borderRadius: BorderRadius.circular(16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PartyRoomScreen(
+                        roomName: room['name'].toString(),
+                        roomUid: room['uid'].toString(),
+                      ),
                     ),
+                  );
+                },
+                child: Container(
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0FFF7),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white, width: 2),
                   ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: panel,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFF59304F),
-                    width: 1.2,
-                  ),
-                ),
-                clipBehavior: Clip.none,
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(15),
-                        ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color(0xFF54244F),
-                                    Color(0xFF21101F),
-                                    Color(0xFF392047),
-                                  ],
-                                ),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 94,
-                                  height: 94,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 4,
+                            if (roomImage != null)
+                              Image(image: roomImage, fit: BoxFit.cover)
+                            else
+                              FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                                future: roomOwnerUid.isEmpty
+                                    ? null
+                                    : _getLegacyRoomProfile(roomOwnerUid),
+                                builder: (context, profileSnapshot) {
+                                  final profileData = profileSnapshot.data?.data();
+                                  final profilePhoto =
+                                      (profileData?['photoBase64'] ?? '').toString();
+                                  final fallbackImage =
+                                      getCachedProfilePhotoImage(profilePhoto);
+                                  if (fallbackImage != null) {
+                                    return Image(
+                                      image: fallbackImage,
+                                      fit: BoxFit.cover,
+                                    );
+                                  }
+                                  return const ColoredBox(
+                                    color: Color(0xFF392047),
+                                    child: Icon(
+                                      Icons.groups_rounded,
+                                      size: 55,
+                                      color: Color(0xFFFFB9DD),
                                     ),
-                                  ),
-                                  child: ClipOval(
-  child: roomImage != null
-      ? Image(
-          image: roomImage,
-          fit: BoxFit.cover,
-        )
-      : FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-          future: roomOwnerUid.isEmpty
-              ? null
-              : _getLegacyRoomProfile(roomOwnerUid),
-          builder: (context, snapshot) {
-            final profileData = snapshot.data?.data();
-            final profilePhoto =
-                (profileData?['photoBase64'] ?? '').toString();
-
-            final fallbackImage =
-                getCachedProfilePhotoImage(profilePhoto);
-
-            if (fallbackImage != null) {
-              return Image(
-                image: fallbackImage,
-                fit: BoxFit.cover,
-              );
-            }
-
-            return const ColoredBox(
-              color: Color(0xFF392047),
-              child: Icon(
-                Icons.groups_rounded,
-                size: 55,
-                color: Color(0xFFFFB9DD),
-              ),
-            );
-          },
-        ),
-      ),
-    ),
-  ),
-),
+                                  );
+                                },
+                              ),
                             Positioned(
                               top: 9,
                               right: 8,
@@ -2534,16 +2526,16 @@ final roomImage = getCachedProfilePhotoImage(roomPhoto);
                                   vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: pink,
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.black.withOpacity(0.58),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Icon(
-                                      Icons.people_alt_rounded,
-                                      color: Colors.white,
-                                      size: 14,
+                                      Icons.bar_chart_rounded,
+                                      color: Color(0xFF18D6C0),
+                                      size: 16,
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
@@ -2561,68 +2553,54 @@ final roomImage = getCachedProfilePhotoImage(roomPhoto);
                           ],
                         ),
                       ),
-                    ),
-                    Transform.translate(
-  offset: const Offset(0, 5),
-  child: Container(
-    width: double.infinity,
-    margin: const EdgeInsets.symmetric(horizontal: 7),
-    padding: const EdgeInsets.fromLTRB(7, 10, 7, 10),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(10),
-    ),
-    child: Column(
-      children: [
-        Text(
-          room['name'].toString(),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          room['description'].toString().trim().isEmpty
-              ? 'No description'
-              : room['description'].toString().trim(),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.black87,
-            fontSize: 11,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          'UID: ${room['uid']}',
-          style: const TextStyle(
-            color: Colors.black54,
-            fontSize: 11,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
-const SizedBox(height: 5),
-                  ],
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(8, 9, 8, 9),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE0FFF7),
+                          border: Border(
+                            top: BorderSide(color: Colors.white, width: 2),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              room['name'].toString(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFF174B40),
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            if (room['description'].toString().trim().isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                room['description'].toString().trim().split(RegExp(r'\r?\n')).first,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Color(0xFF39766A),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      );
-    },
-  );
-}
-   
-    
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   return Container(
     color: partyBlack,
