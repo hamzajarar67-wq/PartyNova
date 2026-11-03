@@ -8879,20 +8879,22 @@ class _GlossySettingsBox extends StatelessWidget {
 
 class RoomDetailsOverview extends StatefulWidget {
   final String roomName;
+  final String roomUid;
   final String roomPhotoBase64;
   final String roomDescription;
-  final String clubPoint;
   final String memberPoint;
-  final String diamondPoint;
+  final String clubPoint;
+  final String giftPoint;
 
   const RoomDetailsOverview({
     super.key,
     required this.roomName,
+    required this.roomUid,
     this.roomPhotoBase64 = '',
     this.roomDescription = '',
-    this.clubPoint = '0',
     this.memberPoint = '0',
-    this.diamondPoint = '0',
+    this.clubPoint = '0',
+    this.giftPoint = '0',
   });
 
   @override
@@ -8900,352 +8902,224 @@ class RoomDetailsOverview extends StatefulWidget {
       _RoomDetailsOverviewState();
 }
 
-class _RoomDetailsOverviewState
-    extends State<RoomDetailsOverview> {
-  bool _showLanguages = false;
-  int _selectedLanguage = 0;
-
-  static const Color bg = Color(0xFF09070B);
+class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
+  static const Color bg = Color(0xFF100810);
   static const Color gold = Color(0xFFFFD700);
-  static const Color pink = Color(0xFFFF1688);
-  static const Color panel = Color(0xFF17121D);
+  static const Color pink = Color(0xFFFF4FA3);
+  static const Color panel = Color(0xFF24101F);
 
-  final List<String> languages = [
-    'English',
+  final List<String> _languages = [
+    'Pashto',
     'Urdu',
+    'Punjabi',
+    'English',
     'Arabic',
     'Hindi',
     'Chinese',
     'French',
     'Turkish',
     'Vietnamese',
+    'Bengali',
+    'Persian',
   ];
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: bg,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // TOP OPTIONS
-            Row(
-              children: [
-                _topOption('Profil'),
-                const SizedBox(width: 8),
-                _topOption('Member'),
-                const SizedBox(width: 8),
-                _topOption('Card'),
-              ],
-            ),
+  final Set<String> _selectedLanguages = {};
 
-            const SizedBox(height: 22),
+  int _selectedTab = 0;
 
-            // ROOM DP AND ROOM NAME
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 112,
-                  height: 112,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: gold,
-                      width: 2,
-                    ),
-                    color: panel,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: widget.roomPhotoBase64.isNotEmpty
-                        ? Image.memory(
-                            base64Decode(
-                              widget.roomPhotoBase64,
-                            ),
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(
-                              Icons.meeting_room_rounded,
-                              color: gold,
-                              size: 42,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.meeting_room_rounded,
-                            color: gold,
-                            size: 42,
-                          ),
-                  ),
-                ),
+  Future<void> _copyRoomId() async {
+    await Clipboard.setData(
+      ClipboardData(text: widget.roomUid),
+    );
 
-                const SizedBox(width: 14),
+    if (!mounted) return;
 
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.roomName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _showLanguages =
-                                !_showLanguages;
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 9,
-                          ),
-                          decoration: BoxDecoration(
-                            color: panel,
-                            borderRadius:
-                                BorderRadius.circular(9),
-                            border: Border.all(color: gold),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.language,
-                                color: gold,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 7),
-                              Flexible(
-                                child: Text(
-                                  languages[_selectedLanguage],
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 5),
-                              Icon(
-                                _showLanguages
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: gold,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      if (_showLanguages) ...[
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: List.generate(
-                            languages.length,
-                            (index) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedLanguage = index;
-                                    _showLanguages = false;
-                                  });
-                                },
-                                child: Container(
-                                  padding:
-                                      const EdgeInsets.symmetric(
-                                    horizontal: 9,
-                                    vertical: 7,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _selectedLanguage ==
-                                            index
-                                        ? gold
-                                        : panel,
-                                    borderRadius:
-                                        BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: gold,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    languages[index],
-                                    style: TextStyle(
-                                      color:
-                                          _selectedLanguage ==
-                                                  index
-                                              ? Colors.black
-                                              : Colors.white,
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 22),
-
-            // DESCRIPTION
-            Container(
-              width: double.infinity,
-              constraints: const BoxConstraints(
-                minHeight: 170,
-              ),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: panel,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: gold,
-                  width: 1.4,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(
-                        Icons.description_rounded,
-                        color: gold,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Room Description',
-                        style: TextStyle(
-                          color: gold,
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    widget.roomDescription.isEmpty
-                        ? 'No description available'
-                        : widget.roomDescription,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // POINTS
-            Row(
-              children: [
-                Expanded(
-                  child: _pointBox(
-                    'Club Point',
-                    widget.clubPoint,
-                    Icons.stars_rounded,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _pointBox(
-                    'Member Point',
-                    widget.memberPoint,
-                    Icons.groups_rounded,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _pointBox(
-                    'Diamond Point',
-                    widget.diamondPoint,
-                    Icons.diamond_rounded,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('PartyNova ID copied'),
+        duration: Duration(seconds: 2),
       ),
     );
   }
 
-  Widget _topOption(String title) {
+  Future<void> _openLanguagePopup() async {
+    final Set<String> temporarySelection =
+        Set<String>.from(_selectedLanguages);
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              backgroundColor: panel,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              title: const Text(
+                'Select Room Languages',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 9,
+                    runSpacing: 10,
+                    children: _languages.map((language) {
+                      final bool selected =
+                          temporarySelection.contains(language);
+
+                      return GestureDetector(
+                        onTap: () {
+                          setDialogState(() {
+                            if (selected) {
+                              temporarySelection.remove(language);
+                            } else {
+                              temporarySelection.add(language);
+                            }
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 13,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: selected ? pink : bg,
+                            borderRadius: BorderRadius.circular(9),
+                            border: Border.all(
+                              color: selected
+                                  ? pink
+                                  : Colors.white24,
+                            ),
+                          ),
+                          child: Text(
+                            language,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: selected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text(
+                    'CANCEL',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedLanguages
+                        ..clear()
+                        ..addAll(temporarySelection);
+                    });
+
+                    Navigator.pop(dialogContext);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: pink,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('SAVE'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildTopTab(String title, int index) {
+    final bool selected = _selectedTab == index;
+
     return Expanded(
-      child: Container(
-        height: 54,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: panel,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: gold, width: 1.4),
-        ),
-        child: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {
+            _selectedTab = index;
+          });
+        },
+        child: SizedBox(
+          height: 48,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Center(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      color: selected ? pink : Colors.white70,
+                      fontSize: 15,
+                      fontWeight: selected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              Container(
+                height: 1,
+                color: Colors.black,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _pointBox(
+  Widget _buildPoint(
     String title,
     String value,
     IconData icon,
   ) {
-    return Container(
-      height: 112,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: panel,
-        borderRadius: BorderRadius.circular(11),
-        border: Border.all(color: gold),
-      ),
+    return Expanded(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: gold, size: 23),
-          const SizedBox(height: 6),
+          Icon(
+            icon,
+            color: pink,
+            size: 25,
+          ),
+          const SizedBox(height: 7),
           Text(
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
+              color: Colors.white70,
+              fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 5),
           Text(
             value,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: gold,
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -9253,7 +9127,344 @@ class _RoomDetailsOverviewState
       ),
     );
   }
+
+  Widget _buildRoomLevel() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'ROOM LEVEL',
+          style: TextStyle(
+            color: gold,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            const Icon(
+              Icons.workspace_premium_rounded,
+              color: gold,
+              size: 28,
+            ),
+            const SizedBox(width: 9),
+            const Text(
+              'Level 1',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '0%',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 9),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: const LinearProgressIndicator(
+            value: 0,
+            minHeight: 7,
+            backgroundColor: Colors.white12,
+            valueColor: AlwaysStoppedAnimation<Color>(pink),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _openLanguagePopup,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 12,
+        ),
+        decoration: BoxDecoration(
+          color: panel,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.language_rounded,
+              color: pink,
+              size: 21,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                _selectedLanguages.isEmpty
+                    ? 'Select Room Languages'
+                    : _selectedLanguages.join(', '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: pink,
+              size: 25,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: panel,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: pink.withOpacity(0.75),
+          width: 1.4,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: pink.withOpacity(0.10),
+            blurRadius: 12,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.description_rounded,
+                color: pink,
+                size: 21,
+              ),
+              SizedBox(width: 9),
+              Text(
+                'Room Description',
+                style: TextStyle(
+                  color: pink,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 13),
+          Text(
+            widget.roomDescription.trim().isEmpty
+                ? 'No description available'
+                : widget.roomDescription,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPoints() {
+    return Row(
+      children: [
+        _buildPoint(
+          'Member Point',
+          widget.memberPoint,
+          Icons.groups_rounded,
+        ),
+        Container(
+          width: 1,
+          height: 55,
+          color: Colors.white24,
+        ),
+        _buildPoint(
+          'Club Point',
+          widget.clubPoint,
+          Icons.stars_rounded,
+        ),
+        Container(
+          width: 1,
+          height: 55,
+          color: Colors.white24,
+        ),
+        _buildPoint(
+          'Gift Point',
+          widget.giftPoint,
+          Icons.card_giftcard_rounded,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final roomImage = getCachedProfilePhotoImage(
+      widget.roomPhotoBase64,
+    );
+
+    return Scaffold(
+      backgroundColor: bg,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top tabs.
+              Row(
+                children: [
+                  _buildTopTab('Profil', 0),
+                  _buildTopTab('Member', 1),
+                  _buildTopTab('Card', 2),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Room photo, PartyNova ID and room name.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 116,
+                    height: 116,
+                    child: roomImage == null
+                        ? const Icon(
+                            Icons.groups_rounded,
+                            color: pink,
+                            size: 75,
+                          )
+                        : ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image(
+                              image: roomImage,
+                              width: 116,
+                              height: 116,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              'ID: ',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                widget.roomUid,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: gold,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _copyRoomId,
+                              icon: const Icon(
+                                Icons.copy_rounded,
+                                color: pink,
+                                size: 18,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 32,
+                                minHeight: 32,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: () {
+                            // Room name action can be connected later.
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.roomName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const Icon(
+                                Icons.chevron_right_rounded,
+                                color: pink,
+                                size: 25,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Room level.
+              _buildRoomLevel(),
+
+              const SizedBox(height: 23),
+
+              // Language selector.
+              _buildLanguageSelector(),
+
+              const SizedBox(height: 22),
+
+              // Room description.
+              _buildDescription(),
+
+              const SizedBox(height: 26),
+
+              // Member, Club and Gift points.
+              _buildPoints(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+                                      
+        
 
 
 
