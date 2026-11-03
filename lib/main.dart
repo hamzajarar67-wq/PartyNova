@@ -2352,14 +2352,15 @@ Widget buildUserSearchResult() {
         final data = doc.data();
 
         return <String, dynamic>{
-          'docId': doc.id,
-          'name': (data['roomName'] ?? '').toString(),
-          'uid': (data['ownerUserId'] ?? '').toString(),
-          'members': data['memberCount'] ?? 0,
-          'photo': (data['roomPhotoBase64'] ?? '').toString(),
-          'description': (data['roomDescription'] ?? '').toString(),
-          'createdAt': data['createdAt'],
-        };
+  'docId': doc.id,
+  'name': (data['roomName'] ?? '').toString(),
+  'uid': (data['ownerUserId'] ?? '').toString(),
+  'ownerUid': (data['ownerUid'] ?? '').toString(),
+  'members': data['memberCount'] ?? 0,
+  'photo': (data['roomPhotoBase64'] ?? '').toString(),
+  'description': (data['roomDescription'] ?? '').toString(),
+  'createdAt': data['createdAt'],
+};
       }).where((room) {
         final name = room['name'].toString().toLowerCase();
         final uid = room['uid'].toString();
@@ -2409,9 +2410,10 @@ Widget buildUserSearchResult() {
           ),
           itemBuilder: (context, index) {
             final room = rooms[index];
-            final roomPhoto = room['photo'].toString();
-            final roomImage = getCachedProfilePhotoImage(roomPhoto);
+final roomPhoto = room['photo'].toString();
+final roomOwnerUid = room['ownerUid'].toString();
 
+final roomImage = getCachedProfilePhotoImage(roomPhoto);
             return InkWell(
               key: ValueKey(room['docId']),
               borderRadius: BorderRadius.circular(16),
