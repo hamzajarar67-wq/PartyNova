@@ -1888,11 +1888,26 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   }
 
 
+final Map<String, Future<DocumentSnapshot<Map<String, dynamic>>>>
+    _legacyRoomProfileFutures = {};
+
 late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
     FirebaseFirestore.instance
         .collection('rooms')
         .where('isActive', isEqualTo: true)
         .snapshots();
+
+Future<DocumentSnapshot<Map<String, dynamic>>> _getLegacyRoomProfile(
+  String ownerUid,
+) {
+  return _legacyRoomProfileFutures.putIfAbsent(
+    ownerUid,
+    () => FirebaseFirestore.instance
+        .collection('users')
+        .doc(ownerUid)
+        .get(),
+  );
+}
 
 
   
