@@ -2487,23 +2487,41 @@ final roomImage = getCachedProfilePhotoImage(roomPhoto);
                                     ),
                                   ),
                                   child: ClipOval(
-                                    child: roomImage != null
-                                        ? Image(
-                                            image: roomImage,
-                                            fit: BoxFit.cover,
-                                          )
-                                        : const ColoredBox(
-                                            color: Color(0xFF392047),
-                                            child: Icon(
-                                              Icons.groups_rounded,
-                                              size: 55,
-                                              color: Color(0xFFFFB9DD),
-                                            ),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ),
+  child: roomImage != null
+      ? Image(
+          image: roomImage,
+          fit: BoxFit.cover,
+        )
+      : FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          future: roomOwnerUid.isEmpty
+              ? null
+              : _getLegacyRoomProfile(roomOwnerUid),
+          builder: (context, snapshot) {
+            final profileData = snapshot.data?.data();
+            final profilePhoto =
+                (profileData?['photoBase64'] ?? '').toString();
+
+            final fallbackImage =
+                getCachedProfilePhotoImage(profilePhoto);
+
+            if (fallbackImage != null) {
+              return Image(
+                image: fallbackImage,
+                fit: BoxFit.cover,
+              );
+            }
+
+            return const ColoredBox(
+              color: Color(0xFF392047),
+              child: Icon(
+                Icons.groups_rounded,
+                size: 55,
+                color: Color(0xFFFFB9DD),
+              ),
+            );
+          },
+        ),
+),
                             Positioned(
                               top: 9,
                               right: 8,
