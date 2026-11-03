@@ -9597,31 +9597,50 @@ Padding(
   padding: const EdgeInsets.fromLTRB(0, 8, 6, 6),
   child: Row(
     children: [
-      // Room DP - same size, no background or border.
-      ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: SizedBox(
-          width: 82,
-          height: 82,
-          child: getCachedProfilePhotoImage(
-                    widget.roomPhotoBase64,
-                  ) ==
-                  null
-              ? const Icon(
-                  Icons.groups_rounded,
-                  color: gold,
-                  size: 48,
-                )
-              : Image(
-                  image: getCachedProfilePhotoImage(
-                    widget.roomPhotoBase64,
-                  )!,
-                  width: 82,
-                  height: 82,
-                  fit: BoxFit.cover,
-                ),
+      // Room DP - tap to open Room Details.
+InkWell(
+  borderRadius: BorderRadius.circular(12),
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: darkBlue,
+          body: SafeArea(
+            child: RoomDetailsOverview(
+              roomName: widget.roomName,
+              roomPhotoBase64: widget.roomPhotoBase64,
+            ),
+          ),
         ),
       ),
+    );
+  },
+  child: ClipRRect(
+    borderRadius: BorderRadius.circular(12),
+    child: SizedBox(
+      width: 82,
+      height: 82,
+      child: getCachedProfilePhotoImage(
+                widget.roomPhotoBase64,
+              ) ==
+              null
+          ? const Icon(
+              Icons.groups_rounded,
+              color: gold,
+              size: 48,
+            )
+          : Image(
+              image: getCachedProfilePhotoImage(
+                widget.roomPhotoBase64,
+              )!,
+              width: 82,
+              height: 82,
+              fit: BoxFit.cover,
+            ),
+    ),
+  ),
+),
 
       const SizedBox(width: 8),
 
