@@ -2521,6 +2521,9 @@ final roomImage = getCachedProfilePhotoImage(roomPhoto);
             );
           },
         ),
+      ),
+    ),
+  ),
 ),
                             Positioned(
                               top: 9,
