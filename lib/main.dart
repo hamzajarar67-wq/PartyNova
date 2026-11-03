@@ -9819,9 +9819,10 @@ InkWell(
           backgroundColor: darkBlue,
           body: SafeArea(
             child: RoomDetailsOverview(
-              roomName: widget.roomName,
-              roomPhotoBase64: widget.roomPhotoBase64,
-            ),
+  roomName: widget.roomName,
+  roomUid: widget.roomUid,
+  roomPhotoBase64: widget.roomPhotoBase64,
+),
           ),
         ),
       ),
