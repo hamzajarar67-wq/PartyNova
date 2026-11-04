@@ -93,9 +93,11 @@ const Map<String, String> partyNovaReservedIds = {
   'hamzajarar67@gmail.com': '111112',
 };
 
-const Color partyPink = Color(0xFFFF1688);
-const Color partyBlack = Color(0xFF09070B);
-const Color partyGold = Color(0xFFFFD780);
+const Color partyPink = Color(0xFF3C78B8);
+const Color partyBlack = Color(0xFF0B1C2A);
+const Color partyGold = Color(0xFF9AB8CF);
+const Color partyNavy = Color(0xFF10283B);
+const Color partyTeal = Color(0xFF122F3A);
 const Color partyWhite = Color(0xFFFFFFFF);
 
 String partyNovaRoleForEmail(String? email) {
@@ -141,7 +143,7 @@ BoxDecoration partyNightDecoration() {
       colors: [
         Color(0xFF7A174A),
         Color(0xFF321024),
-        Color(0xFF09070B),
+        Color(0xFF0B1C2A),
       ],
       stops: [0.0, 0.48, 1.0],
     ),
@@ -311,7 +313,7 @@ class PartyNovaApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: partyBlack,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: partyPink,
+          seedColor: const Color(0xFF3C78B8),
           brightness: Brightness.dark,
         ),
       ),
@@ -1542,7 +1544,7 @@ Widget _socialDesignSection({
         Text(
           title,
           style: const TextStyle(
-            color: const Color(0xFF09070B),
+            color: const Color(0xFF0B1C2A),
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -1563,7 +1565,7 @@ Widget _socialDesignSection({
                 child: Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFF09070B),
+                    color: Color(0xFF0B1C2A),
                     fontSize: 15,
                   ),
                 ),
@@ -1627,7 +1629,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           backgroundColor: const Color(0xFF21101F),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
-            side: const BorderSide(color: Color(0xFFFFD780), width: 1.5),
+            side: const BorderSide(color: Color(0xFF9AB8CF), width: 1.5),
           ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 28, 24, 22),
@@ -1635,13 +1637,13 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.meeting_room_rounded,
-                    color: Color(0xFFFFD780), size: 46),
+                    color: Color(0xFF9AB8CF), size: 46),
                 const SizedBox(height: 14),
                 const Text(
                   'CREATE YOUR ROOM',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Color(0xFFFFD780),
+                    color: Color(0xFF9AB8CF),
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.1,
@@ -1682,7 +1684,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF1688),
+                          backgroundColor: const Color(0xFF3C78B8),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
@@ -1801,6 +1803,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
                     roomPhotoBase64: roomPhoto,
+                    roomDocumentId: room.id,
                   ),
                 ),
               );
@@ -1821,7 +1824,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 88),
+                      const SizedBox(height: 66),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -1866,10 +1869,10 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   ),
                 ),
                 Positioned(
-                  top: -34,
-                  left: 18,
-                  right: 18,
-                  height: 132,
+                  top: -24,
+                  left: 42,
+                  right: 42,
+                  height: 90,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: roomImage != null
@@ -1955,7 +1958,7 @@ Future<DocumentSnapshot<Map<String, dynamic>>> _getLegacyRoomProfile(
   
   Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
-  const pink = Color(0xFFFF4FA3);
+  const pink = Color(0xFF3C78B8);
   const panel = Color(0xFF21101F);
   const purple = Color(0xFF392047);
 
@@ -2471,6 +2474,8 @@ Widget buildUserSearchResult() {
                       builder: (context) => PartyRoomScreen(
                         roomName: room['name'].toString(),
                         roomUid: room['uid'].toString(),
+                        roomPhotoBase64: room['photo'].toString(),
+                        roomDocumentId: room['docId'].toString(),
                       ),
                     ),
                   );
@@ -2721,7 +2726,7 @@ Widget _buildProfileTab(User? user) {
       if (!snapshot.hasData) {
         return const Center(
           child: CircularProgressIndicator(
-            color: Color(0xFFFFD780),
+            color: Color(0xFF9AB8CF),
           ),
         );
       }
@@ -2748,7 +2753,7 @@ Widget _buildProfileTab(User? user) {
       final isOwnerOrAdmin = role == 'owner' || role == 'admin';
 
       return Container(
-        color: const Color(0xFF09070B),
+        color: const Color(0xFF0B1C2A),
         width: double.infinity,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -2779,10 +2784,10 @@ Widget _buildProfileTab(User? user) {
                       vertical: 9,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF1688).withValues(alpha: 0.12),
+                      color: const Color(0xFF3C78B8).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(22),
                       border: Border.all(
-                        color: const Color(0xFFFF1688),
+                        color: const Color(0xFF3C78B8),
                       ),
                     ),
                     child: const Row(
@@ -2797,7 +2802,7 @@ Widget _buildProfileTab(User? user) {
                         Text(
                           'Edit',
                           style: TextStyle(
-                            color: Color(0xFFFF1688),
+                            color: Color(0xFF3C78B8),
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -2818,18 +2823,18 @@ Widget _buildProfileTab(User? user) {
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFFFF1688),
-                      Color(0xFF7028A0),
+                      Color(0xFF3C78B8),
+                      Color(0xFF173B56),
                       Color(0xFF21102F),
                     ],
                   ),
                   border: Border.all(
-                    color: const Color(0xFFFFD780),
+                    color: const Color(0xFF9AB8CF),
                     width: 3,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFF1688)
+                      color: const Color(0xFF3C78B8)
                           .withValues(alpha: 0.25),
                       blurRadius: 20,
                       spreadRadius: 2,
@@ -2927,7 +2932,7 @@ const SizedBox(height: 14),
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: const Color(0xFFFFD780),
+                      color: const Color(0xFF9AB8CF),
                     ),
                   ),
                   child: Text(
@@ -2943,7 +2948,7 @@ const SizedBox(height: 14),
                   'ID: $userId',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Color(0xFFFFD780),
+                    color: Color(0xFF9AB8CF),
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 1,
@@ -2981,7 +2986,7 @@ Container(
   decoration: const BoxDecoration(
     border: Border.symmetric(
       horizontal: BorderSide(
-        color: Color(0xFFFFD780),
+        color: Color(0xFF9AB8CF),
         width: 0.7,
       ),
     ),
@@ -3043,14 +3048,14 @@ Widget _profileStatCard({
       color: const Color(0xFF17121D),
       borderRadius: BorderRadius.circular(14),
       border: Border.all(
-        color: const Color(0xFFFFD780).withValues(alpha: 0.45),
+        color: const Color(0xFF9AB8CF).withValues(alpha: 0.45),
       ),
     ),
     child: Column(
       children: [
         Icon(
           icon,
-          color: const Color(0xFFFF1688),
+          color: const Color(0xFF3C78B8),
           size: 23,
         ),
         const SizedBox(height: 8),
@@ -3067,7 +3072,7 @@ Widget _profileStatCard({
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Color(0xFFFFD780),
+            color: Color(0xFF9AB8CF),
             fontSize: 11,
           ),
         ),
@@ -3131,7 +3136,7 @@ void initState() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$feature functionality will be added later.'),
-        backgroundColor: const Color(0xFF7028A0),
+        backgroundColor: const Color(0xFF173B56),
       ),
     );
   }
@@ -3160,9 +3165,9 @@ Future<void> _pickDP() async {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Adjust Profile Photo',
-          toolbarColor: const Color(0xFF7028A0),
+          toolbarColor: const Color(0xFF173B56),
           toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: const Color(0xFFFF1688),
+          activeControlsWidgetColor: const Color(0xFF3C78B8),
           lockAspectRatio: true,
           aspectRatioPresets: [
             CropAspectRatioPreset.square,
@@ -3328,9 +3333,9 @@ Future<void> _saveProfile() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09070B),
+      backgroundColor: const Color(0xFF0B1C2A),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09070B),
+        backgroundColor: const Color(0xFF0B1C2A),
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
@@ -3354,13 +3359,13 @@ Future<void> _saveProfile() async {
                   shape: BoxShape.circle,
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFFFF1688),
-                      Color(0xFF7028A0),
+                      Color(0xFF3C78B8),
+                      Color(0xFF173B56),
                       Color(0xFF21102F),
                     ],
                   ),
                   border: Border.all(
-                    color: const Color(0xFFFFD780),
+                    color: const Color(0xFF9AB8CF),
                     width: 3,
                   ),
                 ),
@@ -3450,7 +3455,7 @@ TextField(
   child: ElevatedButton(
     onPressed: _saving ? null : _saveProfile,
     style: ElevatedButton.styleFrom(
-      backgroundColor: const Color(0xFFFF1688),
+      backgroundColor: const Color(0xFF3C78B8),
       foregroundColor: Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 15),
       shape: RoundedRectangleBorder(
@@ -3623,7 +3628,7 @@ builder: (_) => FramesGalleryPage(
       child: Text(
         title,
         style: const TextStyle(
-          color: Color(0xFFFFD780),
+          color: Color(0xFF9AB8CF),
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),
@@ -3652,20 +3657,20 @@ builder: (_) => FramesGalleryPage(
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Colors.white),
-prefixIcon: Icon(icon, color: const Color(0xFFFF1688)),
+prefixIcon: Icon(icon, color: const Color(0xFF3C78B8)),
 counterStyle: const TextStyle(color: Colors.white),
       filled: true,
       fillColor: const Color(0xFF17121D),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(
-          color: const Color(0xFFFF1688).withValues(alpha: 0.4),
+          color: const Color(0xFF3C78B8).withValues(alpha: 0.4),
         ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(
-          color: Color(0xFFFFD780),
+          color: Color(0xFF9AB8CF),
           width: 1.5,
         ),
       ),
@@ -3684,7 +3689,7 @@ counterStyle: const TextStyle(color: Colors.white),
         color: const Color(0xFF17121D),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: const Color(0xFFFF1688).withValues(alpha: 0.35),
+          color: const Color(0xFF3C78B8).withValues(alpha: 0.35),
         ),
       ),
       child: ListTile(
@@ -3697,12 +3702,12 @@ counterStyle: const TextStyle(color: Colors.white),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF1688).withValues(alpha: 0.13),
+            color: const Color(0xFF3C78B8).withValues(alpha: 0.13),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
-            color: const Color(0xFFFFD780),
+            color: const Color(0xFF9AB8CF),
           ),
         ),
         title: Text(
@@ -3721,7 +3726,7 @@ counterStyle: const TextStyle(color: Colors.white),
         ),
         trailing: const Icon(
           Icons.arrow_forward_ios_rounded,
-          color: Color(0xFFFF1688),
+          color: Color(0xFF3C78B8),
           size: 17,
         ),
       ),
@@ -3748,9 +3753,9 @@ _FramesGalleryPageState();
 class _FramesGalleryPageState extends State<FramesGalleryPage> {
 int _selectedFrame = 1;
 
-static const Color _background = Color(0xFF09070B);
-static const Color _pink = Color(0xFFFF1688);
-static const Color _gold = Color(0xFFFFD780);
+static const Color _background = Color(0xFF0B1C2A);
+static const Color _pink = Color(0xFF3C78B8);
+static const Color _gold = Color(0xFF9AB8CF);
 static const Color _panel = Color(0xFF17121D);
 
 static const List<String> _frameNames = [
@@ -3858,7 +3863,7 @@ static const List<String> _frameNames = [
 
 static const List<Color> _frameColors = [
 Color(0xFFFFD700),
-Color(0xFFFF1688),
+Color(0xFF3C78B8),
 Color(0xFF8A2BE2),
 Color(0xFF00CFFF),
 Color(0xFF20C997),
@@ -4195,9 +4200,9 @@ class ThemesGalleryPage extends StatefulWidget {
 class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
   int _selectedTheme = 1;
 
-  static const Color _background = Color(0xFF09070B);
-  static const Color _pink = Color(0xFFFF1688);
-  static const Color _gold = Color(0xFFFFD780);
+  static const Color _background = Color(0xFF0B1C2A);
+  static const Color _pink = Color(0xFF3C78B8);
+  static const Color _gold = Color(0xFF9AB8CF);
   static const Color _panel = Color(0xFF17121D);
 
   static const List<String> _names = [
@@ -5852,7 +5857,7 @@ class EntryGalleryPage extends StatefulWidget {
 }
 
 class _EntryGalleryPageState extends State<EntryGalleryPage> {
-  static const Color _background = Color(0xFF09070B);
+  static const Color _background = Color(0xFF0B1C2A);
   static const Color _card = Color(0xFF17121F);
   static const Color _gold = Color(0xFFFFC857);
   static const Color _purple = Color(0xFF8B5CF6);
@@ -8037,7 +8042,7 @@ class _RoyalBadgePainter extends CustomPainter {
   final int level;
   final bool isGift;
 
-  static const Color gold = Color(0xFFFFD780);
+  static const Color gold = Color(0xFF9AB8CF);
   static const Color dark = Color(0xFF071426);
 
   @override
@@ -8284,7 +8289,7 @@ class _RoyalBadgePainter extends CustomPainter {
       text: TextSpan(
         text: number,
         style: const TextStyle(
-          color: Color(0xFFFFD780),
+          color: Color(0xFF9AB8CF),
           fontSize: 14,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.4,
@@ -8476,7 +8481,7 @@ class _ProfileCountItem extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Color(0xFFFFD780),
+            color: Color(0xFF9AB8CF),
             fontSize: 11,
           ),
         ),
@@ -8709,7 +8714,7 @@ class SettingsPage extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Color(0xFFFF1688)),
+              style: TextStyle(color: Color(0xFF3C78B8)),
             ),
           ),
         ],
@@ -8880,8 +8885,9 @@ class _GlossySettingsBox extends StatelessWidget {
 
 class RoomDetailsOverview extends StatefulWidget {
   final String roomName;
-  final String roomUid;
+  final String roomUid; // Public PartyNova UID; never a Firestore document ID.
   final String roomPhotoBase64;
+  final String roomDocumentId; // Actual rooms/{documentId} key.
   final String roomDescription;
   final String memberPoint;
   final String clubPoint;
@@ -8891,6 +8897,7 @@ class RoomDetailsOverview extends StatefulWidget {
     super.key,
     required this.roomName,
     required this.roomUid,
+    required this.roomDocumentId,
     this.roomPhotoBase64 = '',
     this.roomDescription = '',
     this.memberPoint = '0',
@@ -8899,577 +8906,340 @@ class RoomDetailsOverview extends StatefulWidget {
   });
 
   @override
-  State<RoomDetailsOverview> createState() =>
-      _RoomDetailsOverviewState();
+  State<RoomDetailsOverview> createState() => _RoomDetailsOverviewState();
 }
 
 class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
-  static const Color bg = Color(0xFF100810);
-  static const Color gold = Color(0xFFFFD700);
-  static const Color pink = Color(0xFFFF4FA3);
-  static const Color panel = Color(0xFF24101F);
+  static const Color bg = Color(0xFF0B1C2A);
+  static const Color panel = Color(0xFF12283A);
+  static const Color panelLight = Color(0xFF17364D);
+  static const Color blue = Color(0xFF3C78B8);
+  static const Color textBlue = Color(0xFF9AB8CF);
+  static const Color teal = Color(0xFF12313D);
 
-  final List<String> _languages = [
-    'Pashto',
-    'Urdu',
-    'Punjabi',
-    'English',
-    'Arabic',
-    'Hindi',
-    'Chinese',
-    'French',
-    'Turkish',
-    'Vietnamese',
-    'Bengali',
-    'Persian',
+  final List<String> _languages = const [
+    'Pashto', 'Urdu', 'Punjabi', 'English', 'Arabic', 'Hindi',
+    'Chinese', 'French', 'Turkish', 'Vietnamese', 'Bengali', 'Persian',
   ];
-
-  final Set<String> _selectedLanguages = {};
-
+  final Set<String> _selectedLanguages = <String>{};
   int _selectedTab = 0;
+  String _roomName = '';
+  String _roomPhotoBase64 = '';
+  String _ownerUid = '';
+  bool _loading = true;
+  bool _saving = false;
+  bool _pickingPhoto = false;
+
+  DocumentReference<Map<String, dynamic>> get _roomRef =>
+      FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+
+  @override
+  void initState() {
+    super.initState();
+    _roomName = widget.roomName;
+    _roomPhotoBase64 = widget.roomPhotoBase64;
+    _loadRoomDetails();
+  }
+
+  Future<void> _loadRoomDetails() async {
+    try {
+      final doc = await _roomRef.get();
+      if (!mounted) return;
+      if (doc.exists) {
+        final data = doc.data() ?? <String, dynamic>{};
+        final rawLanguages = data['roomLanguages'];
+        setState(() {
+          _roomName = (data['roomName'] ?? widget.roomName).toString();
+          _roomPhotoBase64 = (data['roomPhotoBase64'] ?? widget.roomPhotoBase64).toString();
+          _ownerUid = (data['ownerUid'] ?? '').toString();
+          _selectedLanguages
+            ..clear()
+            ..addAll(rawLanguages is List
+                ? rawLanguages.map((e) => e.toString()).where(_languages.contains)
+                : <String>[]);
+        });
+      }
+    } catch (e) {
+      debugPrint('Load room details failed: $e');
+      if (mounted) _showMessage('Room details load nahi ho sake.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  bool get _isOwner => FirebaseAuth.instance.currentUser?.uid == _ownerUid && _ownerUid.isNotEmpty;
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   Future<void> _copyRoomId() async {
-    await Clipboard.setData(
-      ClipboardData(text: widget.roomUid),
-    );
+    await Clipboard.setData(ClipboardData(text: widget.roomUid));
+    _showMessage('PartyNova ID copied');
+  }
 
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('PartyNova ID copied'),
-        duration: Duration(seconds: 2),
+  Future<void> _editRoomName() async {
+    if (!_isOwner) {
+      _showMessage('Only the room owner can edit room details.');
+      return;
+    }
+    final controller = TextEditingController(text: _roomName);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panel,
+        title: const Text('Edit Room Name', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          maxLength: 30,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: 'Room name', hintStyle: TextStyle(color: textBlue)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
+          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('SAVE')),
+        ],
       ),
     );
+    controller.dispose();
+    if (value == null || value.trim().length < 3 || value.length > 30) return;
+    try {
+      setState(() => _saving = true);
+      await _roomRef.update({'roomName': value, 'updatedAt': FieldValue.serverTimestamp()});
+      if (!mounted) return;
+      setState(() => _roomName = value);
+      _showMessage('Room name saved.');
+    } catch (e) {
+      debugPrint('Save room name failed: $e');
+      _showMessage('Room name save nahi hua. Firestore rules check karein.');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _changeRoomPhoto() async {
+    if (!_isOwner) {
+      _showMessage('Only the room owner can edit room details.');
+      return;
+    }
+    if (_pickingPhoto || _saving) return;
+    setState(() => _pickingPhoto = true);
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 88);
+      if (picked == null || !mounted) return;
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 85,
+        uiSettings: [
+          AndroidUiSettings(toolbarTitle: 'Adjust Room Photo', toolbarColor: bg, toolbarWidgetColor: Colors.white, activeControlsWidgetColor: blue, lockAspectRatio: true, aspectRatioPresets: [CropAspectRatioPreset.square]),
+          IOSUiSettings(title: 'Adjust Room Photo', aspectRatioLockEnabled: true, resetAspectRatioEnabled: false),
+        ],
+      );
+      if (cropped == null || !mounted) return;
+      final bytes = await cropped.readAsBytes();
+      if (bytes.length > 450 * 1024) {
+        _showMessage('Photo too large hai. Chhoti photo select karein.');
+        return;
+      }
+      final encoded = base64Encode(bytes);
+      // Keep the current photo visible until Firebase confirms the new one.
+      setState(() => _saving = true);
+      await _roomRef.update({'roomPhotoBase64': encoded, 'updatedAt': FieldValue.serverTimestamp()});
+      if (!mounted) return;
+      setState(() => _roomPhotoBase64 = encoded);
+      _showMessage('Room photo saved.');
+    } catch (e) {
+      debugPrint('Save room photo failed: $e');
+      _showMessage('Room photo save nahi hui. Firestore rules check karein.');
+    } finally {
+      if (mounted) setState(() { _pickingPhoto = false; _saving = false; });
+    }
   }
 
   Future<void> _openLanguagePopup() async {
-    final Set<String> temporarySelection =
-        Set<String>.from(_selectedLanguages);
-
+    if (!_isOwner) {
+      _showMessage('Only the room owner can edit room details.');
+      return;
+    }
+    final temporary = Set<String>.from(_selectedLanguages);
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (dialogContext, setDialogState) {
-            return AlertDialog(
-              backgroundColor: panel,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          backgroundColor: panel,
+          title: const Text('Select Room Languages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 9, runSpacing: 10,
+                children: _languages.map((language) {
+                  final selected = temporary.contains(language);
+                  return GestureDetector(
+                    onTap: () => setDialogState(() => selected ? temporary.remove(language) : temporary.add(language)),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+                      decoration: BoxDecoration(color: selected ? blue : bg, borderRadius: BorderRadius.circular(8), border: Border.all(color: selected ? blue : textBlue.withOpacity(.35))),
+                      child: Text(language, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                    ),
+                  );
+                }).toList(),
               ),
-              title: const Text(
-                'Select Room Languages',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                child: SingleChildScrollView(
-                  child: Wrap(
-                    spacing: 9,
-                    runSpacing: 10,
-                    children: _languages.map((language) {
-                      final bool selected =
-                          temporarySelection.contains(language);
-
-                      return GestureDetector(
-                        onTap: () {
-                          setDialogState(() {
-                            if (selected) {
-                              temporarySelection.remove(language);
-                            } else {
-                              temporarySelection.add(language);
-                            }
-                          });
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 13,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: selected ? pink : bg,
-                            borderRadius: BorderRadius.circular(9),
-                            border: Border.all(
-                              color: selected
-                                  ? pink
-                                  : Colors.white24,
-                            ),
-                          ),
-                          child: Text(
-                            language,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(dialogContext);
-                  },
-                  child: const Text(
-                    'CANCEL',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedLanguages
-                        ..clear()
-                        ..addAll(temporarySelection);
-                    });
-
-                    Navigator.pop(dialogContext);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: pink,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('SAVE'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                try {
+                  setState(() => _saving = true);
+                  final selectedNames = _languages.where(temporary.contains).toList();
+                  await _roomRef.update({'roomLanguages': selectedNames, 'updatedAt': FieldValue.serverTimestamp()});
+                  if (!mounted) return;
+                  setState(() { _selectedLanguages..clear()..addAll(selectedNames); });
+                  _showMessage('Room languages saved.');
+                } catch (e) {
+                  debugPrint('Save room languages failed: $e');
+                  _showMessage('Languages save nahi hui. Firestore rules check karein.');
+                } finally {
+                  if (mounted) setState(() => _saving = false);
+                }
+              },
+              child: const Text('SAVE'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildTopTab(String title, int index) {
-    final bool selected = _selectedTab == index;
+  Widget _box({required Widget child, EdgeInsets padding = const EdgeInsets.all(14)}) => Container(
+    width: double.infinity,
+    padding: padding,
+    decoration: BoxDecoration(color: panel, borderRadius: BorderRadius.circular(9)),
+    child: child,
+  );
 
+  Widget _buildTab(String title, int index) {
+    final selected = _selectedTab == index;
     return Expanded(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: () {
-          setState(() {
-            _selectedTab = index;
-          });
-        },
-        child: SizedBox(
-          height: 48,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Center(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: selected ? pink : Colors.white70,
-                      fontSize: 15,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                height: 1,
-                color: Colors.black,
-              ),
-            ],
-          ),
+        onTap: () => setState(() => _selectedTab = index),
+        child: Container(
+          height: 50,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: selected ? const Color(0xFF173B56) : bg, border: Border(bottom: BorderSide(color: selected ? blue : Colors.transparent, width: 2))),
+          child: Text(title, style: TextStyle(color: selected ? Colors.white : blue, fontSize: 16, fontWeight: FontWeight.bold)),
         ),
       ),
     );
   }
 
-  Widget _buildPoint(
-    String title,
-    String value,
-    IconData icon,
-  ) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: pink,
-            size: 25,
-          ),
-          const SizedBox(height: 7),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            value,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: gold,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget _buildLanguages() => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: _openLanguagePopup,
+    child: _box(
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Icon(Icons.language_rounded, color: blue),
+        const SizedBox(width: 10),
+        Expanded(child: _selectedLanguages.isEmpty
+          ? const Text('Select Room Languages', style: TextStyle(color: textBlue, fontWeight: FontWeight.w600))
+          : Wrap(spacing: 8, runSpacing: 8, children: _languages.where(_selectedLanguages.contains).map((name) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(color: blue, borderRadius: BorderRadius.circular(5)),
+              child: Text(name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            )).toList())),
+        const Icon(Icons.chevron_right_rounded, color: blue),
+      ]),
+    ),
+  );
+
+  Widget _buildProfileTab() {
+    final photo = getCachedProfilePhotoImage(_roomPhotoBase64);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _box(child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        SizedBox(width: 116, child: Column(children: [
+          Align(alignment: Alignment.centerLeft, child: GestureDetector(onTap: _copyRoomId, child: Row(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(child: Text('ID: ${widget.roomUid}', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: textBlue, fontWeight: FontWeight.bold))),
+            const SizedBox(width: 4), const Icon(Icons.copy_rounded, color: blue, size: 20),
+          ]))),
+          const SizedBox(height: 14),
+          Stack(clipBehavior: Clip.none, children: [
+            ClipRRect(borderRadius: BorderRadius.circular(12), child: SizedBox(width: 104, height: 104, child: photo == null
+              ? const ColoredBox(color: panelLight, child: Icon(Icons.groups_rounded, color: textBlue, size: 55))
+              : Image(image: photo, fit: BoxFit.cover, gaplessPlayback: true))),
+            Positioned(right: -7, bottom: -7, child: Material(color: bg, shape: const CircleBorder(), child: IconButton(onPressed: _pickingPhoto || _saving ? null : _changeRoomPhoto, tooltip: 'Edit room photo', icon: const Icon(Icons.edit_rounded, color: Color(0xFF8FE36A), size: 22), constraints: const BoxConstraints(minWidth: 38, minHeight: 38)))),
+          ]),
+        ])),
+        const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          GestureDetector(onTap: _editRoomName, child: Row(children: [
+            Expanded(child: Text(_roomName, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold))),
+            const Icon(Icons.chevron_right_rounded, color: blue, size: 25),
+          ])),
+          const SizedBox(height: 15),
+          _buildLanguages(),
+        ])),
+      ])),
+      const SizedBox(height: 18),
+      _box(child: Row(children: [
+        const Expanded(child: Text('Room Level', style: TextStyle(color: textBlue, fontSize: 17, fontWeight: FontWeight.bold))),
+        const Icon(Icons.workspace_premium_rounded, color: Color(0xFF8FE36A), size: 30),
+        const SizedBox(width: 8),
+        const Expanded(child: LinearProgressIndicator(value: 0, minHeight: 14, backgroundColor: bg, color: blue)),
+        const SizedBox(width: 8), const Text('Level 1', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ])),
+      const SizedBox(height: 18),
+      _box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Row(children: [Expanded(child: Text('Announcement', style: TextStyle(color: textBlue, fontSize: 18, fontWeight: FontWeight.bold))), Icon(Icons.chevron_right_rounded, color: blue)]),
+        const SizedBox(height: 15),
+        Text(widget.roomDescription.trim().isEmpty ? 'No announcement yet.' : widget.roomDescription, style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.55)),
+      ])),
+      const SizedBox(height: 18),
+      _box(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Member Club', style: TextStyle(color: textBlue, fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 14),
+        Row(children: [
+          _statBox('Member', widget.memberPoint), const SizedBox(width: 8),
+          _statBox('Club Name', '—'), const SizedBox(width: 8),
+          _statBox('Club Tier', 'No Data'),
+        ]),
+      ])),
+    ]);
   }
 
-  Widget _buildRoomLevel() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'ROOM LEVEL',
-          style: TextStyle(
-            color: gold,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            const Icon(
-              Icons.workspace_premium_rounded,
-              color: gold,
-              size: 28,
-            ),
-            const SizedBox(width: 9),
-            const Text(
-              'Level 1',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              '0%',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 9),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: const LinearProgressIndicator(
-            value: 0,
-            minHeight: 7,
-            backgroundColor: Colors.white12,
-            valueColor: AlwaysStoppedAnimation<Color>(pink),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _statBox(String title, String value) => Expanded(child: Container(
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 15),
+    decoration: const BoxDecoration(color: teal),
+    child: Column(children: [Text(title, textAlign: TextAlign.center, style: const TextStyle(color: textBlue, fontWeight: FontWeight.bold, fontSize: 13)), const SizedBox(height: 10), Text(value, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15))]),
+  ));
 
-  Widget _buildLanguageSelector() {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: _openLanguagePopup,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 13,
-          vertical: 12,
-        ),
-        decoration: BoxDecoration(
-          color: panel,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.language_rounded,
-              color: pink,
-              size: 21,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _selectedLanguages.isEmpty
-                    ? 'Select Room Languages'
-                    : _selectedLanguages.join(', '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: pink,
-              size: 25,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDescription() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: panel,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: pink.withOpacity(0.75),
-          width: 1.4,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: pink.withOpacity(0.10),
-            blurRadius: 12,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.description_rounded,
-                color: pink,
-                size: 21,
-              ),
-              SizedBox(width: 9),
-              Text(
-                'Room Description',
-                style: TextStyle(
-                  color: pink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 13),
-          Text(
-            widget.roomDescription.trim().isEmpty
-                ? 'No description available'
-                : widget.roomDescription,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPoints() {
-    return Row(
-      children: [
-        _buildPoint(
-          'Member Point',
-          widget.memberPoint,
-          Icons.groups_rounded,
-        ),
-        Container(
-          width: 1,
-          height: 55,
-          color: Colors.white24,
-        ),
-        _buildPoint(
-          'Club Point',
-          widget.clubPoint,
-          Icons.stars_rounded,
-        ),
-        Container(
-          width: 1,
-          height: 55,
-          color: Colors.white24,
-        ),
-        _buildPoint(
-          'Gift Point',
-          widget.giftPoint,
-          Icons.card_giftcard_rounded,
-        ),
-      ],
-    );
-  }
+  Widget _buildOtherTab(String title, IconData icon) => _box(child: Column(children: [Icon(icon, color: blue, size: 42), const SizedBox(height: 10), Text('$title will be available here.', style: const TextStyle(color: textBlue))]));
 
   @override
   Widget build(BuildContext context) {
-    final roomImage = getCachedProfilePhotoImage(
-      widget.roomPhotoBase64,
-    );
-
     return Scaffold(
       backgroundColor: bg,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top tabs.
-              Row(
-                children: [
-                  _buildTopTab('Profil', 0),
-                  _buildTopTab('Member', 1),
-                  _buildTopTab('Card', 2),
-                ],
-              ),
-
-              const SizedBox(height: 24),
-
-              // Room photo, PartyNova ID and room name.
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 116,
-                    height: 116,
-                    child: roomImage == null
-                        ? const Icon(
-                            Icons.groups_rounded,
-                            color: pink,
-                            size: 75,
-                          )
-                        : ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image(
-                              image: roomImage,
-                              width: 116,
-                              height: 116,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const Text(
-                              'ID: ',
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                widget.roomUid,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: gold,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: _copyRoomId,
-                              icon: const Icon(
-                                Icons.copy_rounded,
-                                color: pink,
-                                size: 18,
-                              ),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(
-                                minWidth: 32,
-                                minHeight: 32,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: () {
-                            // Room name action can be connected later.
-                          },
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  widget.roomName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const Icon(
-                                Icons.chevron_right_rounded,
-                                color: pink,
-                                size: 25,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Room level.
-              _buildRoomLevel(),
-
-              const SizedBox(height: 23),
-
-              // Language selector.
-              _buildLanguageSelector(),
-
-              const SizedBox(height: 22),
-
-              // Room description.
-              _buildDescription(),
-
-              const SizedBox(height: 26),
-
-              // Member, Club and Gift points.
-              _buildPoints(),
-            ],
-          ),
-        ),
-      ),
+      body: SafeArea(child: Column(children: [
+        Row(children: [_buildTab('Profile', 0), _buildTab('Members', 1), _buildTab('Moments', 2), IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close_rounded, color: blue, size: 34))]),
+        if (_loading) const Expanded(child: Center(child: CircularProgressIndicator(color: blue)))
+        else Expanded(child: Stack(children: [
+          ListView(padding: const EdgeInsets.fromLTRB(12, 14, 12, 22), children: [
+            if (_selectedTab == 0) _buildProfileTab(),
+            if (_selectedTab == 1) _buildOtherTab('Members', Icons.groups_rounded),
+            if (_selectedTab == 2) _buildOtherTab('Moments', Icons.photo_library_rounded),
+          ]),
+          if (_saving) const Align(alignment: Alignment.topCenter, child: LinearProgressIndicator(color: blue, backgroundColor: Colors.transparent)),
+        ])),
+      ])),
     );
   }
 }
-                                      
-        
-
-
-
-
 
 class PartyRoomScreen extends StatefulWidget {
   final String roomName;
@@ -9490,10 +9260,10 @@ class PartyRoomScreen extends StatefulWidget {
 }
 
 class _PartyRoomScreenState extends State<PartyRoomScreen> {
-  static const Color darkBlue = Color(0xFF100810);
+  static const Color darkBlue = Color(0xFF0B1C2A);
   static const Color gold = Color(0xFFFFD700);
-  static const Color pink = Color(0xFFFF4FA3);
-  static const Color panelBlue = Color(0xFF24101F);
+  static const Color pink = Color(0xFF3C78B8);
+  static const Color panelBlue = Color(0xFF12283A);
 
   final TextEditingController _messageController =
       TextEditingController();
@@ -9818,15 +9588,11 @@ InkWell(
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          backgroundColor: darkBlue,
-          body: SafeArea(
-            child: RoomDetailsOverview(
-  roomName: widget.roomName,
-  roomUid: widget.roomUid,
-  roomPhotoBase64: widget.roomPhotoBase64,
-),
-          ),
+        builder: (_) => RoomDetailsOverview(
+          roomName: widget.roomName,
+          roomUid: widget.roomUid,
+          roomPhotoBase64: widget.roomPhotoBase64,
+          roomDocumentId: widget.roomDocumentId,
         ),
       ),
     );
@@ -10147,10 +9913,10 @@ class PartyNovaSearchPage extends StatefulWidget {
 }
 
 class _PartyNovaSearchPageState extends State<PartyNovaSearchPage> {
-  static const Color darkBlue = Color(0xFF100810);
+  static const Color darkBlue = Color(0xFF0B1C2A);
   static const Color gold = Color(0xFFFFD700);
-  static const Color pink = Color(0xFFFF4FA3);
-  static const Color panel = Color(0xFF24101F);
+  static const Color pink = Color(0xFF3C78B8);
+  static const Color panel = Color(0xFF12283A);
   static const Color purple = Color(0xFF703B91);
 
   final TextEditingController _searchController =
@@ -10855,7 +10621,7 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
 
   @override
   Widget build(BuildContext context) {
-    const black = Color(0xFF09070B);
+    const black = Color(0xFF0B1C2A);
 
     return Container(
       color: Colors.white,
@@ -10989,7 +10755,7 @@ class _SocialEmptySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Color(0xFF09070B), fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(color: Color(0xFF0B1C2A), fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
@@ -10997,9 +10763,9 @@ class _SocialEmptySection extends StatelessWidget {
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 children: [
-                  Icon(icon, color: const Color(0xFFFF1688), size: 32),
+                  Icon(icon, color: const Color(0xFF3C78B8), size: 32),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF09070B), fontSize: 15))),
+                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF0B1C2A), fontSize: 15))),
                 ],
               ),
             ),
@@ -11051,7 +10817,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
       stream: _incomingPendingStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFF3C78B8)));
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
           return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
@@ -11073,7 +10839,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                 key: ValueKey<String>(doc.id),
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF1688).withValues(alpha: 0.35))),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFF3C78B8).withValues(alpha: 0.35))),
                 child: Row(
                   children: [
                     InkWell(
@@ -11131,7 +10897,7 @@ class _BlackRequestAction extends StatelessWidget {
         child: Container(
           width: 34,
           height: 34,
-          decoration: BoxDecoration(color: const Color(0xFF09070B), borderRadius: BorderRadius.circular(8)),
+          decoration: BoxDecoration(color: const Color(0xFF0B1C2A), borderRadius: BorderRadius.circular(8)),
           child: Icon(icon, color: Colors.white, size: 20),
         ),
       );
@@ -11169,7 +10935,7 @@ class _FriendsListSection extends StatelessWidget {
         if (!outgoing.hasData) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFFF1688),
+              color: Color(0xFF3C78B8),
             ),
           );
         }
@@ -11190,7 +10956,7 @@ class _FriendsListSection extends StatelessWidget {
             if (!incoming.hasData) {
               return const Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFFFF1688),
+                  color: Color(0xFF3C78B8),
                 ),
               );
             }
@@ -11320,7 +11086,7 @@ class _FriendsListSection extends StatelessWidget {
                                     borderRadius:
                                         BorderRadius.circular(20),
                                     side: const BorderSide(
-                                      color: Color(0xFFFF1688),
+                                      color: Color(0xFF3C78B8),
                                       width: 1.5,
                                     ),
                                   ),
@@ -11346,7 +11112,7 @@ class _FriendsListSection extends StatelessWidget {
                                                   Icons.person_rounded,
                                                   size: 42,
                                                   color:
-                                                      Color(0xFFFF1688),
+                                                      Color(0xFF3C78B8),
                                                 )
                                               : null,
                                         ),
@@ -11374,7 +11140,7 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Delete',
                                           background:
-                                              const Color(0xFFFF1688),
+                                              const Color(0xFF3C78B8),
                                           foreground: Colors.white,
                                           onPressed: () async {
                                             final confirm =
@@ -11418,7 +11184,7 @@ class _FriendsListSection extends StatelessWidget {
                                                       'Remove',
                                                       style: TextStyle(
                                                         color: Color(
-                                                          0xFFFF1688,
+                                                          0xFF3C78B8,
                                                         ),
                                                       ),
                                                     ),
@@ -11580,7 +11346,7 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Profile',
                                           background:
-                                              const Color(0xFFFF1688),
+                                              const Color(0xFF3C78B8),
                                           foreground: Colors.white,
                                           onPressed: () {
                                             Navigator.pop(
@@ -11605,7 +11371,7 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Message',
                                           background:
-                                              const Color(0xFFFF1688),
+                                              const Color(0xFF3C78B8),
                                           foreground: Colors.white,
                                           onPressed: () {
                                             Navigator.pop(
@@ -11638,7 +11404,7 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Cancel',
                                           background:
-                                              const Color(0xFFFF1688),
+                                              const Color(0xFF3C78B8),
                                           foreground: Colors.white,
                                           onPressed: () =>
                                               Navigator.pop(
@@ -11691,7 +11457,7 @@ Widget _friendPopupButton({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(
-            color: Color(0xFFFF1688),
+            color: Color(0xFF3C78B8),
             width: 1,
           ),
         ),
@@ -11722,9 +11488,9 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
     required this.firebaseUid,
   });
 
-  static const Color _background = Color(0xFF09070B);
-  static const Color _gold = Color(0xFFFFD780);
-  static const Color _pink = Color(0xFFFF1688);
+  static const Color _background = Color(0xFF0B1C2A);
+  static const Color _gold = Color(0xFF9AB8CF);
+  static const Color _pink = Color(0xFF3C78B8);
 
   @override
   Widget build(BuildContext context) {
@@ -11824,8 +11590,8 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFFFF1688),
-                          Color(0xFF7028A0),
+                          Color(0xFF3C78B8),
+                          Color(0xFF173B56),
                           Color(0xFF21102F),
                         ],
                       ),
