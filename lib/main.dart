@@ -8934,6 +8934,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   late String _currentRoomPhotoBase64;
   late String _currentRoomDescription;
   bool _savingRoomDetails = false;
+  bool _pickingRoomPhoto = false;
 
   int _selectedTab = 0;
 
@@ -8970,23 +8971,25 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
   }
 
-  Future<void> _saveRoomFields(Map<String, dynamic> fields) async {
-    if (_savingRoomDetails) return;
+  Future<bool> _saveRoomFields(Map<String, dynamic> fields) async {
+    if (_savingRoomDetails) return false;
     setState(() => _savingRoomDetails = true);
     try {
       await FirebaseFirestore.instance
           .collection('rooms')
           .doc(widget.roomDocumentId)
           .update({...fields, 'updatedAt': FieldValue.serverTimestamp()});
-      if (!mounted) return;
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Room details saved')),
       );
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Save failed: $e')),
       );
+      return false;
     } finally {
       if (mounted) setState(() => _savingRoomDetails = false);
     }
@@ -9030,8 +9033,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     controller.dispose();
     if (result == null || result.isEmpty || !mounted) return;
     final field = editName ? 'roomName' : 'roomDescription';
-    await _saveRoomFields({field: result});
-    if (!mounted) return;
+    final saved = await _saveRoomFields({field: result});
+    if (!saved || !mounted) return;
     setState(() {
       if (editName) {
         _currentRoomName = result;
@@ -9042,21 +9045,66 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   }
 
   Future<void> _pickRoomPhoto() async {
+    if (_savingRoomDetails || _pickingRoomPhoto) return;
+    setState(() => _pickingRoomPhoto = true);
+
     try {
       final picked = await ImagePicker().pickImage(
         source: ImageSource.gallery,
-        imageQuality: 82,
       );
-      if (picked == null) return;
-      final encoded = base64Encode(await File(picked.path).readAsBytes());
-      await _saveRoomFields({'roomPhotoBase64': encoded});
-      if (!mounted) return;
+      if (picked == null || !mounted) return;
+
+      // Use the same square crop and JPEG compression as the normal profile DP.
+      final cropped = await ImageCropper().cropImage(
+        sourcePath: picked.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        compressFormat: ImageCompressFormat.jpg,
+        compressQuality: 90,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Adjust Room Photo',
+            toolbarColor: const Color(0xFF7028A0),
+            toolbarWidgetColor: Colors.white,
+            activeControlsWidgetColor: const Color(0xFFFF1688),
+            lockAspectRatio: true,
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+          ),
+          IOSUiSettings(
+            title: 'Adjust Room Photo',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+          ),
+        ],
+      );
+      if (cropped == null || !mounted) return;
+
+      final bytes = await cropped.readAsBytes();
+      // Match profile DP's 450 KB raw-image limit. This keeps Base64 safely
+      // below the Firestore document-size ceiling with room for other fields.
+      if (bytes.length > 450 * 1024) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Photo is too large. Please choose another photo.'),
+          ),
+        );
+        return;
+      }
+
+      final encoded = base64Encode(bytes);
+      final saved = await _saveRoomFields({'roomPhotoBase64': encoded});
+      if (!saved || !mounted) return;
       setState(() => _currentRoomPhotoBase64 = encoded);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Room photo updated successfully.')),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Photo update failed: $e')),
       );
+    } finally {
+      if (mounted) setState(() => _pickingRoomPhoto = false);
     }
   }
 
@@ -9992,23 +10040,26 @@ InkWell(
     child: SizedBox(
       width: 82,
       height: 82,
-      child: getCachedProfilePhotoImage(
-                widget.roomPhotoBase64,
-              ) ==
-              null
-          ? const Icon(
-              Icons.groups_rounded,
-              color: gold,
-              size: 48,
-            )
-          : Image(
-              image: getCachedProfilePhotoImage(
-                widget.roomPhotoBase64,
-              )!,
-              width: 82,
-              height: 82,
-              fit: BoxFit.cover,
-            ),
+      child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance
+            .collection('rooms')
+            .doc(widget.roomDocumentId)
+            .snapshots(),
+        builder: (context, snapshot) {
+          final livePhoto = (snapshot.data?.data()?['roomPhotoBase64'] ??
+                  widget.roomPhotoBase64)
+              .toString();
+          final liveImage = getCachedProfilePhotoImage(livePhoto);
+          return liveImage == null
+              ? const Icon(Icons.groups_rounded, color: gold, size: 48)
+              : Image(
+                  image: liveImage,
+                  width: 82,
+                  height: 82,
+                  fit: BoxFit.cover,
+                );
+        },
+      ),
     ),
   ),
 ),
@@ -10056,8 +10107,16 @@ InkWell(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    ScrollingRoomName(
-                      text: widget.roomName,
+                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: FirebaseFirestore.instance
+                          .collection('rooms')
+                          .doc(widget.roomDocumentId)
+                          .snapshots(),
+                      builder: (context, snapshot) => ScrollingRoomName(
+                        text: (snapshot.data?.data()?['roomName'] ??
+                                widget.roomName)
+                            .toString(),
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(
