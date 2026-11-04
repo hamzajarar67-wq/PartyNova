@@ -3154,7 +3154,7 @@ void initState() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$feature functionality will be added later.'),
-        backgroundColor: const Color(0xFF7028A0),
+        backgroundColor: const Color(0xFFFF1688),
       ),
     );
   }
@@ -3183,7 +3183,7 @@ Future<void> _pickDP() async {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Adjust Profile Photo',
-          toolbarColor: const Color(0xFF7028A0),
+          toolbarColor: const Color(0xFF09070B),
           toolbarWidgetColor: Colors.white,
           activeControlsWidgetColor: const Color(0xFFFF1688),
           lockAspectRatio: true,
@@ -3351,15 +3351,15 @@ Future<void> _saveProfile() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF09070B),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: const Color(0xFF09070B),
+        foregroundColor: Colors.white,
         elevation: 0,
         title: const Text(
           'Edit Profile',
           style: TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -3444,7 +3444,7 @@ _inputLabel('Change Name'),
 TextField(
   controller: _nameController,
   maxLength: 20,
-  style: const TextStyle(color: Colors.black),
+  style: const TextStyle(color: Colors.white),
   decoration: _inputDecoration(
     hint: 'Enter your name',
     icon: Icons.person_outline_rounded,
@@ -3459,7 +3459,7 @@ TextField(
               controller: _bioController,
               maxLength: 50,
               maxLines: 2,
-              style: const TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.white),
               decoration: _inputDecoration(
                 hint: 'Write something about yourself',
                 icon: Icons.edit_note_rounded,
@@ -3704,7 +3704,7 @@ counterStyle: const TextStyle(color: Colors.white),
     return Container(
       margin: const EdgeInsets.only(bottom: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFE6F2),
+        color: const Color(0xFF17121D),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
           color: const Color(0xFFFF1688).withValues(alpha: 0.35),
@@ -3731,14 +3731,14 @@ counterStyle: const TextStyle(color: Colors.white),
         title: Text(
           title,
           style: const TextStyle(
-            color: Colors.black,
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: const TextStyle(
-  color: Colors.black87,
+  color: Colors.white70,
   fontSize: 12,
           ),
         ),
