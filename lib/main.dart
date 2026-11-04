@@ -1801,6 +1801,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
                     roomPhotoBase64: roomPhoto,
+                    roomDocumentId: room.id,
                   ),
                 ),
               );
@@ -2471,6 +2472,8 @@ Widget buildUserSearchResult() {
                       builder: (context) => PartyRoomScreen(
                         roomName: room['name'].toString(),
                         roomUid: room['uid'].toString(),
+                        roomPhotoBase64: roomPhoto,
+                        roomDocumentId: room['docId'].toString(),
                       ),
                     ),
                   );
