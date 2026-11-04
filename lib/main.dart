@@ -1753,6 +1753,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
             roomName: roomName,
             roomUid: ownerUserId,
             roomPhotoBase64: ownerPhotoBase64,
+            roomDocumentId: roomRef.id,
           ),
         ),
       );
@@ -9474,12 +9475,14 @@ class PartyRoomScreen extends StatefulWidget {
   final String roomName;
   final String roomUid;
   final String roomPhotoBase64;
+  final String roomDocumentId;
 
   const PartyRoomScreen({
     super.key,
     required this.roomName,
     required this.roomUid,
     this.roomPhotoBase64 = '',
+    required this.roomDocumentId,
   });
 
   @override
