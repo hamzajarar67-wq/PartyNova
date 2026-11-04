@@ -9068,42 +9068,42 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             _selectedTab = index;
           });
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          height: 76,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(
-            color: selected ? pink.withOpacity(0.18) : panel,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(
-              color: selected ? pink : pink.withOpacity(0.35),
-              width: selected ? 1.8 : 1,
-            ),
-            boxShadow: selected
-                ? [
-                    BoxShadow(
-                      color: pink.withOpacity(0.16),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    ),
-                  ]
-                : const [],
-          ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 tabIcon,
                 color: selected ? pink : Colors.white70,
-                size: 25,
+                size: 27,
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
                   color: selected ? Colors.white : Colors.white70,
                   fontSize: 14,
                   fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 7),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: 3,
+                width: selected ? 34 : 0,
+                decoration: BoxDecoration(
+                  color: pink,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: selected
+                      ? [
+                          BoxShadow(
+                            color: pink.withOpacity(0.45),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : const [],
                 ),
               ),
             ],
