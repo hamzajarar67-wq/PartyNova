@@ -311,25 +311,8 @@ class PartyNovaApp extends StatelessWidget {
         useMaterial3: true,
         scaffoldBackgroundColor: partyBlack,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF1688),
-          primary: const Color(0xFFFF1688),
-          secondary: const Color(0xFFFF1688),
+          seedColor: partyPink,
           brightness: Brightness.dark,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF1688),
-            foregroundColor: Colors.white,
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(foregroundColor: const Color(0xFFFF1688)),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: const Color(0xFFFF1688),
-            side: const BorderSide(color: Color(0xFFFF1688)),
-          ),
         ),
       ),
       home: const AuthGate(),
@@ -1756,8 +1739,6 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   'ownerName': ownerName,
   'roomPhotoBase64': ownerPhotoBase64,
   'roomDescription': '',
-  'roomLanguages': <String>[],
-  'announcement': '',
   'memberCount': 1,
   'createdAt': now,
   'updatedAt': now,
@@ -1803,7 +1784,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         final room = snapshot.data!.docs.first;
         final data = room.data();
         final roomName = (data['roomName'] ?? '').toString();
-        final roomDescription = (data['announcement'] ?? '').toString().trim();
+        final roomDescription = (data['roomDescription'] ?? '').toString().trim();
         final roomPhoto = (data['roomPhotoBase64'] ?? '').toString();
         final ownerUid = (data['ownerUid'] ?? '').toString();
         final roomImage = getCachedProfilePhotoImage(roomPhoto);
@@ -1820,7 +1801,6 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     roomName: roomName,
                     roomUid: (data['ownerUserId'] ?? '').toString(),
                     roomPhotoBase64: roomPhoto,
-                    roomDocumentId: room.id,
                   ),
                 ),
               );
@@ -1841,7 +1821,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 68),
+                      const SizedBox(height: 88),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -1886,10 +1866,10 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   ),
                 ),
                 Positioned(
-                  top: -28,
-                  left: 52,
-                  right: 52,
-                  height: 96,
+                  top: -34,
+                  left: 18,
+                  right: 18,
+                  height: 132,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: roomImage != null
@@ -2406,7 +2386,7 @@ Widget buildUserSearchResult() {
           return const Expanded(
             child: Center(
               child: Text(
-                'Unable to load rooms. Please try again.',
+                'Rooms load nahi ho sake. Please try again.',
                 style: TextStyle(color: Colors.white70),
               ),
             ),
@@ -2431,8 +2411,7 @@ Widget buildUserSearchResult() {
             'ownerUid': (data['ownerUid'] ?? '').toString(),
             'members': data['memberCount'] ?? 0,
             'photo': (data['roomPhotoBase64'] ?? '').toString(),
-            'description': (data['announcement'] ?? '').toString(),
-            'announcement': (data['announcement'] ?? '').toString(),
+            'description': (data['roomDescription'] ?? '').toString(),
             'createdAt': data['createdAt'],
           };
         }).where((room) {
@@ -2492,8 +2471,6 @@ Widget buildUserSearchResult() {
                       builder: (context) => PartyRoomScreen(
                         roomName: room['name'].toString(),
                         roomUid: room['uid'].toString(),
-                        roomPhotoBase64: room['photo'].toString(),
-                        roomDocumentId: room['docId'].toString(),
                       ),
                     ),
                   );
@@ -3154,7 +3131,7 @@ void initState() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$feature functionality will be added later.'),
-        backgroundColor: const Color(0xFFFF1688),
+        backgroundColor: const Color(0xFF7028A0),
       ),
     );
   }
@@ -3183,7 +3160,7 @@ Future<void> _pickDP() async {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Adjust Profile Photo',
-          toolbarColor: const Color(0xFF09070B),
+          toolbarColor: const Color(0xFF7028A0),
           toolbarWidgetColor: Colors.white,
           activeControlsWidgetColor: const Color(0xFFFF1688),
           lockAspectRatio: true,
@@ -3738,7 +3715,7 @@ counterStyle: const TextStyle(color: Colors.white),
         subtitle: Text(
           subtitle,
           style: const TextStyle(
-  color: Colors.white70,
+  color: Colors.white,
   fontSize: 12,
           ),
         ),
@@ -4366,7 +4343,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
       Color(0xFFD8B8F2),
     ],
     [
-      Color(0xFF17121D),
+      Color(0xFF101B36),
       Color(0xFF176B87),
       Color(0xFF2CE5D2),
     ],
@@ -4810,8 +4787,8 @@ class OrnamentsGalleryPage extends StatefulWidget {
 
 class _OrnamentsGalleryPageState
     extends State<OrnamentsGalleryPage> {
-  final Color darkBlue = const Color(0xFF09070B);
-  final Color boxBlue = const Color(0xFF21101F);
+  final Color darkBlue = const Color(0xFF071426);
+  final Color boxBlue = const Color(0xFF102746);
   final Color gold = const Color(0xFFFFC857);
 
   int selectedIndex = 0;
@@ -5285,7 +5262,7 @@ class PvipPage extends StatefulWidget {
 }
 
 class _PvipPageState extends State<PvipPage> {
-  static const Color _background = Color(0xFF09070B);
+  static const Color _background = Color(0xFF050913);
   static const Color _panel = Color(0xFF0C1424);
   static const Color _gold = Color(0xFFFFC857);
 
@@ -6378,8 +6355,8 @@ class CrownGalleryPage extends StatefulWidget {
 }
 
 class _CrownGalleryPageState extends State<CrownGalleryPage> {
-  static const Color darkBlue = Color(0xFF09070B);
-  static const Color boxBlue = Color(0xFF21101F);
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color boxBlue = Color(0xFF102746);
   static const Color gold = Color(0xFFFFC857);
 
   int selectedLevel = 0;
@@ -7014,8 +6991,8 @@ class GameBadgeGalleryPage extends StatefulWidget {
 
 class _GameBadgeGalleryPageState
     extends State<GameBadgeGalleryPage> {
-  static const Color darkBlue = Color(0xFF09070B);
-  static const Color boxBlue = Color(0xFF21101F);
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color boxBlue = Color(0xFF102746);
   static const Color gold = Color(0xFFFFC857);
 
   int selectedBadge = 0;
@@ -7557,7 +7534,7 @@ class _GameBadgeArtwork extends StatelessWidget {
                 vertical: size * 0.025,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF09070B)
+                color: const Color(0xFF071426)
                     .withValues(alpha: 0.92),
                 borderRadius: BorderRadius.circular(size * 0.08),
                 border: Border.all(
@@ -7619,8 +7596,8 @@ class _RoyalBadgeGallery extends StatefulWidget {
 
 class _RoyalBadgeGalleryState
     extends State<_RoyalBadgeGallery> {
-  static const Color darkBlue = Color(0xFF09070B);
-  static const Color panelBlue = Color(0xFF21101F);
+  static const Color darkBlue = Color(0xFF071426);
+  static const Color panelBlue = Color(0xFF102746);
   static const Color gold = Color(0xFFFFC857);
 
   int selectedIndex = 0;
@@ -8061,7 +8038,7 @@ class _RoyalBadgePainter extends CustomPainter {
   final bool isGift;
 
   static const Color gold = Color(0xFFFFD780);
-  static const Color dark = Color(0xFF09070B);
+  static const Color dark = Color(0xFF071426);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -8902,7 +8879,6 @@ class _GlossySettingsBox extends StatelessWidget {
 
 
 class RoomDetailsOverview extends StatefulWidget {
-  final String roomDocumentId;
   final String roomName;
   final String roomUid;
   final String roomPhotoBase64;
@@ -8913,7 +8889,6 @@ class RoomDetailsOverview extends StatefulWidget {
 
   const RoomDetailsOverview({
     super.key,
-    required this.roomDocumentId,
     required this.roomName,
     required this.roomUid,
     this.roomPhotoBase64 = '',
@@ -8929,10 +8904,10 @@ class RoomDetailsOverview extends StatefulWidget {
 }
 
 class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
-  static const Color bg = Color(0xFF09070B);
-  static const Color gold = Color(0xFF8ED8D0);
-  static const Color pink = Color(0xFFFF1688);
-  static const Color panel = Color(0xFF21101F);
+  static const Color bg = Color(0xFF100810);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color pink = Color(0xFFFF4FA3);
+  static const Color panel = Color(0xFF24101F);
 
   final List<String> _languages = [
     'Pashto',
@@ -8950,73 +8925,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   ];
 
   final Set<String> _selectedLanguages = {};
-  String _roomPhotoBase64 = '';
-  String _roomName = '';
-  bool _loadingRoom = true;
 
   int _selectedTab = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _roomName = widget.roomName;
-    _roomPhotoBase64 = widget.roomPhotoBase64;
-    _loadRoomSettings();
-  }
-
-  Future<void> _loadRoomSettings() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection('rooms').doc(widget.roomDocumentId).get();
-      final data = doc.data();
-      if (!mounted || data == null) return;
-      setState(() {
-        _roomName = (data['roomName'] ?? widget.roomName).toString();
-        _roomPhotoBase64 = (data['roomPhotoBase64'] ?? widget.roomPhotoBase64).toString();
-        _selectedLanguages
-          ..clear()
-          ..addAll(List<String>.from(data['roomLanguages'] ?? const <String>[]));
-        _loadingRoom = false;
-      });
-    } catch (e) {
-      debugPrint('Room settings load failed: $e');
-      if (mounted) setState(() => _loadingRoom = false);
-    }
-  }
-
-  Future<void> _saveRoomField(String field, dynamic value) async {
-    await FirebaseFirestore.instance.collection('rooms')
-        .doc(widget.roomDocumentId).update({field: value, 'updatedAt': FieldValue.serverTimestamp()});
-  }
-
-  Future<void> _editRoomName() async {
-    final controller = TextEditingController(text: _roomName);
-    final value = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: panel,
-      title: const Text('Edit Room Name', style: TextStyle(color: Colors.white)),
-      content: TextField(controller: controller, maxLength: 30, style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(hintText: 'Room name', hintStyle: TextStyle(color: Colors.white54))),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
-        ElevatedButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('SAVE'))],
-    ));
-    controller.dispose();
-    if (value == null || value.length < 3) return;
-    try {
-      await _saveRoomField('roomName', value);
-      if (mounted) setState(() => _roomName = value);
-    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to save room name: $e'))); }
-  }
-
-  Future<void> _pickRoomPhoto() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 82);
-    if (picked == null) return;
-    try {
-      final encoded = base64Encode(await File(picked.path).readAsBytes());
-      await _saveRoomField('roomPhotoBase64', encoded);
-      if (mounted) setState(() => _roomPhotoBase64 = encoded);
-    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to save room photo: $e'))); }
-  }
-
 
   Future<void> _copyRoomId() async {
     await Clipboard.setData(
@@ -9116,17 +9026,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await _saveRoomField('roomLanguages', temporarySelection.toList());
-                      if (!mounted) return;
-                      setState(() {
-                        _selectedLanguages..clear()..addAll(temporarySelection);
-                      });
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    } catch (e) {
-                      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to save languages: $e')));
-                    }
+                  onPressed: () {
+                    setState(() {
+                      _selectedLanguages
+                        ..clear()
+                        ..addAll(temporarySelection);
+                    });
+
+                    Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: pink,
@@ -9144,6 +9051,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   Widget _buildTopTab(String title, int index) {
     final bool selected = _selectedTab == index;
+    final IconData tabIcon = index == 0
+        ? Icons.person_rounded
+        : index == 1
+            ? Icons.groups_rounded
+            : Icons.credit_card_rounded;
 
     return Expanded(
       child: GestureDetector(
@@ -9153,28 +9065,43 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             _selectedTab = index;
           });
         },
-        child: SizedBox(
-          height: 48,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Expanded(
-                child: Center(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      color: selected ? pink : Colors.white70,
-                      fontSize: 15,
-                      fontWeight: selected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 76,
+          margin: const EdgeInsets.symmetric(horizontal: 2),
+          decoration: BoxDecoration(
+            color: selected ? pink.withOpacity(0.18) : panel,
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(
+              color: selected ? pink : pink.withOpacity(0.35),
+              width: selected ? 1.8 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: pink.withOpacity(0.16),
+                      blurRadius: 10,
+                      spreadRadius: 1,
                     ),
-                  ),
-                ),
+                  ]
+                : const [],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                tabIcon,
+                color: selected ? pink : Colors.white70,
+                size: 25,
               ),
-              Container(
-                height: 1,
-                color: Colors.black,
+              const SizedBox(height: 5),
+              Text(
+                title,
+                style: TextStyle(
+                  color: selected ? Colors.white : Colors.white70,
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -9411,7 +9338,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   @override
   Widget build(BuildContext context) {
-    final roomImage = getCachedProfilePhotoImage(_roomPhotoBase64);
+    final roomImage = getCachedProfilePhotoImage(
+      widget.roomPhotoBase64,
+    );
 
     return Scaffold(
       backgroundColor: bg,
@@ -9421,10 +9350,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top tabs.
+              // Room profile navigation tabs (pink theme preserved).
               Row(
                 children: [
-                  _buildTopTab('Profile', 0),
+                  _buildTopTab('Profil', 0),
                   _buildTopTab('Member', 1),
                   _buildTopTab('Card', 2),
                 ],
@@ -9436,14 +9365,39 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  GestureDetector(
-                    onTap: _pickRoomPhoto,
-                    child: Stack(children: [
-                      Container(width: 116, height: 116, decoration: BoxDecoration(color: panel, borderRadius: BorderRadius.circular(10)),
-                        child: roomImage == null ? const Icon(Icons.groups_rounded, color: pink, size: 75)
-                          : ClipRRect(borderRadius: BorderRadius.circular(10), child: Image(image: roomImage, width: 116, height: 116, fit: BoxFit.cover))),
-                      const Positioned(right: 4, bottom: 4, child: CircleAvatar(radius: 15, backgroundColor: Colors.black87, child: Icon(Icons.edit, color: Colors.white, size: 16))),
-                    ]),
+                  Container(
+                    width: 116,
+                    height: 116,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: pink, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: pink.withOpacity(0.20),
+                          blurRadius: 12,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: roomImage == null
+                          ? const ColoredBox(
+                              color: panel,
+                              child: Icon(
+                                Icons.groups_rounded,
+                                color: pink,
+                                size: 65,
+                              ),
+                            )
+                          : Image(
+                              image: roomImage,
+                              width: 110,
+                              height: 110,
+                              fit: BoxFit.cover,
+                            ),
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -9489,13 +9443,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         const SizedBox(height: 12),
                         GestureDetector(
                           onTap: () {
-                            _editRoomName();
+                            // Room name action can be connected later.
                           },
                           child: Row(
                             children: [
                               Expanded(
                                 child: Text(
-                                  _roomName,
+                                  widget.roomName,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -9571,10 +9525,10 @@ class PartyRoomScreen extends StatefulWidget {
 }
 
 class _PartyRoomScreenState extends State<PartyRoomScreen> {
-  static const Color darkBlue = Color(0xFF09070B);
-  static const Color gold = Color(0xFF8ED8D0);
-  static const Color pink = Color(0xFFFF1688);
-  static const Color panelBlue = Color(0xFF21101F);
+  static const Color darkBlue = Color(0xFF100810);
+  static const Color gold = Color(0xFFFFD700);
+  static const Color pink = Color(0xFFFF4FA3);
+  static const Color panelBlue = Color(0xFF24101F);
 
   final TextEditingController _messageController =
       TextEditingController();
@@ -9582,52 +9536,9 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
-  String _liveRoomName = '';
-  String _liveRoomPhotoBase64 = '';
-  String _announcement = '';
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _roomSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _liveRoomName = widget.roomName;
-    _liveRoomPhotoBase64 = widget.roomPhotoBase64;
-    _roomSubscription = FirebaseFirestore.instance.collection('rooms')
-      .doc(widget.roomDocumentId).snapshots().listen((snapshot) {
-        final data = snapshot.data();
-        if (!mounted || data == null) return;
-        setState(() {
-          _liveRoomName = (data['roomName'] ?? widget.roomName).toString();
-          _liveRoomPhotoBase64 = (data['roomPhotoBase64'] ?? widget.roomPhotoBase64).toString();
-          _announcement = (data['announcement'] ?? '').toString();
-        });
-      }, onError: (Object e) => debugPrint('Room updates failed: $e'));
-  }
-
-  Future<void> _editAnnouncement() async {
-    final controller = TextEditingController(text: _announcement);
-    final value = await showDialog<String>(context: context, builder: (ctx) => AlertDialog(
-      backgroundColor: panelBlue,
-      title: const Text('Announcement', style: TextStyle(color: Colors.white)),
-      content: TextField(controller: controller, maxLines: 5, maxLength: 200,
-        inputFormatters: [LengthLimitingTextInputFormatter(200)],
-        buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
-        keyboardType: TextInputType.multiline, style: const TextStyle(color: Colors.white),
-        decoration: const InputDecoration(hintText: 'Write an announcement...', hintStyle: TextStyle(color: Colors.white54))),
-      actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('CANCEL')),
-        ElevatedButton(onPressed: () => Navigator.pop(ctx, controller.text.trim()), child: const Text('SAVE'))],
-    ));
-    controller.dispose();
-    if (value == null) return;
-    try {
-      await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
-        .update({'announcement': value, 'updatedAt': FieldValue.serverTimestamp()});
-    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unable to save announcement: $e'))); }
-  }
 
   @override
   void dispose() {
-    _roomSubscription?.cancel();
     _messageController.dispose();
     _messageFocusNode.dispose();
     super.dispose();
@@ -9946,10 +9857,9 @@ InkWell(
           backgroundColor: darkBlue,
           body: SafeArea(
             child: RoomDetailsOverview(
-  roomDocumentId: widget.roomDocumentId,
-  roomName: _liveRoomName,
+  roomName: widget.roomName,
   roomUid: widget.roomUid,
-  roomPhotoBase64: _liveRoomPhotoBase64,
+  roomPhotoBase64: widget.roomPhotoBase64,
 ),
           ),
         ),
@@ -9962,7 +9872,7 @@ InkWell(
       width: 82,
       height: 82,
       child: getCachedProfilePhotoImage(
-                _liveRoomPhotoBase64,
+                widget.roomPhotoBase64,
               ) ==
               null
           ? const Icon(
@@ -9972,7 +9882,7 @@ InkWell(
             )
           : Image(
               image: getCachedProfilePhotoImage(
-                _liveRoomPhotoBase64,
+                widget.roomPhotoBase64,
               )!,
               width: 82,
               height: 82,
@@ -10026,7 +9936,7 @@ InkWell(
                       CrossAxisAlignment.start,
                   children: [
                     ScrollingRoomName(
-                      text: _liveRoomName,
+                      text: widget.roomName,
                     ),
                     const SizedBox(height: 5),
                     Text(
@@ -10125,26 +10035,6 @@ InkWell(
                   const SizedBox(height: 13),
                   _buildSeatRow(11),
                 ],
-              ),
-            ),
-
-            // Room announcement appears below the seats.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
-              child: InkWell(
-                onTap: _editAnnouncement,
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: panelBlue, borderRadius: BorderRadius.circular(12), border: Border.all(color: gold.withOpacity(0.7))),
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('ANNOUNCEMENT', style: TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 12)),
-                    const SizedBox(height: 5),
-                    Text(_announcement.isEmpty ? 'Tap to add an announcement' : _announcement,
-                      maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 13)),
-                  ]),
-                ),
               ),
             ),
 
@@ -12579,7 +12469,7 @@ void dispose() {
     return Row(
       children: [
         CircleAvatar(
-          backgroundColor: const Color(0xFF17121D),
+          backgroundColor: const Color(0xFF101B36),
           backgroundImage: photoImage,
           child: photoImage == null
               ? const Icon(
@@ -12697,7 +12587,7 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                               )),
                               child: CircleAvatar(
                                 radius: 16,
-                                backgroundColor: const Color(0xFF17121D),
+                                backgroundColor: const Color(0xFF101B36),
                                 backgroundImage: senderPhotoImage,
                                 child: senderPhotoImage == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
                               ),
@@ -12740,7 +12630,7 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                               )),
                               child: CircleAvatar(
                                 radius: 16,
-                                backgroundColor: const Color(0xFF17121D),
+                                backgroundColor: const Color(0xFF101B36),
 backgroundImage: senderPhotoImage,
 child: senderPhotoImage == null
     ? const Icon(
