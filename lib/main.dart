@@ -8886,6 +8886,7 @@ class RoomDetailsOverview extends StatefulWidget {
   final String roomUid;
   final String roomPhotoBase64;
   final String roomDescription;
+  final String roomDocumentId;
   final String memberPoint;
   final String clubPoint;
   final String giftPoint;
@@ -8896,6 +8897,7 @@ class RoomDetailsOverview extends StatefulWidget {
     required this.roomUid,
     this.roomPhotoBase64 = '',
     this.roomDescription = '',
+    required this.roomDocumentId,
     this.memberPoint = '0',
     this.clubPoint = '0',
     this.giftPoint = '0',
@@ -8928,8 +8930,135 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   ];
 
   final Set<String> _selectedLanguages = {};
+  late String _currentRoomName;
+  late String _currentRoomPhotoBase64;
+  late String _currentRoomDescription;
+  bool _savingRoomDetails = false;
 
   int _selectedTab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentRoomName = widget.roomName;
+    _currentRoomPhotoBase64 = widget.roomPhotoBase64;
+    _currentRoomDescription = widget.roomDescription;
+    _loadRoomDetails();
+  }
+
+  Future<void> _loadRoomDetails() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId)
+          .get();
+      if (!mounted || !doc.exists) return;
+      final data = doc.data() ?? <String, dynamic>{};
+      setState(() {
+        _currentRoomName = (data['roomName'] ?? _currentRoomName).toString();
+        _currentRoomPhotoBase64 =
+            (data['roomPhotoBase64'] ?? _currentRoomPhotoBase64).toString();
+        _currentRoomDescription =
+            (data['roomDescription'] ?? _currentRoomDescription).toString();
+        _selectedLanguages
+          ..clear()
+          ..addAll(((data['roomLanguages'] as List?) ?? const [])
+              .map((e) => e.toString()));
+      });
+    } catch (e) {
+      debugPrint('Load room details failed: $e');
+    }
+  }
+
+  Future<void> _saveRoomFields(Map<String, dynamic> fields) async {
+    if (_savingRoomDetails) return;
+    setState(() => _savingRoomDetails = true);
+    try {
+      await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId)
+          .update({...fields, 'updatedAt': FieldValue.serverTimestamp()});
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Room details saved')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Save failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _savingRoomDetails = false);
+    }
+  }
+
+  Future<void> _editRoomText({required bool editName}) async {
+    final controller = TextEditingController(
+      text: editName ? _currentRoomName : _currentRoomDescription,
+    );
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panel,
+        title: Text(editName ? 'Change Room Name' : 'Room Description',
+            style: const TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: controller,
+          maxLength: editName ? 40 : 180,
+          maxLines: editName ? 1 : 3,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: editName ? 'Enter room name' : 'Enter room description',
+            hintStyle: const TextStyle(color: Colors.white54),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: pink),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: gold),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('CANCEL', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+              style: ElevatedButton.styleFrom(backgroundColor: pink),
+              child: const Text('SAVE')),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (result == null || result.isEmpty || !mounted) return;
+    final field = editName ? 'roomName' : 'roomDescription';
+    await _saveRoomFields({field: result});
+    if (!mounted) return;
+    setState(() {
+      if (editName) {
+        _currentRoomName = result;
+      } else {
+        _currentRoomDescription = result;
+      }
+    });
+  }
+
+  Future<void> _pickRoomPhoto() async {
+    try {
+      final picked = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 82,
+      );
+      if (picked == null) return;
+      final encoded = base64Encode(await File(picked.path).readAsBytes());
+      await _saveRoomFields({'roomPhotoBase64': encoded});
+      if (!mounted) return;
+      setState(() => _currentRoomPhotoBase64 = encoded);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Photo update failed: $e')),
+      );
+    }
+  }
 
   Future<void> _copyRoomId() async {
     await Clipboard.setData(
@@ -9035,7 +9164,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         ..clear()
                         ..addAll(temporarySelection);
                     });
-
+                    _saveRoomFields({'roomLanguages': temporarySelection.toList()});
                     Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
@@ -9252,58 +9381,30 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   }
 
   Widget _buildDescription() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: panel,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: pink.withOpacity(0.75),
-          width: 1.4,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: pink.withOpacity(0.10),
-            blurRadius: 12,
-            spreadRadius: 1,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.description_rounded,
-                color: pink,
-                size: 21,
-              ),
-              SizedBox(width: 9),
-              Text(
-                'Room Description',
-                style: TextStyle(
-                  color: pink,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 13),
-          Text(
-            widget.roomDescription.trim().isEmpty
-                ? 'No description available'
-                : widget.roomDescription,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              height: 1.5,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Expanded(
+              child: Text('Room Description', style: TextStyle(
+                color: pink, fontSize: 15, fontWeight: FontWeight.bold,
+              )),
             ),
-          ),
-        ],
-      ),
+            IconButton(
+              onPressed: () => _editRoomText(editName: false),
+              icon: const Icon(Icons.edit_rounded, color: pink, size: 19),
+              tooltip: 'Edit description',
+            ),
+          ],
+        ),
+        Text(
+          _currentRoomDescription.trim().isEmpty
+              ? 'No description added yet.'
+              : _currentRoomDescription,
+          style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.45),
+        ),
+      ],
     );
   }
 
@@ -9342,7 +9443,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   @override
   Widget build(BuildContext context) {
     final roomImage = getCachedProfilePhotoImage(
-      widget.roomPhotoBase64,
+      _currentRoomPhotoBase64,
     );
 
     return Scaffold(
@@ -9368,6 +9469,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  GestureDetector(
+                    onTap: _pickRoomPhoto,
+                    child: Stack(
+                      children: [
                   Container(
                     width: 116,
                     height: 116,
@@ -9401,6 +9506,20 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               fit: BoxFit.cover,
                             ),
                     ),
+                  ),
+                      Positioned(
+                        right: 2,
+                        bottom: 2,
+                        child: Container(
+                          padding: const EdgeInsets.all(5),
+                          decoration: const BoxDecoration(
+                            color: pink, shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.edit, color: Colors.white, size: 15),
+                        ),
+                      ),
+                    ],
+                  ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -9445,14 +9564,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         ),
                         const SizedBox(height: 12),
                         GestureDetector(
-                          onTap: () {
-                            // Room name action can be connected later.
-                          },
+                          onTap: () => _editRoomText(editName: true),
                           child: Row(
                             children: [
                               Expanded(
                                 child: Text(
-                                  widget.roomName,
+                                  _currentRoomName,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -9863,6 +9980,7 @@ InkWell(
   roomName: widget.roomName,
   roomUid: widget.roomUid,
   roomPhotoBase64: widget.roomPhotoBase64,
+  roomDocumentId: widget.roomDocumentId,
 ),
           ),
         ),
@@ -10039,6 +10157,31 @@ InkWell(
                   _buildSeatRow(11),
                 ],
               ),
+            ),
+
+            // Small unboxed room description beneath the mic/seats area.
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('rooms')
+                  .doc(widget.roomDocumentId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                final description = (snapshot.data?.data()?['roomDescription'] ?? '')
+                    .toString().trim();
+                if (description.isEmpty) return const SizedBox(height: 5);
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 8, 14, 5),
+                  child: Text(
+                    description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white70, fontSize: 12, height: 1.35,
+                    ),
+                  ),
+                );
+              },
             ),
 
             // Remaining room chat area.
