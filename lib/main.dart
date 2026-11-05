@@ -1618,6 +1618,23 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       return;
     }
 
+    // One PartyNova account may own only one room. Older duplicate room
+    // documents are retained in Firestore, but are not shown as separate rooms.
+    final firestore = FirebaseFirestore.instance;
+    final existingOwnedRooms = await firestore
+        .collection('rooms')
+        .where('ownerUid', isEqualTo: user.uid)
+        .limit(1)
+        .get();
+    if (existingOwnedRooms.docs.isNotEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You already have a room. Only one room is allowed per user.')),
+        );
+      }
+      return;
+    }
+
     final nameController = TextEditingController();
     final roomName = await showDialog<String>(
       context: context,
@@ -1716,7 +1733,21 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     if (roomName.length > 30) return;
 
     try {
-      final firestore = FirebaseFirestore.instance;
+      // Recheck immediately before writing, so a second tap/session does not
+      // normally create another room for the same owner.
+      final roomCheck = await firestore
+          .collection('rooms')
+          .where('ownerUid', isEqualTo: user.uid)
+          .limit(1)
+          .get();
+      if (roomCheck.docs.isNotEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You already have a room. Only one room is allowed per user.')),
+          );
+        }
+        return;
+      }
       final userSnapshot = await firestore.collection('users').doc(user.uid).get();
       if (!userSnapshot.exists) {
         throw StateError('Your user profile was not found.');
@@ -1785,6 +1816,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       stream: FirebaseFirestore.instance
           .collection('rooms')
           .where('ownerUid', isEqualTo: user.uid)
+          .orderBy('createdAt', descending: true)
           .limit(1)
           .snapshots(),
       builder: (context, snapshot) {
@@ -2426,11 +2458,42 @@ Widget buildUserSearchResult() {
             'description': (data['roomDescription'] ?? '').toString(),
             'createdAt': data['createdAt'],
           };
-        }).where((room) {
+        }).toList();
+
+        // Hide legacy duplicate rooms: keep only the newest active room for
+        // each owner. The old Firestore documents are deliberately not deleted.
+        final newestRoomByOwner = <String, Map<String, dynamic>>{};
+        final ownerlessRooms = <Map<String, dynamic>>[];
+        for (final room in rooms) {
+          final ownerId = room['ownerUid'].toString();
+          if (ownerId.isEmpty) {
+            ownerlessRooms.add(room);
+            continue;
+          }
+          final previous = newestRoomByOwner[ownerId];
+          if (previous == null) {
+            newestRoomByOwner[ownerId] = room;
+            continue;
+          }
+          final previousDate = previous['createdAt'];
+          final currentDate = room['createdAt'];
+          if (currentDate is Timestamp &&
+              (previousDate is! Timestamp || currentDate.compareTo(previousDate) > 0)) {
+            newestRoomByOwner[ownerId] = room;
+          }
+        }
+        final visibleRooms = <Map<String, dynamic>>[
+          ...newestRoomByOwner.values,
+          ...ownerlessRooms,
+        ];
+        final filteredRooms = visibleRooms.where((room) {
           final name = room['name'].toString().toLowerCase();
           final uid = room['uid'].toString();
           return name.contains(searchQuery) || uid.contains(searchQuery);
         }).toList();
+        rooms
+          ..clear()
+          ..addAll(filteredRooms);
 
         if (_selectedRoomFilter == 1) {
           rooms.sort((a, b) {
@@ -8950,6 +9013,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   int _selectedTab = 0;
   final TextEditingController _memberSearchController = TextEditingController();
   String _memberSearchQuery = '';
+  bool _legacyLeaderCheckStarted = false;
 
   @override
   void dispose() {
@@ -8964,6 +9028,63 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     _currentRoomPhotoBase64 = widget.roomPhotoBase64;
     _currentRoomDescription = widget.roomDescription;
     _loadRoomDetails();
+    _ensureLegacyLeaderMember();
+  }
+
+  // Older rooms were created before the members subcollection existed.
+  // Backfill the room creator as Leader so the Leader is visible in Member tab.
+  Future<void> _ensureLegacyLeaderMember() async {
+    if (_legacyLeaderCheckStarted) return;
+    _legacyLeaderCheckStarted = true;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return;
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '')
+          .toString()
+          .trim();
+      if (leaderUid.isEmpty) return;
+
+      final memberRef = roomRef.collection('members').doc(leaderUid);
+      final memberSnapshot = await memberRef.get();
+      final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+      if (memberSnapshot.exists &&
+          (memberData['role'] ?? '').toString() == 'Leader' &&
+          (memberData['userId'] ?? '').toString().isNotEmpty) {
+        return;
+      }
+
+      final userSnapshot = await firestore.collection('users').doc(leaderUid).get();
+      final userData = userSnapshot.data() ?? <String, dynamic>{};
+      final leaderUserId = (userData['userId'] ??
+              roomData['ownerUserId'] ??
+              memberData['userId'] ??
+              '')
+          .toString();
+      final leaderName = (userData['name'] ??
+              roomData['ownerName'] ??
+              memberData['name'] ??
+              'PartyNova User')
+          .toString();
+      final leaderPhoto = (userData['photoBase64'] ??
+              memberData['photoBase64'] ??
+              '')
+          .toString();
+
+      await memberRef.set({
+        'firebaseUid': leaderUid,
+        'userId': leaderUserId,
+        'name': leaderName,
+        'photoBase64': leaderPhoto,
+        'role': 'Leader',
+        if (!memberSnapshot.exists || memberData['joinedAt'] == null)
+          'joinedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Legacy room Leader member backfill failed: $e');
+    }
   }
 
   Future<void> _loadRoomDetails() async {
@@ -9604,7 +9725,36 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        Text('UID: $userId', style: const TextStyle(color: gold, fontSize: 12)),
+                        Row(
+                          children: [
+                            if (role.toLowerCase() == 'leader') ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFFFF1A8), Color(0xFFFFC107), Color(0xFFFF8F00)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(7),
+                                  boxShadow: const [
+                                    BoxShadow(color: Color(0x99FFD700), blurRadius: 7, spreadRadius: 1),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.auto_awesome_rounded, color: Color(0xFF4A2600), size: 12),
+                                    SizedBox(width: 3),
+                                    Text('LEADER', style: TextStyle(color: Color(0xFF4A2600), fontSize: 9, fontWeight: FontWeight.w900)),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Flexible(
+                              child: Text('UID: $userId', style: const TextStyle(color: gold, fontSize: 12)),
+                            ),
+                          ],
+                        ),
                       ])),
                       Text(role, style: const TextStyle(color: pink, fontSize: 12, fontWeight: FontWeight.w600)),
                     ],
