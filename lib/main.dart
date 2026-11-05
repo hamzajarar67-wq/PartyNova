@@ -1875,7 +1875,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         final roomName = (data['roomName'] ?? '').toString();
         final roomDescription = (data['roomDescription'] ?? '').toString().trim();
         final roomPhoto = (data['roomPhotoBase64'] ?? '').toString();
-        final ownerUid = (data['ownerUid'] ?? '').toString();
+        final ownerUid = (data['leaderUid'] ?? data['ownerUid'] ?? '').toString();
         final roomImage = getCachedProfilePhotoImage(roomPhoto);
 
         return Padding(
@@ -2497,8 +2497,9 @@ Widget buildUserSearchResult() {
           return <String, dynamic>{
             'docId': doc.id,
             'name': (data['roomName'] ?? '').toString(),
-            'uid': (data['ownerUserId'] ?? '').toString(),
+            'uid': (data['ownerUserId'] ?? data['leaderUserId'] ?? '').toString(),
             'ownerUid': (data['ownerUid'] ?? '').toString(),
+            'leaderUid': (data['leaderUid'] ?? '').toString(),
             'members': data['memberCount'] ?? 0,
             'photo': (data['roomPhotoBase64'] ?? '').toString(),
             'description': (data['roomDescription'] ?? '').toString(),
@@ -2568,7 +2569,9 @@ Widget buildUserSearchResult() {
             itemBuilder: (context, index) {
               final room = rooms[index];
               final roomPhoto = room['photo'].toString();
-              final roomOwnerUid = room['ownerUid'].toString();
+              final roomOwnerUid = (room['leaderUid'].toString().isNotEmpty
+                  ? room['leaderUid']
+                  : room['ownerUid']).toString();
               final roomImage = getCachedProfilePhotoImage(roomPhoto);
 
               return InkWell(
@@ -9049,6 +9052,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   final TextEditingController _memberSearchController = TextEditingController();
   String _memberSearchQuery = '';
   bool _leaderMemberBackfillStarted = false;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _roomDetailsSubscription;
 
   Future<void> _ensureLeaderMemberRecord() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -9061,22 +9065,34 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       if (!roomSnapshot.exists) return;
       final roomData = roomSnapshot.data() ?? <String, dynamic>{};
       final ownerUid = (roomData['ownerUid'] ?? '').toString();
-      final leaderUid = (roomData['leaderUid'] ?? '').toString();
+      var leaderUid = (roomData['leaderUid'] ?? '').toString();
+
+      // Older rooms may not have leaderUid yet. The room creator is the
+      // initial Leader, so safely migrate only that creator's own room.
+      if (leaderUid.isEmpty && ownerUid == user.uid) {
+        await roomRef.update({'leaderUid': user.uid});
+        leaderUid = user.uid;
+      }
       final isLeader = leaderUid == user.uid;
       final isOwner = ownerUid == user.uid;
-      // A viewer cannot create another user's Leader/Owner record.
       if (!isLeader && !isOwner) return;
 
       final profileSnapshot = await firestore.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      var partyNovaUid = (profile['userId'] ?? '').toString().trim();
+      if (partyNovaUid.isEmpty) {
+        partyNovaUid = await assignPartyNovaUserId(user);
+      }
       final memberRef = roomRef.collection('members').doc(user.uid);
       final memberSnapshot = await memberRef.get();
       final existing = memberSnapshot.data() ?? <String, dynamic>{};
 
       await memberRef.set({
         'firebaseUid': user.uid,
-        'userId': (profile['userId'] ?? existing['userId'] ?? '').toString(),
-        'name': (profile['name'] ?? existing['name'] ?? 'PartyNova User').toString(),
+        'userId': partyNovaUid.isNotEmpty
+            ? partyNovaUid
+            : (existing['userId'] ?? '').toString(),
+        'name': (profile['name'] ?? user.displayName ?? existing['name'] ?? 'PartyNova User').toString(),
         'photoBase64': (profile['photoBase64'] ?? existing['photoBase64'] ?? '').toString(),
         'clubName': (roomData['clubName'] ?? '').toString(),
         'role': isLeader ? 'Leader' : 'Owner',
@@ -9091,6 +9107,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   @override
   void dispose() {
+    _roomDetailsSubscription?.cancel();
     _memberSearchController.dispose();
     super.dispose();
   }
@@ -9102,6 +9119,29 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     _currentRoomPhotoBase64 = widget.roomPhotoBase64;
     _currentRoomDescription = widget.roomDescription;
     _currentClubName = '';
+    // Keep the Room Profile live for every viewer, not only the editor.
+    _roomDetailsSubscription = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId)
+        .snapshots()
+        .listen((snapshot) {
+      if (!mounted || !snapshot.exists) return;
+      final data = snapshot.data() ?? <String, dynamic>{};
+      setState(() {
+        _currentRoomName = (data['roomName'] ?? _currentRoomName).toString();
+        _currentRoomPhotoBase64 =
+            (data['roomPhotoBase64'] ?? _currentRoomPhotoBase64).toString();
+        _currentRoomDescription =
+            (data['roomDescription'] ?? _currentRoomDescription).toString();
+        _currentClubName = (data['clubName'] ?? _currentClubName).toString();
+        _selectedLanguages
+          ..clear()
+          ..addAll(((data['roomLanguages'] as List?) ?? const [])
+              .map((value) => value.toString()));
+      });
+    }, onError: (error) {
+      debugPrint('Live room profile update failed: $error');
+    });
     _loadRoomDetails();
   }
 
@@ -10175,7 +10215,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           .snapshots(),
       builder: (context, roomSnapshot) {
         final roomData = roomSnapshot.data?.data() ?? <String, dynamic>{};
-        final actualLeaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+        final storedLeaderUid = (roomData['leaderUid'] ?? '').toString();
+        final actualLeaderUid = storedLeaderUid.isNotEmpty
+            ? storedLeaderUid
+            : (roomData['ownerUid'] ?? '').toString();
         final actualOwnerUid = (roomData['ownerUid'] ?? '').toString();
         final actualDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
         return Column(
@@ -10664,10 +10707,55 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         .doc(user.uid);
   }
 
+  Future<void> _ensureCreatorLeaderMemberRecord() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return;
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final ownerUid = (roomData['ownerUid'] ?? '').toString();
+      var leaderUid = (roomData['leaderUid'] ?? '').toString();
+      if (leaderUid.isEmpty && ownerUid == user.uid) {
+        await roomRef.update({'leaderUid': user.uid});
+        leaderUid = user.uid;
+      }
+      // Only the actual Leader/creator can backfill their own Leader record.
+      if (leaderUid != user.uid) return;
+
+      final userRef = firestore.collection('users').doc(user.uid);
+      final userSnapshot = await userRef.get();
+      final profile = userSnapshot.data() ?? <String, dynamic>{};
+      var partyNovaUid = (profile['userId'] ?? '').toString().trim();
+      if (partyNovaUid.isEmpty) {
+        partyNovaUid = await assignPartyNovaUserId(user);
+      }
+      final leaderMemberRef = roomRef.collection('members').doc(user.uid);
+      final leaderMemberSnapshot = await leaderMemberRef.get();
+      await leaderMemberRef.set({
+        'firebaseUid': user.uid,
+        'userId': partyNovaUid,
+        'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+        'photoBase64': (profile['photoBase64'] ?? '').toString(),
+        'clubName': (roomData['clubName'] ?? '').toString(),
+        'role': 'Leader',
+        'isRoomLeader': true,
+        if (!leaderMemberSnapshot.exists) 'joinedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (error) {
+      debugPrint('Automatic Leader member setup failed: $error');
+    }
+  }
+
   Future<void> _startRoomPresence() async {
     final user = FirebaseAuth.instance.currentUser;
     final presenceRef = _myRoomPresenceRef;
-    if (user == null || presenceRef == null) return;
+    if (user == null) return;
+    // Repair older rooms independently of the presence write result.
+    unawaited(_ensureCreatorLeaderMemberRecord());
+    if (presenceRef == null) return;
     try {
       await presenceRef.set({
         'firebaseUid': user.uid,
@@ -11182,18 +11270,33 @@ InkWell(
             .doc(widget.roomDocumentId)
             .snapshots(),
         builder: (context, snapshot) {
-          final livePhoto = (snapshot.data?.data()?['roomPhotoBase64'] ??
+          final roomData = snapshot.data?.data() ?? <String, dynamic>{};
+          final livePhoto = (roomData['roomPhotoBase64'] ??
                   widget.roomPhotoBase64)
               .toString();
           final liveImage = getCachedProfilePhotoImage(livePhoto);
-          return liveImage == null
-              ? const Icon(Icons.groups_rounded, color: gold, size: 48)
-              : Image(
-                  image: liveImage,
-                  width: 82,
-                  height: 82,
-                  fit: BoxFit.cover,
-                );
+          if (liveImage != null) {
+            return Image(
+              image: liveImage,
+              width: 82,
+              height: 82,
+              fit: BoxFit.cover,
+            );
+          }
+          final creatorUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+          if (creatorUid.isEmpty) {
+            return const Icon(Icons.groups_rounded, color: gold, size: 48);
+          }
+          return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            future: FirebaseFirestore.instance.collection('users').doc(creatorUid).get(),
+            builder: (context, profileSnapshot) {
+              final profilePhoto = (profileSnapshot.data?.data()?['photoBase64'] ?? '').toString();
+              final fallbackImage = getCachedProfilePhotoImage(profilePhoto);
+              return fallbackImage == null
+                  ? const Icon(Icons.groups_rounded, color: gold, size: 48)
+                  : Image(image: fallbackImage, width: 82, height: 82, fit: BoxFit.cover);
+            },
+          );
         },
       ),
     ),
