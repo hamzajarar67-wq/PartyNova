@@ -9067,15 +9067,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final ownerUid = (roomData['ownerUid'] ?? '').toString();
       var leaderUid = (roomData['leaderUid'] ?? '').toString();
 
-      // Older rooms may not have leaderUid yet. The room creator is the
-      // initial Leader, so safely migrate only that creator's own room.
-      if (leaderUid.isEmpty && ownerUid == user.uid) {
-        await roomRef.update({'leaderUid': user.uid});
-        leaderUid = user.uid;
-      }
-      final isLeader = leaderUid == user.uid;
-      final isOwner = ownerUid == user.uid;
-      if (!isLeader && !isOwner) return;
+      // Older rooms may not have leaderUid. In that case only the owner
+      // is treated as the Leader; do not rewrite room ownership fields.
+      final isLeader = leaderUid.isNotEmpty
+          ? leaderUid == user.uid
+          : ownerUid == user.uid;
+      if (!isLeader) return;
 
       final profileSnapshot = await firestore.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
@@ -9085,20 +9082,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       }
       final memberRef = roomRef.collection('members').doc(user.uid);
       final memberSnapshot = await memberRef.get();
-      final existing = memberSnapshot.data() ?? <String, dynamic>{};
-
+      // Only backfill a missing Leader record. Never overwrite an existing
+      // member's role/profile fields from this self-service path.
+      if (memberSnapshot.exists) return;
       await memberRef.set({
         'firebaseUid': user.uid,
-        'userId': partyNovaUid.isNotEmpty
-            ? partyNovaUid
-            : (existing['userId'] ?? '').toString(),
-        'name': (profile['name'] ?? user.displayName ?? existing['name'] ?? 'PartyNova User').toString(),
-        'photoBase64': (profile['photoBase64'] ?? existing['photoBase64'] ?? '').toString(),
+        'userId': (roomData['ownerUserId'] ?? partyNovaUid).toString(),
+        'name': (roomData['ownerName'] ?? profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+        'photoBase64': (roomData['roomPhotoBase64'] ?? profile['photoBase64'] ?? '').toString(),
         'clubName': (roomData['clubName'] ?? '').toString(),
-        'role': isLeader ? 'Leader' : 'Owner',
-        'isRoomLeader': isLeader,
-        if (!memberSnapshot.exists) 'joinedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+        'role': 'Leader',
+        'isRoomLeader': true,
+        'joinedAt': FieldValue.serverTimestamp(),
+      });
     } catch (error) {
       debugPrint('Room owner/leader member backfill failed: $error');
       _leaderMemberBackfillStarted = false;
@@ -9800,13 +9796,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     });
     if (!ok || !mounted) return;
     setState(() => _currentClubName = clubName);
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await roomRef.collection('members').doc(user.uid).set(
-        {'clubName': clubName},
-        SetOptions(merge: true),
-      );
-    }
+    // The room document is the single source of truth for Club Name.
+    // New members copy it into their member record when they join.
   }
 
   Widget _buildPoints() {
@@ -10321,7 +10312,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 final data = docs[index].data();
                 final name = (data['name'] ?? 'PartyNova User').toString();
                 final userId = (data['userId'] ?? '').toString();
-                final photo = getCachedProfilePhotoImage((data['photoBase64'] ?? '').toString());
                 final role = (data['role'] ?? 'Member').toString();
                 final memberFirebaseUid = (data['firebaseUid'] ?? docs[index].id).toString();
                 final isLeader = actualLeaderUid.isNotEmpty && memberFirebaseUid == actualLeaderUid;
@@ -10371,7 +10361,23 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(radius: 23, backgroundColor: bg, backgroundImage: photo),
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('publicProfiles')
+                            .doc(memberFirebaseUid)
+                            .snapshots(),
+                        builder: (context, profileSnapshot) {
+                          final latestPhoto = (profileSnapshot.data?.data()?['photoBase64'] ??
+                                  data['photoBase64'] ??
+                                  '')
+                              .toString();
+                          return CircleAvatar(
+                            radius: 23,
+                            backgroundColor: bg,
+                            backgroundImage: getCachedProfilePhotoImage(latestPhoto),
+                          );
+                        },
+                      ),
                       const SizedBox(width: 11),
                       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Row(
