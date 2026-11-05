@@ -1790,6 +1790,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           'roomName': roomName,
           'ownerUid': user.uid,
           'leaderUid': user.uid,
+          'deputyLeaderUid': '',
           'ownerUserId': ownerUserId,
           'ownerName': ownerName,
           'roomPhotoBase64': ownerPhotoBase64,
@@ -1807,6 +1808,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           'photoBase64': ownerPhotoBase64,
           'clubName': '',
           'role': 'Leader',
+          'isRoomLeader': true,
           'joinedAt': now,
         });
         selectedRoomRef = newRoomRef;
@@ -2631,34 +2633,33 @@ Widget buildUserSearchResult() {
                             Positioned(
                               top: 9,
                               right: 8,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.58),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.bar_chart_rounded,
-                                      color: Color(0xFF18D6C0),
-                                      size: 16,
+                              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                                stream: FirebaseFirestore.instance
+                                    .collection('rooms')
+                                    .doc(room['docId'].toString())
+                                    .collection('presence')
+                                    .snapshots(),
+                                builder: (context, presenceSnapshot) {
+                                  final inRoom = (presenceSnapshot.data?.docs.isNotEmpty ?? false);
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.58),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${room['members']}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.bar_chart_rounded, color: Color(0xFF18D6C0), size: 16),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          inRoom ? '1' : '0',
+                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -9079,6 +9080,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         'photoBase64': (profile['photoBase64'] ?? existing['photoBase64'] ?? '').toString(),
         'clubName': (roomData['clubName'] ?? '').toString(),
         'role': isLeader ? 'Leader' : 'Owner',
+        'isRoomLeader': isLeader,
         if (!memberSnapshot.exists) 'joinedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (error) {
@@ -9779,6 +9781,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Expanded(
               child: Column(
                 children: [
+                  const Text('Club Name', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const SizedBox(height: 7),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
@@ -9844,8 +9848,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       _buildLeaderEditIcon(onPressed: _editClubName, tooltip: 'Edit Club Name'),
                     ],
                   ),
-                  const SizedBox(height: 7),
-                  const Text('Club Name', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
@@ -9982,6 +9984,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     required String memberFirebaseUid,
     required String memberName,
     required bool isDeputy,
+    required bool isAdmin,
   }) async {
     if (!await _isCurrentUserRoomLeader() || !mounted) return;
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
@@ -10034,6 +10037,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               'deputyLeaderUid': FieldValue.delete(),
               'updatedAt': FieldValue.serverTimestamp(),
             });
+          } else if (action == 'set_admin') {
+            if (memberRole == 'deputy leader') {
+              throw StateError('Remove Deputy Leader role before making this member an Admin.');
+            }
+            transaction.update(memberRef, {'role': 'Admin'});
+          } else if (action == 'remove_admin') {
+            transaction.update(memberRef, {'role': 'Member'});
           } else if (action == 'remove_member') {
             transaction.delete(memberRef);
             final updates = <String, dynamic>{
@@ -10053,7 +10063,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ? '$memberName is now Deputy Leader.'
                 : action == 'remove_deputy'
                     ? '$memberName is no longer Deputy Leader.'
-                    : '$memberName was removed from the room.',
+                    : action == 'set_admin'
+                        ? '$memberName is now an Admin.'
+                        : action == 'remove_admin'
+                            ? '$memberName is no longer an Admin.'
+                            : '$memberName was removed from the room.',
           )),
         );
       } catch (error) {
@@ -10069,57 +10083,76 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       barrierColor: Colors.black54,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 26),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Expanded(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  applyAction(isDeputy ? 'remove_deputy' : 'set_deputy');
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: panel,
-                  foregroundColor: isDeputy ? const Color(0xFFFF7777) : gold,
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(color: isDeputy ? Colors.redAccent : gold, width: 1),
-                  ),
-                ),
-                child: Text(
-                  isDeputy ? 'Remove Deputy Leader' : 'Set Deputy Leader',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: TextButton(
-                onPressed: () {
-                  Navigator.pop(dialogContext);
-                  applyAction('remove_member');
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: panel,
-                  foregroundColor: pink,
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: pink, width: 1),
-                  ),
-                ),
-                child: const Text(
-                  'Remove Member',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: panel,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: gold.withOpacity(0.55)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(children: [
+                Expanded(child: _memberActionButton(
+                  label: isDeputy ? 'Remove Deputy Leader' : 'Set Deputy Leader',
+                  color: isDeputy ? const Color(0xFFFF7777) : gold,
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    applyAction(isDeputy ? 'remove_deputy' : 'set_deputy');
+                  },
+                )),
+                const SizedBox(width: 9),
+                Expanded(child: _memberActionButton(
+                  label: isAdmin ? 'Remove Admin' : 'Set Admin',
+                  color: isAdmin ? const Color(0xFFFF7777) : const Color(0xFF70C7FF),
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    applyAction(isAdmin ? 'remove_admin' : 'set_admin');
+                  },
+                )),
+              ]),
+              const SizedBox(height: 9),
+              SizedBox(
+                width: double.infinity,
+                child: _memberActionButton(
+                  label: 'Remove Member',
+                  color: pink,
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    applyAction('remove_member');
+                  },
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+
+  Widget _memberActionButton({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: panel,
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 7),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: color, width: 1),
+        ),
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
       ),
     );
   }
@@ -10135,9 +10168,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         .doc(widget.roomDocumentId)
         .collection('members');
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId)
+          .snapshots(),
+      builder: (context, roomSnapshot) {
+        final roomData = roomSnapshot.data?.data() ?? <String, dynamic>{};
+        final actualLeaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+        final actualOwnerUid = (roomData['ownerUid'] ?? '').toString();
+        final actualDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
           stream: membersRef.orderBy('joinedAt', descending: true).snapshots(),
           builder: (context, snapshot) {
@@ -10207,10 +10250,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               final data = doc.data();
               return (data['userId'] ?? '').toString().contains(query);
             }).toList();
-            // Always show the room Leader before the other members.
+            // The room document is the single source of truth for role badges.
+            // This prevents a stale member role field from making the Leader badge flicker.
+            bool isLeaderDoc(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+              final memberData = doc.data();
+              final memberUid = (memberData['firebaseUid'] ?? doc.id).toString();
+              return actualLeaderUid.isNotEmpty && memberUid == actualLeaderUid;
+            }
             docs.sort((a, b) {
-              final aIsLeader = (a.data()['role'] ?? '').toString().toLowerCase() == 'leader';
-              final bIsLeader = (b.data()['role'] ?? '').toString().toLowerCase() == 'leader';
+              final aIsLeader = isLeaderDoc(a);
+              final bIsLeader = isLeaderDoc(b);
               if (aIsLeader == bIsLeader) return 0;
               return aIsLeader ? -1 : 1;
             });
@@ -10231,7 +10280,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 final userId = (data['userId'] ?? '').toString();
                 final photo = getCachedProfilePhotoImage((data['photoBase64'] ?? '').toString());
                 final role = (data['role'] ?? 'Member').toString();
-                final isLeader = role.toLowerCase() == 'leader';
+                final memberFirebaseUid = (data['firebaseUid'] ?? docs[index].id).toString();
+                final isLeader = actualLeaderUid.isNotEmpty && memberFirebaseUid == actualLeaderUid;
+                final isOwner = actualOwnerUid.isNotEmpty && memberFirebaseUid == actualOwnerUid;
+                final isDeputy = actualDeputyUid.isNotEmpty && memberFirebaseUid == actualDeputyUid;
+                final isAdmin = role.toLowerCase() == 'admin';
                 return InkWell(
                   borderRadius: BorderRadius.circular(13),
                   onTap: () {
@@ -10307,7 +10360,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                   ],
                                 ),
                               ),
-                            ] else if (role.toLowerCase() == 'deputy leader') ...[
+                            ] else if (isDeputy || role.toLowerCase() == 'deputy leader') ...[
                               const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
@@ -10333,21 +10386,26 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             ],
                           ],
                         ),
+                        if (!isLeader && !isDeputy && (isAdmin || isOwner || role.toLowerCase() == 'admin')) ...[
+                          const SizedBox(height: 4),
+                          Text(isOwner ? 'OWNER' : 'ADMIN', style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.7)),
+                        ],
                         const SizedBox(height: 4),
                         Text('UID: $userId', style: const TextStyle(color: gold, fontSize: 12)),
                       ])),
-                      if (!isLeader && role.toLowerCase() != 'owner')
+                      if (!isLeader && !isOwner && role.toLowerCase() != 'owner')
                         FutureBuilder<bool>(
                           future: _isCurrentUserRoomLeader(),
                           builder: (context, permissionSnapshot) {
                             if (permissionSnapshot.data != true) return const SizedBox.shrink();
-                            final isDeputy = role.toLowerCase() == 'deputy leader';
+                            final memberIsDeputy = isDeputy || role.toLowerCase() == 'deputy leader';
                             return IconButton(
                               tooltip: 'Member options',
                               onPressed: () => _showMemberManagementOptions(
                                 memberFirebaseUid: (data['firebaseUid'] ?? docs[index].id).toString(),
                                 memberName: name,
-                                isDeputy: isDeputy,
+                                isDeputy: memberIsDeputy,
+                                isAdmin: isAdmin,
                               ),
                               icon: const Icon(Icons.more_vert_rounded, color: pink, size: 23),
                             );
@@ -10361,7 +10419,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             );
           },
         ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -10592,6 +10652,56 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
+  Timer? _presenceHeartbeat;
+
+  DocumentReference<Map<String, dynamic>>? get _myRoomPresenceRef {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    return FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId)
+        .collection('presence')
+        .doc(user.uid);
+  }
+
+  Future<void> _startRoomPresence() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final presenceRef = _myRoomPresenceRef;
+    if (user == null || presenceRef == null) return;
+    try {
+      await presenceRef.set({
+        'firebaseUid': user.uid,
+        'enteredAt': FieldValue.serverTimestamp(),
+        'lastSeenAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      _presenceHeartbeat?.cancel();
+      _presenceHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
+        presenceRef.set({
+          'firebaseUid': user.uid,
+          'lastSeenAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      });
+    } catch (error) {
+      debugPrint('Room presence start failed: $error');
+    }
+  }
+
+  Future<void> _leaveRoomPresence() async {
+    _presenceHeartbeat?.cancel();
+    final presenceRef = _myRoomPresenceRef;
+    if (presenceRef == null) return;
+    try {
+      await presenceRef.delete();
+    } catch (error) {
+      debugPrint('Room presence cleanup failed: $error');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _startRoomPresence();
+  }
 
   Future<void> _joinRoom() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -10731,6 +10841,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
   @override
   void dispose() {
+    _presenceHeartbeat?.cancel();
+    unawaited(_leaveRoomPresence());
     _messageController.dispose();
     _messageFocusNode.dispose();
     super.dispose();
