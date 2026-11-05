@@ -9059,24 +9059,30 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final roomSnapshot = await roomRef.get();
       if (!roomSnapshot.exists) return;
       final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final ownerUid = (roomData['ownerUid'] ?? '').toString();
       final leaderUid = (roomData['leaderUid'] ?? '').toString();
-      if (leaderUid != user.uid) return;
-      final memberRef = roomRef.collection('members').doc(user.uid);
-      final memberSnapshot = await memberRef.get();
-      if (memberSnapshot.exists) return;
+      final isLeader = leaderUid == user.uid;
+      final isOwner = ownerUid == user.uid;
+      // A viewer cannot create another user's Leader/Owner record.
+      if (!isLeader && !isOwner) return;
+
       final profileSnapshot = await firestore.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      final memberRef = roomRef.collection('members').doc(user.uid);
+      final memberSnapshot = await memberRef.get();
+      final existing = memberSnapshot.data() ?? <String, dynamic>{};
+
       await memberRef.set({
         'firebaseUid': user.uid,
-        'userId': (profile['userId'] ?? '').toString(),
-        'name': (profile['name'] ?? 'PartyNova User').toString(),
-        'photoBase64': (profile['photoBase64'] ?? '').toString(),
+        'userId': (profile['userId'] ?? existing['userId'] ?? '').toString(),
+        'name': (profile['name'] ?? existing['name'] ?? 'PartyNova User').toString(),
+        'photoBase64': (profile['photoBase64'] ?? existing['photoBase64'] ?? '').toString(),
         'clubName': (roomData['clubName'] ?? '').toString(),
-        'role': 'Leader',
-        'joinedAt': FieldValue.serverTimestamp(),
-      });
+        'role': isLeader ? 'Leader' : 'Owner',
+        if (!memberSnapshot.exists) 'joinedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
     } catch (error) {
-      debugPrint('Leader member backfill failed: $error');
+      debugPrint('Room owner/leader member backfill failed: $error');
       _leaderMemberBackfillStarted = false;
     }
   }
@@ -9093,7 +9099,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     _currentRoomName = widget.roomName;
     _currentRoomPhotoBase64 = widget.roomPhotoBase64;
     _currentRoomDescription = widget.roomDescription;
-    _currentClubName = widget.roomName;
+    _currentClubName = '';
     _loadRoomDetails();
   }
 
@@ -9122,14 +9128,21 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
   }
 
+  // Room management is restricted to the actual room owner/leader.
+  // New rooms store both UIDs; the fallback supports older room documents.
   Future<bool> _isCurrentUserRoomLeader() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
     try {
       final room = await FirebaseFirestore.instance
           .collection('rooms').doc(widget.roomDocumentId).get();
+      if (!room.exists) return false;
       final data = room.data() ?? <String, dynamic>{};
-      return room.exists && (data['leaderUid'] ?? '').toString() == user.uid;
+      final ownerUid = (data['ownerUid'] ?? '').toString();
+      final leaderUid = (data['leaderUid'] ?? '').toString();
+      final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
+      final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+      return effectiveOwnerUid == user.uid && effectiveLeaderUid == user.uid;
     } catch (_) {
       return false;
     }
@@ -9139,7 +9152,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     if (_savingRoomDetails) return false;
     if (!await _isCurrentUserRoomLeader()) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Only this room Leader can edit room details.')),
+        const SnackBar(content: Text('Only this room Owner/Leader can edit room details.')),
       );
       return false;
     }
@@ -9174,35 +9187,51 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panel,
-        title: Text(editName ? 'Change Room Name' : 'Room Description',
-            style: const TextStyle(color: Colors.white)),
-        content: TextField(
-          controller: controller,
-          maxLength: editName ? 40 : 500,
-          maxLines: editName ? 1 : 8,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            hintText: editName ? 'Enter room name' : 'Enter room description',
-            hintStyle: const TextStyle(color: Colors.white54),
-            enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: pink),
-            ),
-            focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: gold),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+        title: Text(
+          editName ? 'Change Room Name' : 'Room Description',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: editName ? 74 : 300,
+          child: TextField(
+            controller: controller,
+            maxLength: editName ? 30 : 200,
+            maxLines: editName ? 1 : null,
+            expands: !editName,
+            textAlignVertical: TextAlignVertical.top,
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: editName ? 'Enter room name (max 30)' : 'Write room description (max 200 characters)',
+              hintStyle: const TextStyle(color: Colors.white54),
+              counterStyle: const TextStyle(color: Colors.white54),
+              enabledBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: pink, width: 1.2),
+              ),
+              focusedBorder: const UnderlineInputBorder(
+                borderSide: BorderSide(color: gold, width: 1.5),
+              ),
             ),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('CANCEL', style: TextStyle(color: Colors.white70))),
-          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-              style: ElevatedButton.styleFrom(backgroundColor: pink),
-              child: const Text('SAVE')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: pink),
+            child: const Text('SAVE'),
+          ),
         ],
       ),
     );
     controller.dispose();
     if (result == null || result.isEmpty || !mounted) return;
+    final maxLength = editName ? 30 : 200;
+    if (result.length > maxLength) return;
     final field = editName ? 'roomName' : 'roomDescription';
     final saved = await _saveRoomFields({field: result});
     if (!saved || !mounted) return;
@@ -9558,7 +9587,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   Widget _buildLanguageSelector() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: _openLanguagePopup,
+      onTap: () async {
+        if (await _isCurrentUserRoomLeader()) _openLanguagePopup();
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: 13,
@@ -9646,6 +9677,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             _currentRoomDescription.trim().isEmpty
                 ? 'No room rules or description added yet.'
                 : _currentRoomDescription,
+            textAlign: TextAlign.left,
             style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
           ),
         ],
@@ -9655,6 +9687,23 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   Future<void> _editClubName() async {
     if (!await _isCurrentUserRoomLeader()) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final roomSnapshot = await roomRef.get();
+    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+    final lastChanged = roomData['clubNameChangedAt'];
+    if (lastChanged is Timestamp) {
+      final nextAllowed = lastChanged.toDate().add(const Duration(days: 30));
+      if (DateTime.now().isBefore(nextAllowed)) {
+        final remaining = nextAllowed.difference(DateTime.now());
+        final days = remaining.inDays + (remaining.inHours % 24 == 0 ? 0 : 1);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Club Name can be changed after $days more day(s).')),
+        );
+        return;
+      }
+    }
+
     final controller = TextEditingController(text: _currentClubName);
     final value = await showDialog<String>(
       context: context,
@@ -9666,23 +9715,55 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           maxLength: 6,
           textCapitalization: TextCapitalization.characters,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(hintText: 'Max 6 characters', hintStyle: TextStyle(color: Colors.white54)),
+          decoration: const InputDecoration(
+            hintText: 'Maximum 6 letters',
+            hintStyle: TextStyle(color: Colors.white54),
+            counterStyle: TextStyle(color: Colors.white54),
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('CANCEL')),
-          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, controller.text.trim()), child: const Text('SAVE')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
+            style: ElevatedButton.styleFrom(backgroundColor: pink),
+            child: const Text('SAVE'),
+          ),
         ],
       ),
     );
     controller.dispose();
     if (value == null || value.isEmpty || value.length > 6 || !mounted) return;
-    final ok = await _saveRoomFields({'clubName': value});
+    final clubName = value.toUpperCase();
+
+    // Recheck authority and cooldown immediately before saving.
+    if (!await _isCurrentUserRoomLeader()) return;
+    final freshRoom = await roomRef.get();
+    final freshTimestamp = freshRoom.data()?['clubNameChangedAt'];
+    if (freshTimestamp is Timestamp &&
+        DateTime.now().isBefore(freshTimestamp.toDate().add(const Duration(days: 30)))) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Club Name can only be changed once every 30 days.')),
+        );
+      }
+      return;
+    }
+
+    final ok = await _saveRoomFields({
+      'clubName': clubName,
+      'clubNameChangedAt': FieldValue.serverTimestamp(),
+    });
     if (!ok || !mounted) return;
-    setState(() => _currentClubName = value);
+    setState(() => _currentClubName = clubName);
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
-          .collection('members').doc(user.uid).set({'clubName': value}, SetOptions(merge: true));
+      await roomRef.collection('members').doc(user.uid).set(
+        {'clubName': clubName},
+        SetOptions(merge: true),
+      );
     }
   }
 
@@ -9698,23 +9779,71 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Expanded(
               child: Column(
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Flexible(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [Color(0xFF4B2B16), Color(0xFF24130D), Color(0xFF68401D)]),
-                          border: Border.all(color: gold, width: 1.4),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF9A642D),
+                              Color(0xFF603512),
+                              Color(0xFF321A0D),
+                              Color(0xFF8B5726),
+                            ],
+                          ),
                           borderRadius: BorderRadius.circular(9),
-                          boxShadow: [BoxShadow(color: gold.withOpacity(0.35), blurRadius: 12)],
+                          border: Border.all(color: const Color(0xFFFFD58A), width: 1.2),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x99D99A45), blurRadius: 13, spreadRadius: 1),
+                            BoxShadow(color: Color(0x667A3D12), blurRadius: 4, spreadRadius: 2),
+                          ],
                         ),
-                        child: Text(clubName.isEmpty ? 'CLUB' : clubName,
-                          maxLines: 1, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Color(0xFFFFE7A0), fontWeight: FontWeight.w900, letterSpacing: 1)),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.shield_moon_rounded, color: Color(0xFFFFD58A), size: 17),
+                            const SizedBox(width: 6),
+                            Text(
+                              clubName.isEmpty ? 'CLUB' : clubName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFFFE6B8),
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.1,
+                                shadows: [
+                                  Shadow(color: Color(0xFFFFD27A), blurRadius: 9),
+                                  Shadow(color: Color(0xFFB66B2B), blurRadius: 15),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 7),
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const RadialGradient(
+                                  colors: [Color(0xFFFFB0B0), Color(0xFFFF2424), Color(0xFF8B0000)],
+                                ),
+                                border: Border.all(color: const Color(0xFFFFBABA), width: 0.8),
+                                boxShadow: const [
+                                  BoxShadow(color: Color(0xFFFF3030), blurRadius: 9, spreadRadius: 2),
+                                  BoxShadow(color: Color(0x99FF0000), blurRadius: 15, spreadRadius: 1),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    _buildLeaderEditIcon(onPressed: _editClubName, tooltip: 'Edit Club Name'),
-                  ]),
+                      _buildLeaderEditIcon(onPressed: _editClubName, tooltip: 'Edit Club Name'),
+                    ],
+                  ),
                   const SizedBox(height: 7),
                   const Text('Club Name', style: TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
@@ -9750,7 +9879,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         if (!roomSnapshot.exists) throw StateError('Room not found.');
         final roomData = roomSnapshot.data() ?? <String, dynamic>{};
         final leaderUid = (roomData['leaderUid'] ?? '').toString();
-        if (leaderUid == user.uid || memberSnapshot.exists) return;
+        final ownerUid = (roomData['ownerUid'] ?? '').toString();
+        if (leaderUid == user.uid || ownerUid == user.uid || memberSnapshot.exists) return;
+        final currentCount = (roomData['memberCount'] as num?)?.toInt() ?? 0;
+        if (currentCount >= 1000) {
+          throw StateError('This room has reached its 1000-member limit.');
+        }
         transaction.set(memberRef, {
           'firebaseUid': user.uid,
           'userId': partyNovaUid,
@@ -9818,7 +9952,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       stream: roomRef.snapshots(),
       builder: (context, roomSnapshot) {
         final roomData = roomSnapshot.data?.data() ?? <String, dynamic>{};
-        if ((roomData['leaderUid'] ?? '').toString() == currentUser.uid) return const SizedBox.shrink();
+        if ((roomData['leaderUid'] ?? '').toString() == currentUser.uid ||
+            (roomData['ownerUid'] ?? '').toString() == currentUser.uid) {
+          return const SizedBox.shrink();
+        }
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: roomRef.collection('members').doc(currentUser.uid).snapshots(),
           builder: (context, memberSnapshot) {
@@ -9841,6 +9978,152 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  Future<void> _showMemberManagementOptions({
+    required String memberFirebaseUid,
+    required String memberName,
+    required bool isDeputy,
+  }) async {
+    if (!await _isCurrentUserRoomLeader() || !mounted) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final memberRef = roomRef.collection('members').doc(memberFirebaseUid);
+
+    Future<void> applyAction(String action) async {
+      if (!await _isCurrentUserRoomLeader()) return;
+      try {
+        await FirebaseFirestore.instance.runTransaction((transaction) async {
+          final roomSnapshot = await transaction.get(roomRef);
+          final memberSnapshot = await transaction.get(memberRef);
+          if (!roomSnapshot.exists || !memberSnapshot.exists) {
+            throw StateError('Member or room no longer exists.');
+          }
+          final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+          final ownerUid = (roomData['ownerUid'] ?? '').toString();
+          final leaderUid = (roomData['leaderUid'] ?? '').toString();
+          final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+          final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
+          final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+          if (effectiveOwnerUid != currentUid || effectiveLeaderUid != currentUid) {
+            throw StateError('Only this room Owner/Leader can manage members.');
+          }
+          final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+          final memberRole = (memberData['role'] ?? 'Member').toString().toLowerCase();
+          if (memberFirebaseUid == ownerUid || memberFirebaseUid == leaderUid ||
+              memberRole == 'owner' || memberRole == 'leader') {
+            throw StateError('The room Owner/Leader cannot be changed here.');
+          }
+
+          if (action == 'set_deputy') {
+            final previousDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
+            DocumentSnapshot<Map<String, dynamic>>? previousDeputySnapshot;
+            DocumentReference<Map<String, dynamic>>? previousDeputyRef;
+            if (previousDeputyUid.isNotEmpty && previousDeputyUid != memberFirebaseUid) {
+              previousDeputyRef = roomRef.collection('members').doc(previousDeputyUid);
+              previousDeputySnapshot = await transaction.get(previousDeputyRef);
+            }
+            if (previousDeputyRef != null && previousDeputySnapshot?.exists == true) {
+              transaction.update(previousDeputyRef, {'role': 'Member'});
+            }
+            transaction.update(memberRef, {'role': 'Deputy Leader'});
+            transaction.update(roomRef, {
+              'deputyLeaderUid': memberFirebaseUid,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          } else if (action == 'remove_deputy') {
+            transaction.update(memberRef, {'role': 'Member'});
+            transaction.update(roomRef, {
+              'deputyLeaderUid': FieldValue.delete(),
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+          } else if (action == 'remove_member') {
+            transaction.delete(memberRef);
+            final updates = <String, dynamic>{
+              'memberCount': FieldValue.increment(-1),
+              'updatedAt': FieldValue.serverTimestamp(),
+            };
+            if ((roomData['deputyLeaderUid'] ?? '').toString() == memberFirebaseUid) {
+              updates['deputyLeaderUid'] = FieldValue.delete();
+            }
+            transaction.update(roomRef, updates);
+          }
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(
+            action == 'set_deputy'
+                ? '$memberName is now Deputy Leader.'
+                : action == 'remove_deputy'
+                    ? '$memberName is no longer Deputy Leader.'
+                    : '$memberName was removed from the room.',
+          )),
+        );
+      } catch (error) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not update member: $error')),
+        );
+      }
+    }
+
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 26),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  applyAction(isDeputy ? 'remove_deputy' : 'set_deputy');
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: panel,
+                  foregroundColor: isDeputy ? const Color(0xFFFF7777) : gold,
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(color: isDeputy ? Colors.redAccent : gold, width: 1),
+                  ),
+                ),
+                child: Text(
+                  isDeputy ? 'Remove Deputy Leader' : 'Set Deputy Leader',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.pop(dialogContext);
+                  applyAction('remove_member');
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: panel,
+                  foregroundColor: pink,
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: const BorderSide(color: pink, width: 1),
+                  ),
+                ),
+                child: const Text(
+                  'Remove Member',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMemberTab() {
     if (!_leaderMemberBackfillStarted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -9859,11 +10142,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           stream: membersRef.orderBy('joinedAt', descending: true).snapshots(),
           builder: (context, snapshot) {
             final count = snapshot.data?.docs.length ?? 0;
+            final displayCount = count > 1000 ? 1000 : count;
             return Row(
               children: [
                 const Text('Member', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold)),
-                const SizedBox(width: 9),
-                Text('($count)', style: const TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 10),
+                Text('$displayCount', style: const TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 9),
+                  width: 1.5,
+                  height: 20,
+                  color: Colors.white70,
+                ),
+                const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
                   tooltip: 'Member settings',
@@ -10016,17 +10307,51 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                   ],
                                 ),
                               ),
+                            ] else if (role.toLowerCase() == 'deputy leader') ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFFFFB1B1), Color(0xFFFF3030), Color(0xFF970000)],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFFFDADA), width: 0.8),
+                                  boxShadow: const [
+                                    BoxShadow(color: Color(0xAAFF2020), blurRadius: 10, spreadRadius: 1),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.workspace_premium_rounded, size: 12, color: Colors.white),
+                                    SizedBox(width: 3),
+                                    Text('DEPUTY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                                  ],
+                                ),
+                              ),
                             ],
                           ],
                         ),
                         const SizedBox(height: 4),
                         Text('UID: $userId', style: const TextStyle(color: gold, fontSize: 12)),
                       ])),
-                      if (!isLeader)
-                        IconButton(
-                          tooltip: 'More options',
-                          onPressed: () {},
-                          icon: const Icon(Icons.more_vert_rounded, color: pink, size: 23),
+                      if (!isLeader && role.toLowerCase() != 'owner')
+                        FutureBuilder<bool>(
+                          future: _isCurrentUserRoomLeader(),
+                          builder: (context, permissionSnapshot) {
+                            if (permissionSnapshot.data != true) return const SizedBox.shrink();
+                            final isDeputy = role.toLowerCase() == 'deputy leader';
+                            return IconButton(
+                              tooltip: 'Member options',
+                              onPressed: () => _showMemberManagementOptions(
+                                memberFirebaseUid: (data['firebaseUid'] ?? docs[index].id).toString(),
+                                memberName: name,
+                                isDeputy: isDeputy,
+                              ),
+                              icon: const Icon(Icons.more_vert_rounded, color: pink, size: 23),
+                            );
+                          },
                         ),
                     ],
                   ),
@@ -10288,8 +10613,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         if (!roomSnapshot.exists) throw StateError('Room not found.');
         final roomData = roomSnapshot.data() ?? <String, dynamic>{};
         final leaderUid = (roomData['leaderUid'] ?? '').toString();
-        if (leaderUid == user.uid) return;
+        final ownerUid = (roomData['ownerUid'] ?? '').toString();
+        if (leaderUid == user.uid || ownerUid == user.uid) return;
         if (memberSnapshot.exists) return;
+        final currentCount = (roomData['memberCount'] as num?)?.toInt() ?? 0;
+        if (currentCount >= 1000) {
+          throw StateError('This room has reached its 1000-member limit.');
+        }
         transaction.set(memberRef, {
           'firebaseUid': user.uid,
           'userId': partyNovaUid,
@@ -10764,11 +11094,11 @@ InkWell(
       Expanded(
         child: Container(
           constraints: const BoxConstraints(
-            minHeight: 82,
+            minHeight: 54,
           ),
           padding: const EdgeInsets.symmetric(
-            horizontal: 9,
-            vertical: 5,
+            horizontal: 8,
+            vertical: 2,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
