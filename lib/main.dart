@@ -1729,42 +1729,108 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         throw StateError('Your profile information is incomplete.');
       }
 
-      final roomRef = firestore.collection('rooms').doc();
-      final batch = firestore.batch();
-      final now = FieldValue.serverTimestamp();
-      batch.set(roomRef, {
-        'roomId': roomRef.id,
-        'roomName': roomName,
-        'ownerUid': user.uid,
-        'leaderUid': user.uid,
-        'ownerUserId': ownerUserId,
-        'ownerName': ownerName,
-        'roomPhotoBase64': ownerPhotoBase64,
-        'roomDescription': '',
-        'memberCount': 1,
-        'createdAt': now,
-        'updatedAt': now,
-        'isActive': true,
+      // One room per account: the claim document is the transaction lock.
+      // Older rooms are reused (not deleted); the newest existing room wins.
+      final claimRef = firestore.collection('roomOwnerClaims').doc(user.uid);
+      final existingRooms = await firestore
+          .collection('rooms')
+          .where('ownerUid', isEqualTo: user.uid)
+          .get();
+      final oldRoomDocs = existingRooms.docs.toList()
+        ..sort((a, b) {
+          final aDate = a.data()['createdAt'];
+          final bDate = b.data()['createdAt'];
+          if (aDate is Timestamp && bDate is Timestamp) {
+            return bDate.compareTo(aDate);
+          }
+          return 0;
+        });
+
+      final newRoomRef = firestore.collection('rooms').doc();
+      DocumentReference<Map<String, dynamic>>? selectedRoomRef;
+
+      await firestore.runTransaction((transaction) async {
+        final claimSnapshot = await transaction.get(claimRef);
+
+        if (claimSnapshot.exists) {
+          final claimedRoomId =
+              (claimSnapshot.data()?['roomId'] ?? '').toString();
+          if (claimedRoomId.isEmpty) {
+            throw StateError('Your room claim is invalid. Please contact support.');
+          }
+          final claimedRoomRef = firestore.collection('rooms').doc(claimedRoomId);
+          final claimedRoomSnapshot = await transaction.get(claimedRoomRef);
+          if (!claimedRoomSnapshot.exists) {
+            throw StateError('Your saved room could not be found.');
+          }
+          selectedRoomRef = claimedRoomRef;
+          return;
+        }
+
+        if (oldRoomDocs.isNotEmpty) {
+          // Adopt an existing room instead of creating another one.
+          selectedRoomRef = oldRoomDocs.first.reference;
+          transaction.set(claimRef, {
+            'ownerUid': user.uid,
+            'roomId': oldRoomDocs.first.id,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+          return;
+        }
+
+        final now = FieldValue.serverTimestamp();
+        final memberRef = newRoomRef.collection('members').doc(user.uid);
+        transaction.set(claimRef, {
+          'ownerUid': user.uid,
+          'roomId': newRoomRef.id,
+          'createdAt': now,
+        });
+        transaction.set(newRoomRef, {
+          'roomId': newRoomRef.id,
+          'roomName': roomName,
+          'ownerUid': user.uid,
+          'leaderUid': user.uid,
+          'ownerUserId': ownerUserId,
+          'ownerName': ownerName,
+          'roomPhotoBase64': ownerPhotoBase64,
+          'roomDescription': '',
+          'memberCount': 1,
+          'createdAt': now,
+          'updatedAt': now,
+          'isActive': true,
+        });
+        transaction.set(memberRef, {
+          'firebaseUid': user.uid,
+          'userId': ownerUserId,
+          'name': ownerName,
+          'photoBase64': ownerPhotoBase64,
+          'role': 'Leader',
+          'joinedAt': now,
+        });
+        selectedRoomRef = newRoomRef;
       });
-      batch.set(roomRef.collection('members').doc(user.uid), {
-        'firebaseUid': user.uid,
-        'userId': ownerUserId,
-        'name': ownerName,
-        'photoBase64': ownerPhotoBase64,
-        'role': 'Leader',
-        'joinedAt': now,
-      });
-      await batch.commit();
+
+      if (selectedRoomRef == null) {
+        throw StateError('Room could not be selected.');
+      }
+      final selectedRoomSnapshot = await selectedRoomRef!.get();
+      final selectedRoomData = selectedRoomSnapshot.data() ?? <String, dynamic>{};
+      final selectedRoomName =
+          (selectedRoomData['roomName'] ?? roomName).toString();
+      final selectedRoomUid =
+          (selectedRoomData['ownerUserId'] ?? ownerUserId).toString();
+      final selectedRoomPhoto =
+          (selectedRoomData['roomPhotoBase64'] ?? ownerPhotoBase64).toString();
 
       if (!mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => PartyRoomScreen(
-            roomName: roomName,
-            roomUid: ownerUserId,
-            roomPhotoBase64: ownerPhotoBase64,
-            roomDocumentId: roomRef.id,
+            roomName: selectedRoomName,
+            roomUid: selectedRoomUid,
+            roomPhotoBase64: selectedRoomPhoto,
+            roomDocumentId: selectedRoomRef!.id,
           ),
         ),
       );
@@ -1785,14 +1851,22 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       stream: FirebaseFirestore.instance
           .collection('rooms')
           .where('ownerUid', isEqualTo: user.uid)
-          .limit(1)
           .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        final room = snapshot.data!.docs.first;
+        final ownedRooms = snapshot.data!.docs.toList()
+          ..sort((a, b) {
+            final aDate = a.data()['createdAt'];
+            final bDate = b.data()['createdAt'];
+            if (aDate is Timestamp && bDate is Timestamp) {
+              return bDate.compareTo(aDate);
+            }
+            return 0;
+          });
+        final room = ownedRooms.first;
         final data = room.data();
         final roomName = (data['roomName'] ?? '').toString();
         final roomDescription = (data['roomDescription'] ?? '').toString().trim();
@@ -2414,7 +2488,7 @@ Widget buildUserSearchResult() {
         }
 
         final searchQuery = _roomSearchQuery.trim().toLowerCase();
-        final rooms = snapshot.data!.docs.map((doc) {
+        final allRooms = snapshot.data!.docs.map((doc) {
           final data = doc.data();
           return <String, dynamic>{
             'docId': doc.id,
@@ -2426,7 +2500,27 @@ Widget buildUserSearchResult() {
             'description': (data['roomDescription'] ?? '').toString(),
             'createdAt': data['createdAt'],
           };
-        }).where((room) {
+        }).toList();
+
+        // Keep only the newest visible room for each owner. Older duplicate
+        // documents remain untouched in Firestore and are not deleted.
+        final latestRoomByOwner = <String, Map<String, dynamic>>{};
+        for (final room in allRooms) {
+          final ownerKey = room['ownerUid'].toString().isEmpty
+              ? room['docId'].toString()
+              : room['ownerUid'].toString();
+          final previous = latestRoomByOwner[ownerKey];
+          final currentDate = room['createdAt'];
+          final previousDate = previous?['createdAt'];
+          if (previous == null ||
+              (currentDate is Timestamp &&
+                  (previousDate is! Timestamp ||
+                      currentDate.compareTo(previousDate) > 0))) {
+            latestRoomByOwner[ownerKey] = room;
+          }
+        }
+
+        final rooms = latestRoomByOwner.values.where((room) {
           final name = room['name'].toString().toLowerCase();
           final uid = room['uid'].toString();
           return name.contains(searchQuery) || uid.contains(searchQuery);
@@ -8950,6 +9044,36 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   int _selectedTab = 0;
   final TextEditingController _memberSearchController = TextEditingController();
   String _memberSearchQuery = '';
+  bool _leaderMemberBackfillStarted = false;
+
+  Future<void> _ensureLeaderMemberRecord() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || _leaderMemberBackfillStarted) return;
+    _leaderMemberBackfillStarted = true;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return;
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+      if (leaderUid != user.uid) return;
+      final memberRef = roomRef.collection('members').doc(user.uid);
+      final memberSnapshot = await memberRef.get();
+      if (memberSnapshot.exists) return;
+      await memberRef.set({
+        'firebaseUid': user.uid,
+        'userId': (roomData['ownerUserId'] ?? '').toString(),
+        'name': (roomData['ownerName'] ?? 'PartyNova User').toString(),
+        'photoBase64': (roomData['roomPhotoBase64'] ?? '').toString(),
+        'role': 'Leader',
+        'joinedAt': FieldValue.serverTimestamp(),
+      });
+    } catch (error) {
+      debugPrint('Leader member backfill failed: $error');
+      _leaderMemberBackfillStarted = false;
+    }
+  }
 
   @override
   void dispose() {
@@ -9508,6 +9632,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   }
 
   Widget _buildMemberTab() {
+    if (!_leaderMemberBackfillStarted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _ensureLeaderMemberRecord();
+      });
+    }
     final membersRef = FirebaseFirestore.instance
         .collection('rooms')
         .doc(widget.roomDocumentId)
@@ -9898,6 +10027,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       final userDoc = await firestore.collection('users').doc(user.uid).get();
       if (!userDoc.exists) throw StateError('Your PartyNova profile was not found.');
       final profile = userDoc.data() ?? <String, dynamic>{};
+      final partyNovaUid = (profile['userId'] ?? '').toString();
+      if (!RegExp(r'^(?:[0-9]{6}|[0-9]{8}|[0-9]{10})$').hasMatch(partyNovaUid)) {
+        throw StateError('Your PartyNova UID is invalid.');
+      }
       final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
       final memberRef = roomRef.collection('members').doc(user.uid);
       await firestore.runTransaction((transaction) async {
@@ -9905,23 +10038,64 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         final memberSnapshot = await transaction.get(memberRef);
         if (!roomSnapshot.exists) throw StateError('Room not found.');
         final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-        if ((roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString() == user.uid) return;
+        final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+        if (leaderUid == user.uid) return;
         if (memberSnapshot.exists) return;
         transaction.set(memberRef, {
           'firebaseUid': user.uid,
-          'userId': (profile['userId'] ?? '').toString(),
+          'userId': partyNovaUid,
           'name': (profile['name'] ?? 'PartyNova User').toString(),
           'photoBase64': (profile['photoBase64'] ?? '').toString(),
           'role': 'Member',
           'joinedAt': FieldValue.serverTimestamp(),
         });
-        transaction.update(roomRef, {'memberCount': FieldValue.increment(1), 'updatedAt': FieldValue.serverTimestamp()});
+        transaction.update(roomRef, {
+          'memberCount': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You joined the room as a Member.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You joined the room as a Member.')),
+      );
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not join room: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not join room: $error')),
+      );
+    }
+  }
+
+  Future<void> _unjoinRoom() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+      final memberRef = roomRef.collection('members').doc(user.uid);
+      await firestore.runTransaction((transaction) async {
+        final roomSnapshot = await transaction.get(roomRef);
+        final memberSnapshot = await transaction.get(memberRef);
+        if (!roomSnapshot.exists || !memberSnapshot.exists) return;
+        final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+        if ((memberData['role'] ?? '').toString().toLowerCase() == 'leader') {
+          throw StateError('The Leader cannot unjoin their own room.');
+        }
+        transaction.delete(memberRef);
+        transaction.update(roomRef, {
+          'memberCount': FieldValue.increment(-1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You left the room.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not leave room: $error')),
+      );
     }
   }
 
@@ -10366,18 +10540,18 @@ InkWell(
                   return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     stream: FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).collection('members').doc(currentUser.uid).snapshots(),
                     builder: (context, memberSnapshot) {
-                      if (memberSnapshot.data?.exists == true) return const SizedBox.shrink();
+                      final isMember = memberSnapshot.data?.exists == true;
                       return ElevatedButton(
-                        onPressed: _joinRoom,
+                        onPressed: isMember ? _unjoinRoom : _joinRoom,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: gold,
-                          foregroundColor: darkBlue,
-                          minimumSize: const Size(58, 46),
+                          backgroundColor: isMember ? pink : gold,
+                          foregroundColor: isMember ? Colors.white : darkBlue,
+                          minimumSize: const Size(66, 46),
                           padding: const EdgeInsets.symmetric(horizontal: 7),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           shape: const StadiumBorder(),
                         ),
-                        child: const Text('JOIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: Text(isMember ? 'UNJOIN' : 'JOIN', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       );
                     },
                   );
