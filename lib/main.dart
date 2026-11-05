@@ -1730,20 +1730,31 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       }
 
       final roomRef = firestore.collection('rooms').doc();
+      final batch = firestore.batch();
       final now = FieldValue.serverTimestamp();
-      await roomRef.set({
-  'roomId': roomRef.id,
-  'roomName': roomName,
-  'ownerUid': user.uid,
-  'ownerUserId': ownerUserId,
-  'ownerName': ownerName,
-  'roomPhotoBase64': ownerPhotoBase64,
-  'roomDescription': '',
-  'memberCount': 1,
-  'createdAt': now,
-  'updatedAt': now,
-  'isActive': true,
-});
+      batch.set(roomRef, {
+        'roomId': roomRef.id,
+        'roomName': roomName,
+        'ownerUid': user.uid,
+        'leaderUid': user.uid,
+        'ownerUserId': ownerUserId,
+        'ownerName': ownerName,
+        'roomPhotoBase64': ownerPhotoBase64,
+        'roomDescription': '',
+        'memberCount': 1,
+        'createdAt': now,
+        'updatedAt': now,
+        'isActive': true,
+      });
+      batch.set(roomRef.collection('members').doc(user.uid), {
+        'firebaseUid': user.uid,
+        'userId': ownerUserId,
+        'name': ownerName,
+        'photoBase64': ownerPhotoBase64,
+        'role': 'Leader',
+        'joinedAt': now,
+      });
+      await batch.commit();
 
       if (!mounted) return;
       Navigator.push(
@@ -8937,6 +8948,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   bool _pickingRoomPhoto = false;
 
   int _selectedTab = 0;
+  final TextEditingController _memberSearchController = TextEditingController();
+  String _memberSearchQuery = '';
+
+  @override
+  void dispose() {
+    _memberSearchController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -9488,6 +9507,117 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  Widget _buildMemberTab() {
+    final membersRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId)
+        .collection('members');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: membersRef.orderBy('joinedAt', descending: true).snapshots(),
+          builder: (context, snapshot) {
+            final count = snapshot.data?.docs.length ?? 0;
+            return Row(
+              children: [
+                const Text('Member', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold)),
+                const SizedBox(width: 9),
+                Text('($count)', style: const TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Member settings',
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        backgroundColor: panel,
+                        title: const Text('Member Settings', style: TextStyle(color: Colors.white)),
+                        content: const Text('Member management settings will be added in the next stage.', style: TextStyle(color: Colors.white70)),
+                        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.settings_rounded, color: pink),
+                ),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _memberSearchController,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(color: Colors.white),
+          onChanged: (value) => setState(() => _memberSearchQuery = value.trim()),
+          decoration: InputDecoration(
+            hintText: 'Search member by PartyNova UID',
+            hintStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+            prefixIcon: const Icon(Icons.search_rounded, color: pink),
+            filled: true,
+            fillColor: panel,
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+          ),
+        ),
+        const SizedBox(height: 14),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: membersRef.orderBy('joinedAt', descending: true).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.white70)));
+            }
+            if (!snapshot.hasData) {
+              return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: pink)));
+            }
+            final query = _memberSearchQuery;
+            final docs = snapshot.data!.docs.where((doc) {
+              if (query.isEmpty) return true;
+              final data = doc.data();
+              return (data['userId'] ?? '').toString().contains(query);
+            }).toList();
+            if (docs.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 28),
+                child: Center(child: Text(query.isEmpty ? 'No members yet.' : 'No member found with this PartyNova UID.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60))),
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: docs.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 9),
+              itemBuilder: (context, index) {
+                final data = docs[index].data();
+                final name = (data['name'] ?? 'PartyNova User').toString();
+                final userId = (data['userId'] ?? '').toString();
+                final photo = getCachedProfilePhotoImage((data['photoBase64'] ?? '').toString());
+                final role = (data['role'] ?? 'Member').toString();
+                return Container(
+                  padding: const EdgeInsets.all(11),
+                  decoration: BoxDecoration(color: panel, borderRadius: BorderRadius.circular(13), border: Border.all(color: Colors.white12)),
+                  child: Row(
+                    children: [
+                      CircleAvatar(radius: 23, backgroundColor: bg, backgroundImage: photo),
+                      const SizedBox(width: 11),
+                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text('UID: $userId', style: const TextStyle(color: gold, fontSize: 12)),
+                      ])),
+                      Text(role, style: const TextStyle(color: pink, fontSize: 12, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final roomImage = getCachedProfilePhotoImage(
@@ -9513,6 +9643,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
               const SizedBox(height: 24),
 
+              if (_selectedTab == 1)
+                _buildMemberTab()
+              else ...[
               // Room photo, PartyNova ID and room name.
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -9660,6 +9793,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
               // Member, Club and Gift points.
               _buildPoints(),
+              ],
             ],
           ),
         ),
@@ -9704,6 +9838,41 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
+
+  Future<void> _joinRoom() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final userDoc = await firestore.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) throw StateError('Your PartyNova profile was not found.');
+      final profile = userDoc.data() ?? <String, dynamic>{};
+      final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+      final memberRef = roomRef.collection('members').doc(user.uid);
+      await firestore.runTransaction((transaction) async {
+        final roomSnapshot = await transaction.get(roomRef);
+        final memberSnapshot = await transaction.get(memberRef);
+        if (!roomSnapshot.exists) throw StateError('Room not found.');
+        final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+        if ((roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString() == user.uid) return;
+        if (memberSnapshot.exists) return;
+        transaction.set(memberRef, {
+          'firebaseUid': user.uid,
+          'userId': (profile['userId'] ?? '').toString(),
+          'name': (profile['name'] ?? 'PartyNova User').toString(),
+          'photoBase64': (profile['photoBase64'] ?? '').toString(),
+          'role': 'Member',
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.update(roomRef, {'memberCount': FieldValue.increment(1), 'updatedAt': FieldValue.serverTimestamp()});
+      });
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You joined the room as a Member.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not join room: $error')));
+    }
+  }
 
   @override
   void dispose() {
@@ -10134,27 +10303,34 @@ InkWell(
 
               const SizedBox(width: 6),
 
-              // JOIN button.
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: gold,
-                  foregroundColor: darkBlue,
-                  minimumSize: const Size(58, 46),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7,
-                  ),
-                  tapTargetSize:
-                      MaterialTapTargetSize.shrinkWrap,
-                  shape: const StadiumBorder(),
-                ),
-                child: const Text(
-                  'JOIN',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              // Hide JOIN for the room Leader and existing members.
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).snapshots(),
+                builder: (context, roomSnapshot) {
+                  final currentUser = FirebaseAuth.instance.currentUser;
+                  if (!roomSnapshot.hasData) return const SizedBox.shrink();
+                  final roomData = roomSnapshot.data?.data() ?? <String, dynamic>{};
+                  final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+                  if (currentUser == null || leaderUid == currentUser.uid) return const SizedBox.shrink();
+                  return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                    stream: FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).collection('members').doc(currentUser.uid).snapshots(),
+                    builder: (context, memberSnapshot) {
+                      if (memberSnapshot.data?.exists == true) return const SizedBox.shrink();
+                      return ElevatedButton(
+                        onPressed: _joinRoom,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: gold,
+                          foregroundColor: darkBlue,
+                          minimumSize: const Size(58, 46),
+                          padding: const EdgeInsets.symmetric(horizontal: 7),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: const StadiumBorder(),
+                        ),
+                        child: const Text('JOIN', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                      );
+                    },
+                  );
+                },
               ),
             ],
           ),
