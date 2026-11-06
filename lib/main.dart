@@ -968,6 +968,7 @@ class _SignupPageState extends State<SignupPage> {
       // Profile ID creation is handled separately.
       try {
         await assignPartyNovaUserId(currentUser);
+        await syncPartyNovaPublicProfile(currentUser);
       } catch (e) {
         debugPrint('PartyNova signup profile setup failed: $e');
       }
@@ -1964,10 +1965,13 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     borderRadius: BorderRadius.circular(14),
                     child: roomImage != null
                         ? Image(image: roomImage, fit: BoxFit.cover)
-                        : FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                            future: ownerUid.isEmpty
+                        : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: ownerUid.isEmpty
                                 ? null
-                                : _getLegacyRoomProfile(ownerUid),
+                                : FirebaseFirestore.instance
+                                    .collection('publicProfiles')
+                                    .doc(ownerUid)
+                                    .snapshots(),
                             builder: (context, profileSnapshot) {
                               final profileData = profileSnapshot.data?.data();
                               final profilePhoto =
@@ -2020,26 +2024,10 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     );
   }
 
-final Map<String, Future<DocumentSnapshot<Map<String, dynamic>>>>
-    _legacyRoomProfileFutures = {};
-
 late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
     FirebaseFirestore.instance
         .collection('rooms')
-        .where('isActive', isEqualTo: true)
         .snapshots();
-
-Future<DocumentSnapshot<Map<String, dynamic>>> _getLegacyRoomProfile(
-  String ownerUid,
-) {
-  return _legacyRoomProfileFutures.putIfAbsent(
-    ownerUid,
-    () => FirebaseFirestore.instance
-        .collection('users')
-        .doc(ownerUid)
-        .get(),
-  );
-}
 
 
   
@@ -2058,29 +2046,6 @@ Future<DocumentSnapshot<Map<String, dynamic>>> _getLegacyRoomProfile(
     'Friends',
   ];
 
-  final rooms = [
-    {'name': 'Hamza Room', 'uid': '123456', 'members': 5},
-    {'name': 'Ali Room', 'uid': '234567', 'members': 8},
-    {'name': 'Friends Room', 'uid': '345678', 'members': 3},
-    {'name': 'Party Room', 'uid': '456789', 'members': 12},
-    {'name': 'Music Room', 'uid': '567890', 'members': 6},
-    {'name': 'Fun Room', 'uid': '678901', 'members': 4},
-    {'name': 'Chill Room', 'uid': '789012', 'members': 7},
-    {'name': 'Vibe Room', 'uid': '890123', 'members': 9},
-  ];
-
-
-  final searchQuery = _roomSearchQuery.trim().toLowerCase();
-
-  final filteredRooms = rooms.where((room) {
-    final roomName = room['name'].toString().toLowerCase();
-    final roomUid = room['uid'].toString();
-
-    return roomName.contains(searchQuery) ||
-        roomUid.contains(searchQuery);
-  }).toList(); 
-
-
 Widget buildUserSearchResult() {
   final query = _roomSearchQuery.trim();
 
@@ -2090,7 +2055,7 @@ Widget buildUserSearchResult() {
 
   return FutureBuilder<QuerySnapshot<Map<String, dynamic>>>(
     future: FirebaseFirestore.instance
-        .collection('users')
+        .collection('publicProfiles')
         .where('userId', isEqualTo: query)
         .limit(1)
         .get(),
@@ -2476,7 +2441,7 @@ Widget buildUserSearchResult() {
           return const Expanded(
             child: Center(
               child: Text(
-                'Rooms load nahi ho sake. Please try again.',
+                'Rooms load nahi ho sake: ${snapshot.error}',
                 style: TextStyle(color: Colors.white70),
               ),
             ),
@@ -2503,6 +2468,7 @@ Widget buildUserSearchResult() {
             'members': data['memberCount'] ?? 0,
             'photo': (data['roomPhotoBase64'] ?? '').toString(),
             'description': (data['roomDescription'] ?? '').toString(),
+            'isActive': data['isActive'],
             'createdAt': data['createdAt'],
           };
         }).toList();
@@ -2526,6 +2492,7 @@ Widget buildUserSearchResult() {
         }
 
         final rooms = latestRoomByOwner.values.where((room) {
+          if (room['isActive'] == false) return false;
           final name = room['name'].toString().toLowerCase();
           final uid = room['uid'].toString();
           return name.contains(searchQuery) || uid.contains(searchQuery);
@@ -2607,10 +2574,13 @@ Widget buildUserSearchResult() {
                             if (roomImage != null)
                               Image(image: roomImage, fit: BoxFit.cover)
                             else
-                              FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                                future: roomOwnerUid.isEmpty
+                              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                                stream: roomOwnerUid.isEmpty
                                     ? null
-                                    : _getLegacyRoomProfile(roomOwnerUid),
+                                    : FirebaseFirestore.instance
+                                        .collection('publicProfiles')
+                                        .doc(roomOwnerUid)
+                                        .snapshots(),
                                 builder: (context, profileSnapshot) {
                                   final profileData = profileSnapshot.data?.data();
                                   final profilePhoto =
@@ -9071,6 +9041,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
       final profileSnapshot = await firestore.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      await syncPartyNovaPublicProfile(user);
       var partyNovaUid = (profile['userId'] ?? '').toString().trim();
       if (partyNovaUid.isEmpty) {
         partyNovaUid = await assignPartyNovaUserId(user);
@@ -9136,6 +9107,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       debugPrint('Live room profile update failed: $error');
     });
     _loadRoomDetails();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _ensureLeaderMemberRecord();
+    });
   }
 
   Future<void> _loadRoomDetails() async {
@@ -9898,6 +9872,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final userDoc = await firestore.collection('users').doc(user.uid).get();
       if (!userDoc.exists) throw StateError('Your PartyNova profile was not found.');
       final profile = userDoc.data() ?? <String, dynamic>{};
+      await syncPartyNovaPublicProfile(user);
       final partyNovaUid = (profile['userId'] ?? '').toString();
       if (!RegExp(r'^(?:[0-9]{6}|[0-9]{8}|[0-9]{10})$').hasMatch(partyNovaUid)) {
         throw StateError('Your PartyNova UID is invalid.');
@@ -9953,13 +9928,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         final roomSnapshot = await transaction.get(roomRef);
         final memberSnapshot = await transaction.get(memberRef);
         if (!roomSnapshot.exists || !memberSnapshot.exists) return;
+        final roomData = roomSnapshot.data() ?? <String, dynamic>{};
         final memberData = memberSnapshot.data() ?? <String, dynamic>{};
-        if ((memberData['role'] ?? '').toString().toLowerCase() == 'leader') {
-          throw StateError('The Leader cannot unjoin their own room.');
+        final leaderUid = (roomData['leaderUid'] ?? '').toString();
+        final ownerUid = (roomData['ownerUid'] ?? '').toString();
+        if (user.uid == leaderUid || user.uid == ownerUid ||
+            (memberData['role'] ?? '').toString().toLowerCase() == 'leader' ||
+            (memberData['role'] ?? '').toString().toLowerCase() == 'owner') {
+          throw StateError('The room Owner/Leader cannot unjoin their own room.');
         }
         transaction.delete(memberRef);
+        final currentCount = (roomData['memberCount'] as num?)?.toInt() ?? 0;
         transaction.update(roomRef, {
-          'memberCount': FieldValue.increment(-1),
+          if (currentCount > 0) 'memberCount': FieldValue.increment(-1),
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
@@ -9998,8 +9979,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               child: ElevatedButton(
                 onPressed: _unjoinRoomFromProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: pink, foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+                  backgroundColor: const Color(0xFF1769AA),
+                  foregroundColor: Colors.white,
+                  elevation: 8,
+                  shadowColor: const Color(0xFF42A5F5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(13),
+                    side: const BorderSide(color: Color(0xFF90CAF9), width: 1.2),
+                  ),
                 ),
                 child: const Text('UNJOIN', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1)),
               ),
@@ -10858,6 +10845,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       final userDoc = await firestore.collection('users').doc(user.uid).get();
       if (!userDoc.exists) throw StateError('Your PartyNova profile was not found.');
       final profile = userDoc.data() ?? <String, dynamic>{};
+      await syncPartyNovaPublicProfile(user);
       final partyNovaUid = (profile['userId'] ?? '').toString();
       if (!RegExp(r'^(?:[0-9]{6}|[0-9]{8}|[0-9]{10})$').hasMatch(partyNovaUid)) {
         throw StateError('Your PartyNova UID is invalid.');
@@ -10914,13 +10902,19 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         final roomSnapshot = await transaction.get(roomRef);
         final memberSnapshot = await transaction.get(memberRef);
         if (!roomSnapshot.exists || !memberSnapshot.exists) return;
+        final roomData = roomSnapshot.data() ?? <String, dynamic>{};
         final memberData = memberSnapshot.data() ?? <String, dynamic>{};
-        if ((memberData['role'] ?? '').toString().toLowerCase() == 'leader') {
-          throw StateError('The Leader cannot unjoin their own room.');
+        final leaderUid = (roomData['leaderUid'] ?? '').toString();
+        final ownerUid = (roomData['ownerUid'] ?? '').toString();
+        if (user.uid == leaderUid || user.uid == ownerUid ||
+            (memberData['role'] ?? '').toString().toLowerCase() == 'leader' ||
+            (memberData['role'] ?? '').toString().toLowerCase() == 'owner') {
+          throw StateError('The room Owner/Leader cannot unjoin their own room.');
         }
         transaction.delete(memberRef);
+        final currentCount = (roomData['memberCount'] as num?)?.toInt() ?? 0;
         transaction.update(roomRef, {
-          'memberCount': FieldValue.increment(-1),
+          if (currentCount > 0) 'memberCount': FieldValue.increment(-1),
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
@@ -10966,6 +10960,74 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
+  Widget _buildLeaderStatueIcon() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFE2A3), Color(0xFFB87333), Color(0xFF5B2E0B)],
+        ),
+        border: Border.all(color: const Color(0xFFFFE6B8), width: 1.4),
+        boxShadow: const [
+          BoxShadow(color: Color(0xFFFFB45A), blurRadius: 13, spreadRadius: 1),
+          BoxShadow(color: Color(0x66FFFFFF), blurRadius: 4, spreadRadius: 1),
+        ],
+      ),
+      child: const Icon(
+        Icons.person_rounded,
+        color: Color(0xFFFFF0D0),
+        size: 24,
+      ),
+    );
+  }
+
+  Widget _buildRoomOwnerAdminBadge() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return const SizedBox.shrink();
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: roomRef.snapshots(),
+      builder: (context, snapshot) {
+        final data = snapshot.data?.data() ?? <String, dynamic>{};
+        final ownerUid = (data['ownerUid'] ?? '').toString();
+        final leaderUid = (data['leaderUid'] ?? '').toString();
+        final isOwnRoom = user.uid == ownerUid ||
+            (leaderUid.isNotEmpty && user.uid == leaderUid);
+        if (!isOwnRoom) return const SizedBox.shrink();
+        final role = partyNovaRoleForEmail(user.email);
+        if (role != 'owner' && role != 'admin') return const SizedBox.shrink();
+        final label = role == 'owner' ? 'OWNER' : 'ADMIN';
+        return Container(
+          margin: const EdgeInsets.only(left: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFFF7777), Color(0xFFE01832), Color(0xFF850014)],
+            ),
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: const Color(0xFFFFC4C4), width: 0.9),
+            boxShadow: const [
+              BoxShadow(color: Color(0x99FF2020), blurRadius: 9, spreadRadius: 1),
+            ],
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 9,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.6,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildHeaderMembershipAction() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return const SizedBox.shrink();
@@ -10978,7 +11040,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         final ownerUid = (roomData['ownerUid'] ?? '').toString();
         final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
         if (user.uid == actualLeaderUid) {
-          return _buildMembershipFrame('LEADER', leader: true);
+          return _buildLeaderStatueIcon();
         }
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: roomRef.collection('members').doc(user.uid).snapshots(),
@@ -10992,19 +11054,19 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               child: ElevatedButton(
                 onPressed: _joinRoom,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B5524),
-                  foregroundColor: const Color(0xFFFFF0D0),
+                  backgroundColor: const Color(0xFFFFD700),
+                  foregroundColor: const Color(0xFF4A2B00),
                   padding: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
-                    side: const BorderSide(color: Color(0xFFFFD58A), width: 1.3),
+                    side: const BorderSide(color: Color(0xFFFFF0A6), width: 1.4),
                   ),
-                  elevation: 8,
-                  shadowColor: const Color(0xFFFFB45A),
+                  elevation: 9,
+                  shadowColor: const Color(0xFFFFD700),
                 ),
                 child: Stack(alignment: Alignment.center, children: [
-                  Positioned.fill(child: CustomPaint(painter: _FourCornerFramePainter(color: const Color(0xFFFFF1D2)))),
-                  const Text('JOIN', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.6)),
+                  Positioned.fill(child: CustomPaint(painter: _FourCornerFramePainter(color: const Color(0xFFFFF7CF)))),
+                  const Text('JOIN', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.8)),
                 ]),
               ),
             );
@@ -11374,8 +11436,11 @@ InkWell(
           if (creatorUid.isEmpty) {
             return const Icon(Icons.groups_rounded, color: gold, size: 48);
           }
-          return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-            future: FirebaseFirestore.instance.collection('users').doc(creatorUid).get(),
+          return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('publicProfiles')
+                .doc(creatorUid)
+                .snapshots(),
             builder: (context, profileSnapshot) {
               final profilePhoto = (profileSnapshot.data?.data()?['photoBase64'] ?? '').toString();
               final fallbackImage = getCachedProfilePhotoImage(profilePhoto);
@@ -11433,16 +11498,23 @@ InkWell(
                   crossAxisAlignment:
                       CrossAxisAlignment.start,
                   children: [
-                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                      stream: FirebaseFirestore.instance
-                          .collection('rooms')
-                          .doc(widget.roomDocumentId)
-                          .snapshots(),
-                      builder: (context, snapshot) => ScrollingRoomName(
-                        text: (snapshot.data?.data()?['roomName'] ??
-                                widget.roomName)
-                            .toString(),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: FirebaseFirestore.instance
+                                .collection('rooms')
+                                .doc(widget.roomDocumentId)
+                                .snapshots(),
+                            builder: (context, snapshot) => ScrollingRoomName(
+                              text: (snapshot.data?.data()?['roomName'] ??
+                                      widget.roomName)
+                                  .toString(),
+                            ),
+                          ),
+                        ),
+                        _buildRoomOwnerAdminBadge(),
+                      ],
                     ),
                     const SizedBox(height: 5),
                     Text(
