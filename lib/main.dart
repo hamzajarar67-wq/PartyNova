@@ -2434,19 +2434,19 @@ Widget buildUserSearchResult() {
 
 
   Widget buildRoomCards() {
-    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _activeRoomsStream,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return const Expanded(
-            child: Center(
-              child: Text(
-                'Rooms load nahi ho sake: ${snapshot.error}',
-                style: TextStyle(color: Colors.white70),
-              ),
+  return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: _activeRoomsStream,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return Expanded(
+          child: Center(
+            child: Text(
+              'Rooms load nahi ho sake: ${snapshot.error}',
+              style: const TextStyle(color: Colors.white70),
             ),
-          );
-        }
+          ),
+        );
+      }
 
         if (!snapshot.hasData) {
           return const Expanded(
