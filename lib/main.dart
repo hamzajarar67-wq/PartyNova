@@ -2438,7 +2438,7 @@ Widget buildUserSearchResult() {
       stream: _activeRoomsStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Expanded(
+          return Expanded(
             child: Center(
               child: Text(
                 'Rooms load nahi ho sake: ${snapshot.error}',
