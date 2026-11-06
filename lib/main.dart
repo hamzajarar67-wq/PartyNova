@@ -148,65 +148,6 @@ BoxDecoration partyNightDecoration() {
   );
 }
 
-// Shared identity treatment: normal users keep the existing plain text style;
-// platform Owner/Admin IDs receive a layered gold-and-red frame everywhere
-// this helper is used.
-Widget buildPartyNovaIdLabel({
-  required String label,
-  required String role,
-  required TextStyle normalStyle,
-}) {
-  final privileged = role == 'owner' || role == 'admin';
-  if (!privileged) {
-    return Text(label, style: normalStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
-  }
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          Color(0xFFFFF1B8),
-          Color(0xFFD9A43B),
-          Color(0xFFB51F25),
-          Color(0xFF650B16),
-          Color(0xFFFFD780),
-        ],
-      ),
-      borderRadius: BorderRadius.circular(8),
-      border: Border.all(color: const Color(0xFFFFE8BD), width: 1.1),
-      boxShadow: const [
-        BoxShadow(color: Color(0x99FFB45A), blurRadius: 12, spreadRadius: 1),
-        BoxShadow(color: Color(0x88FF2424), blurRadius: 15, spreadRadius: 1),
-      ],
-    ),
-    child: Stack(
-      alignment: Alignment.center,
-      children: [
-        Positioned.fill(
-          child: CustomPaint(
-            painter: _FourCornerFramePainter(color: const Color(0xFFFFF4D6)),
-          ),
-        ),
-        Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: normalStyle.copyWith(
-            color: const Color(0xFFFFF4D6),
-            fontWeight: FontWeight.w900,
-            shadows: const [
-              Shadow(color: Color(0xFFFFD780), blurRadius: 8),
-              Shadow(color: Color(0xFFFF2424), blurRadius: 12),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
 Future<String> assignPartyNovaUserId(User user) async {
   final firestore = FirebaseFirestore.instance;
   final userRef = firestore.collection('users').doc(user.uid);
@@ -2981,19 +2922,24 @@ Widget _buildProfileTab(User? user) {
                 ),
               ),
 
-              const SizedBox(height: 12),
-              Text(
-                'ID: ${userId.isEmpty ? 'Not available' : userId}',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : const Color(0xFFFFD780),
-                  fontSize: 17,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1,
-                  shadows: isOwnerOrAdmin ? const [Shadow(color: Color(0xFFFFB45A), blurRadius: 12), Shadow(color: Color(0xFFFF2424), blurRadius: 16)] : null,
+              // Regular users keep their UID above the DP. Owner/Admin
+              // UIDs are shown only inside the Golden ID Card below.
+              if (!isOwnerOrAdmin) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'ID: ${userId.isEmpty ? 'Not available' : userId}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFFFD780),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
+              ] else ...[
+                const SizedBox(height: 10),
+              ],
 
               // Profile picture placeholder
               Container(
@@ -9102,7 +9048,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   String _memberSearchQuery = '';
   bool _leaderMemberBackfillStarted = false;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _roomDetailsSubscription;
-  Timer? _joinedDaysRefreshTimer;
 
   Future<void> _ensureLeaderMemberRecord() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -9156,7 +9101,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   @override
   void dispose() {
     _roomDetailsSubscription?.cancel();
-    _joinedDaysRefreshTimer?.cancel();
     _memberSearchController.dispose();
     super.dispose();
   }
@@ -9164,10 +9108,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   @override
   void initState() {
     super.initState();
-    // Refresh the displayed joining-day counter while the Member tab is open.
-    _joinedDaysRefreshTimer = Timer.periodic(const Duration(hours: 1), (_) {
-      if (mounted && _selectedTab == 1) setState(() {});
-    });
     _currentRoomName = widget.roomName;
     _currentRoomPhotoBase64 = widget.roomPhotoBase64;
     _currentRoomDescription = widget.roomDescription;
@@ -10373,12 +10313,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 final userId = (data['userId'] ?? '').toString();
                 final joinedAt = data['joinedAt'];
                 final joinedDate = joinedAt is Timestamp ? joinedAt.toDate() : null;
-                final joinedDays = joinedDate == null
-                    ? 1
-                    : DateUtils.dateOnly(DateTime.now())
-                            .difference(DateUtils.dateOnly(joinedDate))
-                            .inDays +
-                        1;
+                final joinedDays = joinedDate == null ? 0 : DateTime.now().difference(joinedDate).inDays;
                 final role = (data['role'] ?? 'Member').toString();
                 final memberFirebaseUid = (data['firebaseUid'] ?? docs[index].id).toString();
                 final isLeader = actualLeaderUid.isNotEmpty && memberFirebaseUid == actualLeaderUid;
@@ -10532,16 +10467,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           const Text('ROOM ADMIN', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
                         ],
                         const SizedBox(height: 4),
-                        buildPartyNovaIdLabel(
-                          label: 'UID: $displayUid',
-                          role: platformRole,
-                          normalStyle: const TextStyle(color: gold, fontSize: 12),
-                        ),
+                        Text('UID: $displayUid', style: const TextStyle(color: gold, fontSize: 12)),
                         const SizedBox(height: 3),
-                        Text(
-                          'Joining days: $joinedDays',
-                          style: const TextStyle(color: Colors.white54, fontSize: 10),
-                        ),
+                        Text(joinedDate == null ? 'Joined recently' : 'Joined ${joinedDays == 0 ? 1 : joinedDays} day(s) ago', style: const TextStyle(color: Colors.white54, fontSize: 10)),
                       ])),
                       if (!isLeader && !isOwner && role.toLowerCase() != 'owner')
                         FutureBuilder<bool>(
@@ -10671,11 +10599,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       children: [
                         Row(
                           children: [
+                            const Text(
+                              'ID: ',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 13,
+                              ),
+                            ),
                             Expanded(
-                              child: buildPartyNovaIdLabel(
-                                label: 'ID: ${widget.roomUid}',
-                                role: resolvePartyNovaRole(userId: widget.roomUid),
-                                normalStyle: const TextStyle(
+                              child: Text(
+                                widget.roomUid,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
                                   color: gold,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -11002,52 +10938,20 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
   Widget _buildMembershipFrame(String label, {required bool leader}) {
     final colors = leader
-        ? const [
-            Color(0xFFFFE7C0),
-            Color(0xFFB9783D),
-            Color(0xFF704018),
-            Color(0xFF32190B),
-            Color(0xFFC78A4C),
-          ]
-        : const [
-            Color(0xFFFFF0B8),
-            Color(0xFFD6A83C),
-            Color(0xFF8A5A12),
-            Color(0xFFFFD780),
-          ];
+        ? const [Color(0xFFFFE7B0), Color(0xFFB87333), Color(0xFF5B2E0B), Color(0xFFD79A55)]
+        : const [Color(0xFFFFE9A6), Color(0xFFD6A83C), Color(0xFF8A5A12), Color(0xFFFFD780)];
     return Container(
       width: 58,
       height: 42,
-      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: leader
-              ? const [Color(0xFFFFF0D4), Color(0xFF8B572B), Color(0xFF3D210F)]
-              : const [Color(0xFFFFF2C5), Color(0xFFB98224), Color(0xFF69400D)],
-        ),
-        borderRadius: BorderRadius.circular(11),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: colors),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFFFFE6B8), width: 1.3),
         boxShadow: [
-          BoxShadow(
-            color: leader ? const Color(0xFFFFB45A) : gold,
-            blurRadius: 15,
-            spreadRadius: 1.5,
-          ),
-          BoxShadow(color: Colors.white.withOpacity(0.28), blurRadius: 5, spreadRadius: 1),
+          BoxShadow(color: leader ? const Color(0xFFFFB45A) : gold, blurRadius: 13, spreadRadius: 1),
+          BoxShadow(color: Colors.white.withOpacity(0.22), blurRadius: 4, spreadRadius: 1),
         ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFFFDDAA), width: 0.8),
-        ),
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -11058,7 +10962,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             Text(label, style: const TextStyle(color: Color(0xFF3A210B), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.8)),
           ]),
         ],
-      ),
       ),
     );
   }
@@ -13495,20 +13398,15 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 8),
-                  buildPartyNovaIdLabel(
-                    label: 'ID: $userId',
-                    role: role,
-                    normalStyle: TextStyle(
+                  Text(
+                    'ID: $userId',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
                       color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : Colors.white70,
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
-                      shadows: isOwnerOrAdmin
-                          ? const [
-                              Shadow(color: Color(0xFFFFB45A), blurRadius: 12),
-                              Shadow(color: Color(0xFFFF2424), blurRadius: 16),
-                            ]
-                          : null,
+                      shadows: isOwnerOrAdmin ? const [Shadow(color: Color(0xFFFFB45A), blurRadius: 12), Shadow(color: Color(0xFFFF2424), blurRadius: 16)] : null,
                     ),
                   ),
                   const SizedBox(height: 10),
