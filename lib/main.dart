@@ -2438,7 +2438,7 @@ Widget buildUserSearchResult() {
       stream: _activeRoomsStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Expanded(
+          return const Expanded(
             child: Center(
               child: Text(
                 'Rooms load nahi ho sake: ${snapshot.error}',
@@ -9997,13 +9997,30 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  Future<bool> _canAssignDeputyLeader() async {
+    try {
+      final room = await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).get();
+      final data = room.data() ?? <String, dynamic>{};
+      final ownerUid = (data['ownerUid'] ?? data['leaderUid'] ?? '').toString();
+      if (ownerUid.isEmpty) return false;
+      final profile = await FirebaseFirestore.instance.collection('publicProfiles').doc(ownerUid).get();
+      final profileData = profile.data() ?? <String, dynamic>{};
+      final userId = (profileData['userId'] ?? '').toString();
+      final role = resolvePartyNovaRole(userId: userId, storedRole: profileData['role']?.toString());
+      return role == 'owner' || role == 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _showMemberManagementOptions({
     required String memberFirebaseUid,
     required String memberName,
     required bool isDeputy,
-    required bool isAdmin,
+    required bool isIncharge,
   }) async {
     if (!await _isCurrentUserRoomLeader() || !mounted) return;
+    final canAssignDeputy = isDeputy || await _canAssignDeputyLeader();
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
     final memberRef = roomRef.collection('members').doc(memberFirebaseUid);
 
@@ -10033,6 +10050,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           }
 
           if (action == 'set_deputy') {
+            final ownerProfileRef = FirebaseFirestore.instance.collection('publicProfiles').doc(effectiveOwnerUid);
+            final ownerProfileSnapshot = await transaction.get(ownerProfileRef);
+            final ownerProfileData = ownerProfileSnapshot.data() ?? <String, dynamic>{};
+            final ownerPlatformRole = resolvePartyNovaRole(
+              userId: (ownerProfileData['userId'] ?? '').toString(),
+              storedRole: ownerProfileData['role']?.toString(),
+            );
+            if (ownerPlatformRole != 'owner' && ownerPlatformRole != 'admin') {
+              throw StateError('Deputy Leader is available only in Owner/Admin rooms.');
+            }
             final previousDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
             DocumentSnapshot<Map<String, dynamic>>? previousDeputySnapshot;
             DocumentReference<Map<String, dynamic>>? previousDeputyRef;
@@ -10054,12 +10081,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               'deputyLeaderUid': FieldValue.delete(),
               'updatedAt': FieldValue.serverTimestamp(),
             });
-          } else if (action == 'set_admin') {
+          } else if (action == 'set_incharge') {
             if (memberRole == 'deputy leader') {
-              throw StateError('Remove Deputy Leader role before making this member an Admin.');
+              throw StateError('Remove Deputy Leader role before assigning Seat Incharge.');
             }
-            transaction.update(memberRef, {'role': 'Admin'});
-          } else if (action == 'remove_admin') {
+            transaction.update(memberRef, {'role': 'Seat Incharge'});
+          } else if (action == 'remove_incharge') {
             transaction.update(memberRef, {'role': 'Member'});
           } else if (action == 'remove_member') {
             transaction.delete(memberRef);
@@ -10080,10 +10107,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ? '$memberName is now Deputy Leader.'
                 : action == 'remove_deputy'
                     ? '$memberName is no longer Deputy Leader.'
-                    : action == 'set_admin'
-                        ? '$memberName is now an Admin.'
-                        : action == 'remove_admin'
-                            ? '$memberName is no longer an Admin.'
+                    : action == 'set_incharge'
+                        ? '$memberName is now Seat Incharge.'
+                        : action == 'remove_incharge'
+                            ? '$memberName is no longer Seat Incharge.'
                             : '$memberName was removed from the room.',
           )),
         );
@@ -10111,10 +10138,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(children: [
+              if (canAssignDeputy) Row(children: [
                 Expanded(child: _memberActionButton(
-                  label: isDeputy ? 'Remove Deputy Leader' : 'Set Deputy Leader',
-                  color: isDeputy ? const Color(0xFFFF7777) : gold,
+                  label: isDeputy ? 'Remove DP' : 'Seat DP',
+                  color: gold,
                   onTap: () {
                     Navigator.pop(dialogContext);
                     applyAction(isDeputy ? 'remove_deputy' : 'set_deputy');
@@ -10122,20 +10149,30 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 )),
                 const SizedBox(width: 9),
                 Expanded(child: _memberActionButton(
-                  label: isAdmin ? 'Remove Admin' : 'Set Admin',
-                  color: isAdmin ? const Color(0xFFFF7777) : const Color(0xFF70C7FF),
+                  label: isIncharge ? 'Remove Seat Incharge' : 'Seat Incharge',
+                  color: gold,
                   onTap: () {
                     Navigator.pop(dialogContext);
-                    applyAction(isAdmin ? 'remove_admin' : 'set_admin');
+                    applyAction(isIncharge ? 'remove_incharge' : 'set_incharge');
                   },
                 )),
-              ]),
+              ]) else SizedBox(
+                width: double.infinity,
+                child: _memberActionButton(
+                  label: isIncharge ? 'Remove Seat Incharge' : 'Seat Incharge',
+                  color: gold,
+                  onTap: () {
+                    Navigator.pop(dialogContext);
+                    applyAction(isIncharge ? 'remove_incharge' : 'set_incharge');
+                  },
+                ),
+              ),
               const SizedBox(height: 9),
               SizedBox(
                 width: double.infinity,
                 child: _memberActionButton(
                   label: 'Remove Member',
-                  color: pink,
+                  color: gold,
                   onTap: () {
                     Navigator.pop(dialogContext);
                     applyAction('remove_member');
@@ -10277,11 +10314,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               final memberUid = (memberData['firebaseUid'] ?? doc.id).toString();
               return actualLeaderUid.isNotEmpty && memberUid == actualLeaderUid;
             }
+            final originalOrder = <String, int>{for (var i = 0; i < docs.length; i++) docs[i].id: i};
+            int memberPriority(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+              if (isLeaderDoc(doc)) return 0;
+              final memberData = doc.data();
+              final uid = (memberData['firebaseUid'] ?? doc.id).toString();
+              final role = (memberData['role'] ?? '').toString().toLowerCase();
+              if (uid == actualDeputyUid || role == 'deputy leader') return 1;
+              if (role == 'seat incharge' || role == 'admin') return 2;
+              return 3;
+            }
             docs.sort((a, b) {
-              final aIsLeader = isLeaderDoc(a);
-              final bIsLeader = isLeaderDoc(b);
-              if (aIsLeader == bIsLeader) return 0;
-              return aIsLeader ? -1 : 1;
+              final priority = memberPriority(a).compareTo(memberPriority(b));
+              return priority != 0 ? priority : originalOrder[a.id]!.compareTo(originalOrder[b.id]!);
             });
             if (docs.isEmpty) {
               return Padding(
@@ -10306,7 +10351,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 final isLeader = actualLeaderUid.isNotEmpty && memberFirebaseUid == actualLeaderUid;
                 final isOwner = actualOwnerUid.isNotEmpty && memberFirebaseUid == actualOwnerUid;
                 final isDeputy = actualDeputyUid.isNotEmpty && memberFirebaseUid == actualDeputyUid;
-                final isAdmin = role.toLowerCase() == 'admin';
+                final isIncharge = role.toLowerCase() == 'seat incharge' || role.toLowerCase() == 'admin';
                 return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('publicProfiles').doc(memberFirebaseUid).snapshots(),
                   builder: (context, publicSnapshot) {
@@ -10431,6 +10476,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                 ),
                               ),
                             ],
+                            if (!isLeader && !isDeputy && isIncharge) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: [Color(0xFFB8F0FF), Color(0xFF168BDB), Color(0xFF064477)]),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFD8F7FF), width: 0.8),
+                                  boxShadow: const [BoxShadow(color: Color(0xAA168BDB), blurRadius: 10, spreadRadius: 1)],
+                                ),
+                                child: const Text('INCHARGE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                              ),
+                            ],
                             if (isPlatformPrivileged) ...[
                               const SizedBox(width: 6),
                               Container(
@@ -10449,9 +10507,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         if (!isLeader && !isDeputy && isOwner) ...[
                           const SizedBox(height: 3),
                           const Text('ROOM OWNER', style: TextStyle(color: gold, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
-                        ] else if (!isLeader && !isDeputy && isAdmin) ...[
+                        ] else if (!isLeader && !isDeputy && isIncharge) ...[
                           const SizedBox(height: 3),
-                          const Text('ROOM ADMIN', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
+                          const Text('SEAT INCHARGE', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
                         ],
                         const SizedBox(height: 4),
                         Text('UID: $displayUid', style: const TextStyle(color: gold, fontSize: 12)),
@@ -10470,7 +10528,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                 memberFirebaseUid: (data['firebaseUid'] ?? docs[index].id).toString(),
                                 memberName: displayName,
                                 isDeputy: memberIsDeputy,
-                                isAdmin: isAdmin,
+                                isIncharge: isIncharge,
                               ),
                               icon: const Icon(Icons.more_vert_rounded, color: pink, size: 23),
                             );
