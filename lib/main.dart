@@ -4896,7 +4896,7 @@ class _OrnamentsGalleryPageState
     {'name': 'Pink Aura', 'emoji': '💗', 'color': Color(0xFFF06292)},
     {'name': 'Blue Aura', 'emoji': '🩵', 'color': Color(0xFF4FC3F7)},
     {'name': 'Purple Aura', 'emoji': '💜', 'color': Color(0xFFBA68C8)},
-    {'name': 'Golden Aura', 'emoji': '??', 'color': Color(0xFFFFD54F)},
+    {'name': 'Golden Aura', 'emoji': '🌟', 'color': Color(0xFFFFD54F)},
     {'name': 'Rose Crown', 'emoji': '🌹', 'color': Color(0xFFEF5350)},
     {'name': 'Flower Crown', 'emoji': '🌺', 'color': Color(0xFFF06292)},
     {'name': 'Daisy Dreams', 'emoji': '🌼', 'color': Color(0xFFFFEE58)},
@@ -10083,7 +10083,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final leaderUid = (roomData['leaderUid'] ?? '').toString();
       final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
       final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-      if (user.uid == effectiveOwnerUid && user.uid == effectiveLeaderUid) {
+      // The room creator/leader can open the member settings menu.
+      // Match the same owner-or-leader access check used by the member list.
+      if ((effectiveOwnerUid.isNotEmpty && user.uid == effectiveOwnerUid) ||
+          (effectiveLeaderUid.isNotEmpty && user.uid == effectiveLeaderUid)) {
         return true;
       }
 
@@ -10509,14 +10512,24 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   tooltip: 'Leader Permission',
                   onPressed: () {
                     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                    final roomCreatorUid = (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
+                    final roomCreatorUid =
+                        (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
                     if (currentUid.isEmpty || currentUid != roomCreatorUid) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Only this room creator can open Leader Permission.')),
+                        const SnackBar(
+                          content: Text('Only this room creator can open Member Settings.'),
+                        ),
                       );
                       return;
                     }
-                    _showLeaderPermissionScreen();
+                    // Settings opens the five-option menu first. Leader Permission
+                    // is opened only after the user selects that menu item.
+                    _showMemberManagementOptions(
+                      memberFirebaseUid: currentUid,
+                      memberName: 'Member Settings',
+                      isDeputy: false,
+                      isIncharge: false,
+                    );
                   },
                   icon: const Icon(Icons.settings_rounded, color: pink),
                 ),
@@ -14905,5 +14918,4 @@ class _StableChatAvatar extends StatelessWidget {
     );
   }
 }
-
 
