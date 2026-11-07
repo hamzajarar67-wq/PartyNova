@@ -10109,39 +10109,41 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   Future<void> _showLeaderPermissionScreen() async {
     const permissionNames = <String>[
-      'Allow incharge to manage Activity Notice',
-'Allow incharge to start Tic Tac Toe',
-'Allow incharge to start Gift Scoring',
-'Allow incharge to start You Say, I Guess',
-"Allow incharge to start Who's the Spy",
-'Allow incharge to start Birthday Party',
-'Allow incharge to start Singing Queue',
-'Allow incharge to start Lucky Draw',
-'Allow incharge to use Clock',
-'Allow incharge to start Vote',
-'Allow incharge to start Fruit Fight',
-'Allow incharge to start Transfer Bomb',
-'Allow incharge to start Crocodile Dentist',
-'Allow incharge to start Fortune Chest',
-'Allow incharge to lock/unlock the mic',
-'Allow incharge to change themes',
-'Allow incharge to send you room themes',
-];
+      'Activity Notice Management',
+      'Tic Tac Toe Game Access',
+      'Gift Scoring Management',
+      'You Say, I Guess Game Access',
+      "Who's the Spy Game Access",
+      'Birthday Party Management',
+      'Singing Queue Management',
+      'Lucky Draw Management',
+      'Clock Access',
+      'Vote Management',
+      'Fruit Fight Game Access',
+      'Transfer Bomb Game Access',
+      'Crocodile Dentist Game Access',
+      'Fortune Chest Management',
+      'Microphone Lock & Unlock',
+      'Room Theme Management',
+      'Room Theme Sharing',
+    ];
 
-await showDialog<void>(
+    await showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.70),
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, refreshDialog) => Dialog(
           backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
+          insetPadding: const EdgeInsets.symmetric(horizontal: 13, vertical: 18),
           child: Container(
-            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
-            padding: const EdgeInsets.all(14),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.90,
+            ),
+            padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
               color: panel,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: gold, width: 1.2),
+              borderRadius: BorderRadius.circular(17),
+              border: Border.all(color: gold, width: 1.3),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -10149,7 +10151,14 @@ await showDialog<void>(
                 Row(
                   children: [
                     const Expanded(
-                      child: Text('Leader Permission', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
+                      child: Text(
+                        'IN-CHARGE & DEPUTY PERMISSIONS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(dialogContext),
@@ -10160,48 +10169,109 @@ await showDialog<void>(
                 const Align(
                   alignment: Alignment.centerLeft,
                   child: Padding(
-                    padding: EdgeInsets.only(bottom: 10),
-                    child: Text('ON = Green  •  OFF = Red', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      'Green = ON     Red = OFF',
+                      style: TextStyle(color: Colors.white60, fontSize: 11),
+                    ),
                   ),
                 ),
                 Flexible(
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: permissionNames.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      final name = permissionNames[index];
-                      final enabled = _leaderPermissionUiState[name] ?? false;
+                      final label =
+                          'Permission In-Charge & Deputy — ${permissionNames[index]}';
+                      final enabled = _leaderPermissionUiState[label] ?? false;
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                        constraints: const BoxConstraints(minHeight: 66),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 13,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF211923),
-                          borderRadius: BorderRadius.circular(11),
-                          border: Border.all(color: gold.withOpacity(0.65), width: 0.9),
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(
+                            color: gold.withOpacity(0.75),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(name, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                              child: Text(
+                                label,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  height: 1.3,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             GestureDetector(
+                              behavior: HitTestBehavior.opaque,
                               onTap: () {
                                 final next = !enabled;
-                                setState(() => _leaderPermissionUiState[name] = next);
+                                setState(() => _leaderPermissionUiState[label] = next);
                                 refreshDialog(() {});
                               },
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 160),
-                                width: 66,
-                                height: 31,
-                                alignment: Alignment.center,
+                                duration: const Duration(milliseconds: 180),
+                                width: 62,
+                                height: 34,
+                                padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
-                                  color: enabled ? const Color(0xFF168A43) : const Color(0xFFB32632),
-                                  borderRadius: BorderRadius.circular(18),
-                                  border: Border.all(color: enabled ? const Color(0xFF5DFF9A) : const Color(0xFFFF858B), width: 0.8),
+                                  color: enabled
+                                      ? const Color(0xFF168A43)
+                                      : const Color(0xFFB32632),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: enabled
+                                        ? const Color(0xFF5DFF9A)
+                                        : const Color(0xFFFF858B),
+                                    width: 1,
+                                  ),
                                 ),
-                                child: Text(enabled ? 'ON' : 'OFF', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+                                child: Stack(
+                                  children: [
+                                    Align(
+                                      alignment: enabled
+                                          ? Alignment.centerLeft
+                                          : Alignment.centerRight,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                                        child: Text(
+                                          enabled ? 'ON' : 'OFF',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    AnimatedAlign(
+                                      duration: const Duration(milliseconds: 180),
+                                      curve: Curves.easeInOut,
+                                      alignment: enabled
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -10211,7 +10281,11 @@ await showDialog<void>(
                   ),
                 ),
                 const SizedBox(height: 10),
-                const Text('UI preview only — feature permissions will be connected later.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 10)),
+                const Text(
+                  'UI only — permission functions will be connected later.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.white54, fontSize: 10),
+                ),
               ],
             ),
           ),
@@ -10227,316 +10301,135 @@ await showDialog<void>(
     required bool isIncharge,
   }) async {
     if (!await _canManageRoomMembers() || !mounted) return;
-    final canAssignDeputy = isDeputy || await _canAssignDeputyLeader();
-    final roomRef = FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(widget.roomDocumentId);
-    final memberRef = roomRef.collection('members').doc(memberFirebaseUid);
 
-    Future<void> applyAction(String action) async {
-      if (!await _canManageRoomMembers()) return;
-      try {
-        // Fetch the member list once. Counting and deputy-list maintenance use
-        // this snapshot instead of sequential transaction.get calls for every
-        // member, which made role changes unnecessarily slow.
-        final membersQuerySnapshot = await roomRef.collection('members').get();
-
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
-          final roomSnapshot = await transaction.get(roomRef);
-          final memberSnapshot = await transaction.get(memberRef);
-          if (!roomSnapshot.exists || !memberSnapshot.exists) {
-            throw StateError('Member or room no longer exists.');
-          }
-
-          final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-          final ownerUid = (roomData['ownerUid'] ?? '').toString();
-          final leaderUid = (roomData['leaderUid'] ?? '').toString();
-          final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-          final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
-          final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-          final isRoomOwnerOrLeader =
-              currentUid == effectiveOwnerUid &&
-              currentUid == effectiveLeaderUid;
-
-          if (!isRoomOwnerOrLeader) {
-            final deputyUids = <String>{
-              ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-                  .map((value) => value.toString()),
-            };
-            final legacyDeputyUid =
-                (roomData['deputyLeaderUid'] ?? '').toString();
-            if (legacyDeputyUid.isNotEmpty) {
-              deputyUids.add(legacyDeputyUid);
-            }
-            final currentMemberRef =
-                roomRef.collection('members').doc(currentUid);
-            final currentMemberSnapshot =
-                await transaction.get(currentMemberRef);
-            final currentRole =
-                (currentMemberSnapshot.data()?['role'] ?? '')
-                    .toString()
-                    .toLowerCase();
-            if (!deputyUids.contains(currentUid) &&
-                currentRole != 'deputy leader') {
-              throw StateError(
-                'Only the Room Owner, Leader or Deputy Leader can manage members.',
-              );
-            }
-          }
-
-          final memberData = memberSnapshot.data() ?? <String, dynamic>{};
-          final memberRole =
-              (memberData['role'] ?? 'Member').toString().toLowerCase();
-          if (memberFirebaseUid == ownerUid ||
-              memberFirebaseUid == leaderUid ||
-              memberRole == 'owner' ||
-              memberRole == 'leader' ||
-              memberData['isRoomLeader'] == true) {
-            throw StateError('The room Owner/Leader cannot be changed here.');
-          }
-
-          final memberRoles = <String, String>{
-            for (final doc in membersQuerySnapshot.docs)
-              doc.id: (doc.data()['role'] ?? 'Member')
-                  .toString()
-                  .toLowerCase(),
-          };
-
-          if (action == 'set_deputy') {
-            final ownerProfileRef = FirebaseFirestore.instance
-                .collection('publicProfiles')
-                .doc(effectiveOwnerUid);
-            final ownerProfileSnapshot =
-                await transaction.get(ownerProfileRef);
-            final ownerProfileData =
-                ownerProfileSnapshot.data() ?? <String, dynamic>{};
-            final ownerPlatformRole = resolvePartyNovaRole(
-              userId: (ownerProfileData['userId'] ?? '').toString(),
-              storedRole: ownerProfileData['role']?.toString(),
-            );
-            if (ownerPlatformRole != 'owner' &&
-                ownerPlatformRole != 'admin') {
-              throw StateError(
-                'Deputy Leader is available only in Owner/Admin rooms.',
-              );
-            }
-            final deputyCount = memberRoles.values
-                .where((role) => role == 'deputy leader')
-                .length;
-            if (memberRole != 'deputy leader' && deputyCount >= 3) {
-              throw StateError(
-                'This room can have a maximum of 3 Deputy Leaders.',
-              );
-            }
-            final deputyUids = <String>{
-              ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-                  .map((value) => value.toString()),
-            };
-            final legacyDeputyUid =
-                (roomData['deputyLeaderUid'] ?? '').toString();
-            if (legacyDeputyUid.isNotEmpty) {
-              deputyUids.add(legacyDeputyUid);
-            }
-            deputyUids.add(memberFirebaseUid);
-            transaction.update(memberRef, {'role': 'Deputy Leader'});
-            transaction.update(roomRef, {
-              'deputyLeaderUids': deputyUids.toList(),
-              'deputyLeaderUid': deputyUids.first,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          } else if (action == 'remove_deputy') {
-            final deputyUids = <String>{
-              ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-                  .map((value) => value.toString()),
-            };
-            final legacyDeputyUid =
-                (roomData['deputyLeaderUid'] ?? '').toString();
-            if (legacyDeputyUid.isNotEmpty) {
-              deputyUids.add(legacyDeputyUid);
-            }
-            deputyUids.remove(memberFirebaseUid);
-            final remainingDeputies = memberRoles.entries
-                .where((entry) =>
-                    entry.key != memberFirebaseUid &&
-                    entry.value == 'deputy leader')
-                .map((entry) => entry.key)
-                .toSet();
-            deputyUids
-              ..retainAll(remainingDeputies)
-              ..addAll(remainingDeputies);
-            transaction.update(memberRef, {'role': 'Member'});
-            transaction.update(roomRef, {
-              'deputyLeaderUids': deputyUids.isEmpty
-                  ? FieldValue.delete()
-                  : deputyUids.toList(),
-              'deputyLeaderUid': deputyUids.isEmpty
-                  ? FieldValue.delete()
-                  : deputyUids.first,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          } else if (action == 'set_incharge') {
-            if (memberRole == 'deputy leader') {
-              throw StateError(
-                'Remove Deputy Leader role before assigning Seat Incharge.',
-              );
-            }
-            final ownerProfileRef = FirebaseFirestore.instance
-                .collection('publicProfiles')
-                .doc(effectiveOwnerUid);
-            final ownerProfileSnapshot =
-                await transaction.get(ownerProfileRef);
-            final ownerProfileData =
-                ownerProfileSnapshot.data() ?? <String, dynamic>{};
-            final ownerPlatformRole = resolvePartyNovaRole(
-              userId: (ownerProfileData['userId'] ?? '').toString(),
-              storedRole: ownerProfileData['role']?.toString(),
-            );
-            final maxIncharges =
-                ownerPlatformRole == 'owner' || ownerPlatformRole == 'admin'
-                    ? 20
-                    : 7;
-            final inchargeCount = memberRoles.values
-                .where((role) =>
-                    role == 'seat incharge' || role == 'admin')
-                .length;
-            if (memberRole != 'seat incharge' &&
-                memberRole != 'admin' &&
-                inchargeCount >= maxIncharges) {
-              throw StateError(
-                'This room can have a maximum of $maxIncharges Seat Incharges.',
-              );
-            }
-            transaction.update(memberRef, {'role': 'Seat Incharge'});
-          } else if (action == 'remove_incharge') {
-            transaction.update(memberRef, {'role': 'Member'});
-          } else if (action == 'remove_member') {
-            final remainingDeputies = memberRoles.entries
-                .where((entry) =>
-                    entry.key != memberFirebaseUid &&
-                    entry.value == 'deputy leader')
-                .map((entry) => entry.key)
-                .toList();
-            transaction.delete(memberRef);
-            transaction.update(roomRef, {
-              'memberCount': FieldValue.increment(-1),
-              'deputyLeaderUids': remainingDeputies.isEmpty
-                  ? FieldValue.delete()
-                  : remainingDeputies,
-              'deputyLeaderUid': remainingDeputies.isEmpty
-                  ? FieldValue.delete()
-                  : remainingDeputies.first,
-              'updatedAt': FieldValue.serverTimestamp(),
-            });
-          }
-        });
-
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              action == 'set_deputy'
-                  ? '$memberName is now Deputy Leader.'
-                  : action == 'remove_deputy'
-                      ? '$memberName is no longer Deputy Leader.'
-                      : action == 'set_incharge'
-                          ? '$memberName is now Seat Incharge.'
-                          : action == 'remove_incharge'
-                              ? '$memberName is no longer Seat Incharge.'
-                              : '$memberName was removed from the room.',
-            ),
-          ),
-        );
-      } catch (error) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not update member: $error')),
-        );
-      }
-    }
+    const options = <String>[
+      'Leader Permission',
+      'Join Fee',
+      'Remove Member',
+      'Block Member',
+      'Room Record',
+    ];
 
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black54,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(15),
           decoration: BoxDecoration(
             color: panel,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: gold.withOpacity(0.55)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: gold, width: 1.2),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (canAssignDeputy)
-                Row(
-                  children: [
-                    Expanded(
-                      child: _memberActionButton(
-                        label: isDeputy ? 'Remove DP' : 'Seat DP',
-                        color: gold,
-                        onTap: () {
-                          Navigator.pop(dialogContext);
-                          applyAction(
-                            isDeputy ? 'remove_deputy' : 'set_deputy',
-                          );
-                        },
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      'MEMBER SETTINGS',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
                       ),
                     ),
-                    const SizedBox(width: 9),
-                    Expanded(
-                      child: _memberActionButton(
-                        label: isIncharge
-                            ? 'Remove Seat Incharge'
-                            : 'Seat Incharge',
-                        color: gold,
-                        onTap: () {
-                          Navigator.pop(dialogContext);
-                          applyAction(
-                            isIncharge ? 'remove_incharge' : 'set_incharge',
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                )
-              else
-                SizedBox(
-                  width: double.infinity,
-                  child: _memberActionButton(
-                    label: isIncharge
-                        ? 'Remove Seat Incharge'
-                        : 'Seat Incharge',
-                    color: gold,
-                    onTap: () {
-                      Navigator.pop(dialogContext);
-                      applyAction(
-                        isIncharge ? 'remove_incharge' : 'set_incharge',
-                      );
-                    },
                   ),
-                ),
-              const SizedBox(height: 9),
-              SizedBox(
-                width: double.infinity,
-                child: _memberActionButton(
-                  label: 'Remove Member',
-                  color: gold,
-                  onTap: () {
-                    Navigator.pop(dialogContext);
-                    applyAction('remove_member');
-                  },
-                ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                  ),
+                ],
               ),
+              const SizedBox(height: 5),
+              ...options.map((option) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () {
+                        Navigator.pop(dialogContext);
+                        if (option == 'Leader Permission') {
+                          _showLeaderPermissionScreen();
+                        } else if (mounted) {
+                          showDialog<void>(
+                            context: context,
+                            builder: (previewContext) => AlertDialog(
+                              backgroundColor: panel,
+                              title: Text(
+                                option,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              content: const Text(
+                                'UI preview only.',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(previewContext),
+                                  child: const Text(
+                                    'CLOSE',
+                                    style: TextStyle(color: gold),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        constraints: const BoxConstraints(minHeight: 58),
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF211923),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: gold.withOpacity(0.8),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                option,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: gold,
+                              size: 25,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),
       ),
     );
   }
-
 
   Widget _memberActionButton({
     required String label,
