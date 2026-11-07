@@ -9417,14 +9417,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    final saved = await _saveRoomFields({
+                      'roomLanguages': temporarySelection.toList(),
+                    });
+                    if (!saved || !mounted) return;
                     setState(() {
                       _selectedLanguages
                         ..clear()
                         ..addAll(temporarySelection);
                     });
-                    _saveRoomFields({'roomLanguages': temporarySelection.toList()});
-                    Navigator.pop(dialogContext);
+                    if (dialogContext.mounted) {
+                      Navigator.pop(dialogContext);
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: pink,
@@ -9601,40 +9606,79 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         if (await _isCurrentUserRoomLeader()) _openLanguagePopup();
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 13,
-          vertical: 12,
-        ),
+        width: double.infinity,
+        padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
           color: panel,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: pink.withOpacity(0.45), width: 1),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(
-              Icons.language_rounded,
-              color: pink,
-              size: 21,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _selectedLanguages.isEmpty
-                    ? 'Select Room Languages'
-                    : _selectedLanguages.join(', '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
+            Row(
+              children: [
+                const Icon(Icons.language_rounded, color: pink, size: 21),
+                const SizedBox(width: 9),
+                const Expanded(
+                  child: Text(
+                    'Room Languages',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: pink,
+                  size: 25,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_selectedLanguages.isEmpty)
+              const Text(
+                'Select Room Languages',
+                style: TextStyle(color: Colors.white60, fontSize: 13),
+              )
+            else
+              Wrap(
+                spacing: 9,
+                runSpacing: 9,
+                children: _selectedLanguages.map((language) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: pink,
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(
+                        color: const Color(0xFFFF9BC8),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: pink.withOpacity(0.20),
+                          blurRadius: 7,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      language,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: pink,
-              size: 25,
-            ),
           ],
         ),
       ),
@@ -10060,43 +10104,120 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             if (ownerPlatformRole != 'owner' && ownerPlatformRole != 'admin') {
               throw StateError('Deputy Leader is available only in Owner/Admin rooms.');
             }
-            final previousDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
-            DocumentSnapshot<Map<String, dynamic>>? previousDeputySnapshot;
-            DocumentReference<Map<String, dynamic>>? previousDeputyRef;
-            if (previousDeputyUid.isNotEmpty && previousDeputyUid != memberFirebaseUid) {
-              previousDeputyRef = roomRef.collection('members').doc(previousDeputyUid);
-              previousDeputySnapshot = await transaction.get(previousDeputyRef);
+            final memberQuery = await transaction.get(
+              roomRef.collection('members'),
+            );
+            final deputyCount = memberQuery.docs.where((doc) {
+              return (doc.data()['role'] ?? '').toString().toLowerCase() ==
+                  'deputy leader';
+            }).length;
+            if (memberRole != 'deputy leader' && deputyCount >= 3) {
+              throw StateError('This room can have a maximum of 3 Deputy Leaders.');
             }
-            if (previousDeputyRef != null && previousDeputySnapshot?.exists == true) {
-              transaction.update(previousDeputyRef, {'role': 'Member'});
-            }
+            final deputyUids = <String>{
+              ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+                  .map((value) => value.toString()),
+            };
+            final legacyDeputyUid =
+                (roomData['deputyLeaderUid'] ?? '').toString();
+            if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
+            deputyUids.add(memberFirebaseUid);
             transaction.update(memberRef, {'role': 'Deputy Leader'});
             transaction.update(roomRef, {
-              'deputyLeaderUid': memberFirebaseUid,
+              'deputyLeaderUids': deputyUids.toList(),
+              'deputyLeaderUid': deputyUids.first,
               'updatedAt': FieldValue.serverTimestamp(),
             });
           } else if (action == 'remove_deputy') {
+            final memberQuery = await transaction.get(
+              roomRef.collection('members'),
+            );
+            final deputyUids = <String>{
+              ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+                  .map((value) => value.toString()),
+            };
+            final legacyDeputyUid =
+                (roomData['deputyLeaderUid'] ?? '').toString();
+            if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
+            deputyUids.remove(memberFirebaseUid);
+            final remainingDeputies = memberQuery.docs
+                .where((doc) =>
+                    doc.id != memberFirebaseUid &&
+                    (doc.data()['role'] ?? '').toString().toLowerCase() ==
+                        'deputy leader')
+                .map((doc) => doc.id)
+                .toSet();
+            deputyUids
+              ..retainAll(remainingDeputies)
+              ..addAll(remainingDeputies);
             transaction.update(memberRef, {'role': 'Member'});
             transaction.update(roomRef, {
-              'deputyLeaderUid': FieldValue.delete(),
+              'deputyLeaderUids': deputyUids.isEmpty
+                  ? FieldValue.delete()
+                  : deputyUids.toList(),
+              'deputyLeaderUid': deputyUids.isEmpty
+                  ? FieldValue.delete()
+                  : deputyUids.first,
               'updatedAt': FieldValue.serverTimestamp(),
             });
           } else if (action == 'set_incharge') {
             if (memberRole == 'deputy leader') {
               throw StateError('Remove Deputy Leader role before assigning Seat Incharge.');
             }
+            final ownerProfileRef = FirebaseFirestore.instance
+                .collection('publicProfiles')
+                .doc(effectiveOwnerUid);
+            final ownerProfileSnapshot =
+                await transaction.get(ownerProfileRef);
+            final ownerProfileData =
+                ownerProfileSnapshot.data() ?? <String, dynamic>{};
+            final ownerPlatformRole = resolvePartyNovaRole(
+              userId: (ownerProfileData['userId'] ?? '').toString(),
+              storedRole: ownerProfileData['role']?.toString(),
+            );
+            final maxIncharges =
+                ownerPlatformRole == 'owner' || ownerPlatformRole == 'admin'
+                    ? 20
+                    : 7;
+            final memberQuery = await transaction.get(
+              roomRef.collection('members'),
+            );
+            final inchargeCount = memberQuery.docs.where((doc) {
+              final role = (doc.data()['role'] ?? '').toString().toLowerCase();
+              return role == 'seat incharge' || role == 'admin';
+            }).length;
+            if (memberRole != 'seat incharge' &&
+                memberRole != 'admin' &&
+                inchargeCount >= maxIncharges) {
+              throw StateError(
+                'This room can have a maximum of $maxIncharges Seat Incharges.',
+              );
+            }
             transaction.update(memberRef, {'role': 'Seat Incharge'});
           } else if (action == 'remove_incharge') {
             transaction.update(memberRef, {'role': 'Member'});
           } else if (action == 'remove_member') {
+            final memberQuery = await transaction.get(
+              roomRef.collection('members'),
+            );
+            final remainingDeputies = memberQuery.docs
+                .where((doc) =>
+                    doc.id != memberFirebaseUid &&
+                    (doc.data()['role'] ?? '').toString().toLowerCase() ==
+                        'deputy leader')
+                .map((doc) => doc.id)
+                .toList();
             transaction.delete(memberRef);
             final updates = <String, dynamic>{
               'memberCount': FieldValue.increment(-1),
               'updatedAt': FieldValue.serverTimestamp(),
             };
-            if ((roomData['deputyLeaderUid'] ?? '').toString() == memberFirebaseUid) {
-              updates['deputyLeaderUid'] = FieldValue.delete();
-            }
+            updates['deputyLeaderUids'] = remainingDeputies.isEmpty
+                ? FieldValue.delete()
+                : remainingDeputies;
+            updates['deputyLeaderUid'] = remainingDeputies.isEmpty
+                ? FieldValue.delete()
+                : remainingDeputies.first;
             transaction.update(roomRef, updates);
           }
         });
@@ -10235,6 +10356,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             : (roomData['ownerUid'] ?? '').toString();
         final actualOwnerUid = (roomData['ownerUid'] ?? '').toString();
         final actualDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
+        final actualDeputyUids = <String>{
+          ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+              .map((value) => value.toString()),
+          if (actualDeputyUid.isNotEmpty) actualDeputyUid,
+        };
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -10320,7 +10446,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               final memberData = doc.data();
               final uid = (memberData['firebaseUid'] ?? doc.id).toString();
               final role = (memberData['role'] ?? '').toString().toLowerCase();
-              if (uid == actualDeputyUid || role == 'deputy leader') return 1;
+              if (actualDeputyUids.contains(uid) || role == 'deputy leader') return 1;
               if (role == 'seat incharge' || role == 'admin') return 2;
               return 3;
             }
@@ -10350,7 +10476,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 final memberFirebaseUid = (data['firebaseUid'] ?? docs[index].id).toString();
                 final isLeader = actualLeaderUid.isNotEmpty && memberFirebaseUid == actualLeaderUid;
                 final isOwner = actualOwnerUid.isNotEmpty && memberFirebaseUid == actualOwnerUid;
-                final isDeputy = actualDeputyUid.isNotEmpty && memberFirebaseUid == actualDeputyUid;
+                final isDeputy = actualDeputyUids.contains(memberFirebaseUid) || role.toLowerCase() == 'deputy leader';
                 final isIncharge = role.toLowerCase() == 'seat incharge' || role.toLowerCase() == 'admin';
                 return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('publicProfiles').doc(memberFirebaseUid).snapshots(),
