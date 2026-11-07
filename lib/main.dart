@@ -9016,6 +9016,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   int _selectedTab = 0;
   final TextEditingController _memberSearchController = TextEditingController();
   String _memberSearchQuery = '';
+  // UI preview only: these switches are not connected to Firestore/features yet.
+  final Map<String, bool> _leaderPermissionUiState = {};
   bool _leaderMemberBackfillStarted = false;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _roomDetailsSubscription;
 
@@ -10105,6 +10107,119 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
   }
 
+  Future<void> _showLeaderPermissionScreen() async {
+    const permissionNames = <String>[
+      'Allow admin to manage Activity Notice',
+      'Allow admin to start Tic Tac Toe',
+      'Allow admin to start Gift Scoring',
+      'Allow admin to start You Say, I Guess',
+      "Allow admin to start Who's the Spy",
+      'Allow admin to start Birthday Party',
+      'Allow admin to start Singing Queue',
+      'Allow admin to start Lucky Draw',
+      'Allow admin to use Clock',
+      'Allow admin to start Vote',
+      'Allow admin to start Fruit Fight',
+      'Allow admins to start Transfer Bomb',
+      'Allow admin to start Crocodile Dentist',
+      'Allow admin to start Fortune Chest',
+      'Allow admin to lock/unlock the mic',
+      'Allow admin to change themes',
+      'Allow admin to send you room themes',
+    ];
+
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black70,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, refreshDialog) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 22),
+          child: Container(
+            constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: panel,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: gold, width: 1.2),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('Leader Permission', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900)),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    ),
+                  ],
+                ),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: Text('ON = Green  •  OFF = Red', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                  ),
+                ),
+                Flexible(
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: permissionNames.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final name = permissionNames[index];
+                      final enabled = _leaderPermissionUiState[name] ?? false;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF211923),
+                          borderRadius: BorderRadius.circular(11),
+                          border: Border.all(color: gold.withOpacity(0.65), width: 0.9),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(name, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () {
+                                final next = !enabled;
+                                setState(() => _leaderPermissionUiState[name] = next);
+                                refreshDialog(() {});
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 160),
+                                width: 66,
+                                height: 31,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: enabled ? const Color(0xFF168A43) : const Color(0xFFB32632),
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(color: enabled ? const Color(0xFF5DFF9A) : const Color(0xFFFF858B), width: 0.8),
+                                ),
+                                child: Text(enabled ? 'ON' : 'OFF', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text('UI preview only — feature permissions will be connected later.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54, fontSize: 10)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showMemberManagementOptions({
     required String memberFirebaseUid,
     required String memberName,
@@ -10498,17 +10613,17 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
-                  tooltip: 'Member settings',
+                  tooltip: 'Leader Permission',
                   onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      builder: (dialogContext) => AlertDialog(
-                        backgroundColor: panel,
-                        title: const Text('Member Settings', style: TextStyle(color: Colors.white)),
-                        content: const Text('Member management settings will be added in the next stage.', style: TextStyle(color: Colors.white70)),
-                        actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
-                      ),
-                    );
+                    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+                    final roomCreatorUid = (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
+                    if (currentUid.isEmpty || currentUid != roomCreatorUid) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Only this room creator can open Leader Permission.')),
+                      );
+                      return;
+                    }
+                    _showLeaderPermissionScreen();
                   },
                   icon: const Icon(Icons.settings_rounded, color: pink),
                 ),
@@ -10624,6 +10739,15 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     return InkWell(
                   borderRadius: BorderRadius.circular(13),
                   onTap: () {
+                    if (canManageMembers && !isLeader && !isOwner && role.toLowerCase() != 'owner') {
+                      _showMemberManagementOptions(
+                        memberFirebaseUid: memberFirebaseUid,
+                        memberName: displayName,
+                        isDeputy: isDeputy || role.toLowerCase() == 'deputy leader',
+                        isIncharge: isIncharge,
+                      );
+                      return;
+                    }
                     showDialog<void>(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
@@ -10777,20 +10901,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         const SizedBox(height: 3),
                         Text(joinedDate == null ? 'Joined recently' : 'Joined ${joinedDays == 0 ? 1 : joinedDays} day(s) ago', style: const TextStyle(color: Colors.white54, fontSize: 10)),
                       ])),
-                      if (canManageMembers &&
-                          !isLeader &&
-                          !isOwner &&
-                          role.toLowerCase() != 'owner')
-                        IconButton(
-                          tooltip: 'Member options',
-                          onPressed: () => _showMemberManagementOptions(
-                            memberFirebaseUid: (data['firebaseUid'] ?? docs[index].id).toString(),
-                            memberName: displayName,
-                            isDeputy: isDeputy || role.toLowerCase() == 'deputy leader',
-                            isIncharge: isIncharge,
-                          ),
-                          icon: const Icon(Icons.more_vert_rounded, color: pink, size: 23),
-                        ),
+                      const Icon(Icons.chevron_right_rounded, color: gold, size: 25),
                     ],
                   ),
                 ),
