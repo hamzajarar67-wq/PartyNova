@@ -4896,7 +4896,7 @@ class _OrnamentsGalleryPageState
     {'name': 'Pink Aura', 'emoji': '💗', 'color': Color(0xFFF06292)},
     {'name': 'Blue Aura', 'emoji': '🩵', 'color': Color(0xFF4FC3F7)},
     {'name': 'Purple Aura', 'emoji': '💜', 'color': Color(0xFFBA68C8)},
-    {'name': 'Golden Aura', 'emoji': '🌟', 'color': Color(0xFFFFD54F)},
+    {'name': 'Golden Aura', 'emoji': '??', 'color': Color(0xFFFFD54F)},
     {'name': 'Rose Crown', 'emoji': '🌹', 'color': Color(0xFFEF5350)},
     {'name': 'Flower Crown', 'emoji': '🌺', 'color': Color(0xFFF06292)},
     {'name': 'Daisy Dreams', 'emoji': '🌼', 'color': Color(0xFFFFEE58)},
@@ -14905,3 +14905,5 @@ class _StableChatAvatar extends StatelessWidget {
     );
   }
 }
+
+
