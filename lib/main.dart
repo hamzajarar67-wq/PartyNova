@@ -10109,28 +10109,28 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   Future<void> _showLeaderPermissionScreen() async {
     const permissionNames = <String>[
-      'Allow admin to manage Activity Notice',
-      'Allow admin to start Tic Tac Toe',
-      'Allow admin to start Gift Scoring',
-      'Allow admin to start You Say, I Guess',
-      "Allow admin to start Who's the Spy",
-      'Allow admin to start Birthday Party',
-      'Allow admin to start Singing Queue',
-      'Allow admin to start Lucky Draw',
-      'Allow admin to use Clock',
-      'Allow admin to start Vote',
-      'Allow admin to start Fruit Fight',
-      'Allow admins to start Transfer Bomb',
-      'Allow admin to start Crocodile Dentist',
-      'Allow admin to start Fortune Chest',
-      'Allow admin to lock/unlock the mic',
-      'Allow admin to change themes',
-      'Allow admin to send you room themes',
-    ];
+      'Allow incharge to manage Activity Notice',
+'Allow incharge to start Tic Tac Toe',
+'Allow incharge to start Gift Scoring',
+'Allow incharge to start You Say, I Guess',
+"Allow incharge to start Who's the Spy",
+'Allow incharge to start Birthday Party',
+'Allow incharge to start Singing Queue',
+'Allow incharge to start Lucky Draw',
+'Allow incharge to use Clock',
+'Allow incharge to start Vote',
+'Allow incharge to start Fruit Fight',
+'Allow incharge to start Transfer Bomb',
+'Allow incharge to start Crocodile Dentist',
+'Allow incharge to start Fortune Chest',
+'Allow incharge to lock/unlock the mic',
+'Allow incharge to change themes',
+'Allow incharge to send you room themes',
+];
 
-    await showDialog<void>(
+await showDialog<void>(
       context: context,
-      barrierColor: Colors.black70,
+      barrierColor: Colors.black.withValues(alpha: 0.70),
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, refreshDialog) => Dialog(
           backgroundColor: Colors.transparent,
