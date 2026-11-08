@@ -12583,8 +12583,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         final onlineDocs = snapshot.data!.docs.where((doc) {
           final lastSeen = doc.data()['lastSeenAt'];
           if (lastSeen is! Timestamp) return false;
-          return now.difference(lastSeen.toDate()) <=
-              const Duration(minutes: 2);
+          return now.difference(lastSeen.toDate()) <= const Duration(minutes: 2);
         }).toList()
           ..sort((a, b) {
             final aEntered = a.data()['enteredAt'];
@@ -12595,110 +12594,76 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             return a.id.compareTo(b.id);
           });
 
-        if (onlineDocs.isEmpty) {
-          return const SizedBox(height: 42);
-        }
-
-        final visibleDocs = onlineDocs.take(10).toList();
-        final extraCount = onlineDocs.length - visibleDocs.length;
+        final visibleDocs = onlineDocs.take(5).toList();
+        final hasMore = onlineDocs.length > 5;
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
+          padding: const EdgeInsets.fromLTRB(10, 3, 10, 9),
           child: SizedBox(
-            height: 38,
+            height: 42,
             child: Row(
               children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (final doc in visibleDocs) ...[
-                          GestureDetector(
-                            onTap: () {
-                              final firebaseUid =
-                                  (doc.data()['firebaseUid'] ?? doc.id)
-                                      .toString();
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => PartyNovaPublicProfilePage(
-                                    firebaseUid: firebaseUid,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Container(
-                              width: 30,
-                              height: 30,
-                              margin: const EdgeInsets.only(right: 3),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: gold,
-                                  width: 1.2,
-                                ),
-                              ),
-                              child: CircleAvatar(
-                                radius: 14,
-                                backgroundColor: panelBlue,
-                                backgroundImage: getCachedProfilePhotoImage(
-                                  (doc.data()['photoBase64'] ?? '').toString(),
-                                ),
-                                child: getCachedProfilePhotoImage(
-                                          (doc.data()['photoBase64'] ?? '')
-                                              .toString(),
-                                        ) ==
-                                        null
-                                    ? const Icon(
-                                        Icons.person_rounded,
-                                        color: Colors.white70,
-                                        size: 17,
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                if (extraCount > 0) ...[
-                  const SizedBox(width: 4),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(8),
+                for (final doc in visibleDocs)
+                  GestureDetector(
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PartyRoomOnlineUsersPage(
-                            roomDocumentId: widget.roomDocumentId,
-                          ),
-                        ),
-                      );
+                      final uid = (doc.data()['firebaseUid'] ?? doc.id).toString();
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => PartyNovaPublicProfilePage(firebaseUid: uid),
+                      ));
                     },
                     child: Container(
-                      width: 46,
-                      height: 32,
+                      width: 34,
+                      height: 34,
+                      margin: const EdgeInsets.only(right: 7),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
+                      ),
+                      child: CircleAvatar(
+                        radius: 15,
+                        backgroundColor: const Color(0xFF171017),
+                        backgroundImage: getCachedProfilePhotoImage(
+                          (doc.data()['photoBase64'] ?? '').toString(),
+                        ),
+                        child: getCachedProfilePhotoImage(
+                          (doc.data()['photoBase64'] ?? '').toString(),
+                        ) == null
+                            ? const Icon(Icons.person_rounded, color: Colors.white70, size: 18)
+                            : null,
+                      ),
+                    ),
+                  ),
+                if (hasMore)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => PartyRoomOnlineUsersPage(
+                          roomDocumentId: widget.roomDocumentId,
+                        ),
+                      ));
+                    },
+                    child: Container(
+                      height: 34,
+                      padding: const EdgeInsets.symmetric(horizontal: 13),
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: panelBlue,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: gold, width: 1),
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
                       ),
-                      child: Text(
-                        '+$extraCount',
-                        style: const TextStyle(
-                          color: gold,
-                          fontSize: 12,
+                      child: const Text(
+                        'USERS',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
                           fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
                         ),
                       ),
                     ),
                   ),
-                ],
+                const Spacer(),
               ],
             ),
           ),
@@ -13004,71 +12969,69 @@ InkWell(
             Positioned.fill(
               child: GestureDetector(
                 onTap: () => setState(() => _showLeaveOptions = false),
-                child: ColoredBox(
-                  color: Colors.black.withOpacity(0.88),
-                ),
+                child: const ColoredBox(color: Color(0xE6000000)),
               ),
             ),
             Positioned(
               left: 0,
               right: 0,
-              bottom: 22,
+              bottom: 34,
               child: Center(
-                child: Container(
-                  width: 176,
-                  decoration: BoxDecoration(
-                    color: pink,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      InkWell(
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(22),
-                        ),
-                        onTap: () => setState(() => _showLeaveOptions = false),
-                        child: const SizedBox(
-                          height: 48,
-                          width: double.infinity,
-                          child: Center(
-                            child: Text(
-                              'Keep',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      onTap: () => setState(() => _showLeaveOptions = false),
+                      borderRadius: BorderRadius.circular(60),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFFF1688), width: 3),
+                              boxShadow: const [
+                                BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
+                              ],
                             ),
+                            child: const Icon(Icons.file_upload_rounded, color: Colors.white, size: 43),
                           ),
-                        ),
+                          const SizedBox(height: 7),
+                          const Text('Keep', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                        ],
                       ),
-                      InkWell(
-                        borderRadius: const BorderRadius.vertical(
-                          bottom: Radius.circular(22),
-                        ),
-                        onTap: () async {
-                          setState(() => _showLeaveOptions = false);
-                          await _leaveRoomPresence();
-                          if (mounted) Navigator.pop(context);
-                        },
-                        child: const SizedBox(
-                          height: 48,
-                          width: double.infinity,
-                          child: Center(
-                            child: Text(
-                              'Leave',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                              ),
+                    ),
+                    const SizedBox(height: 34),
+                    InkWell(
+                      onTap: () async {
+                        setState(() => _showLeaveOptions = false);
+                        await _leaveRoomPresence();
+                        if (mounted) Navigator.pop(context);
+                      },
+                      borderRadius: BorderRadius.circular(60),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFFF1688), width: 3),
+                              boxShadow: const [
+                                BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
+                              ],
                             ),
+                            child: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 43),
                           ),
-                        ),
+                          const SizedBox(height: 7),
+                          const Text('Exit', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -13139,6 +13102,8 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
               return a.id.compareTo(b.id);
             });
 
+          if (onlineDocs.length > 1000) onlineDocs.removeRange(1000, onlineDocs.length);
+
           if (onlineDocs.isEmpty) {
             return const Center(
               child: Text(
@@ -13184,15 +13149,27 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
+                          ),
+                          child: Text(
+                            '${index + 1}',
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        const SizedBox(width: 9),
                         CircleAvatar(
                           radius: 23,
                           backgroundColor: const Color(0xFF100810),
                           backgroundImage: photoImage,
                           child: photoImage == null
-                              ? const Icon(
-                                  Icons.person_rounded,
-                                  color: Colors.white70,
-                                )
+                              ? const Icon(Icons.person_rounded, color: Colors.white70)
                               : null,
                         ),
                         const SizedBox(width: 12),
