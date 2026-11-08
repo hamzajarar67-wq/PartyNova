@@ -10294,6 +10294,405 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+
+  CollectionReference<Map<String, dynamic>> get _roomActionRecords =>
+      FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId)
+          .collection('roomRecords');
+
+  Future<void> _writeRoomActionRecord({
+    required String action,
+    required String targetUid,
+    required String targetName,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _roomActionRecords.add({
+      'action': action,
+      'targetUid': targetUid,
+      'targetName': targetName,
+      'actorUid': user.uid,
+      'actorName': user.displayName ?? 'Room Staff',
+      'createdAt': FieldValue.serverTimestamp(),
+      if (action == 'Remove')
+        'expiresAt': Timestamp.fromDate(
+          DateTime.now().add(const Duration(days: 7)),
+        ),
+    });
+  }
+
+  Future<void> _showJoinFeeSettings() async {
+    final roomRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId);
+    final snapshot = await roomRef.get();
+    final data = snapshot.data() ?? <String, dynamic>{};
+    bool freeJoin = data['freeJoin'] != false;
+    final feeController = TextEditingController(
+      text: ((data['joinFeeDiamonds'] ?? 10).toString()),
+    );
+    if (!mounted) {
+      feeController.dispose();
+      return;
+    }
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, refresh) => AlertDialog(
+          backgroundColor: panel,
+          title: const Text('ROOM JOIN FEE',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<bool>(
+                value: true,
+                groupValue: freeJoin,
+                activeColor: const Color(0xFF36D477),
+                title: const Text('Free Join', style: TextStyle(color: Colors.white)),
+                onChanged: (value) => refresh(() => freeJoin = value ?? true),
+              ),
+              RadioListTile<bool>(
+                value: false,
+                groupValue: freeJoin,
+                activeColor: gold,
+                title: const Text('Diamond Join Fee', style: TextStyle(color: Colors.white)),
+                onChanged: (value) => refresh(() => freeJoin = value ?? false),
+              ),
+              if (!freeJoin) ...[
+                const SizedBox(height: 8),
+                TextField(
+                  controller: feeController,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Diamonds (10–2000)',
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    prefixIcon: const Icon(Icons.diamond, color: gold),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: gold.withOpacity(.7)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: gold),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black),
+              onPressed: () async {
+                final fee = int.tryParse(feeController.text.trim()) ?? 0;
+                if (!freeJoin && (fee < 10 || fee > 2000)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Diamond fee 10 se 2000 ke darmiyan honi chahiye.')),
+                  );
+                  return;
+                }
+                await roomRef.set({
+                  'freeJoin': freeJoin,
+                  'joinFeeDiamonds': freeJoin ? 0 : fee,
+                  'joinFeeUpdatedAt': FieldValue.serverTimestamp(),
+                }, SetOptions(merge: true));
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
+              },
+              child: const Text('SAVE'),
+            ),
+          ],
+        ),
+      ),
+    );
+    feeController.dispose();
+  }
+
+  Future<void> _showRemoveMemberConfirmation({
+    required String memberFirebaseUid,
+    required String memberName,
+  }) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panel,
+        title: const Text('REMOVE MEMBER?', style: TextStyle(color: Colors.white)),
+        content: Text(
+          '$memberName ko room se remove karna hai? Iska record 7 din tak Room Record mein rahega.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('CANCEL'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('REMOVE', style: TextStyle(color: Colors.redAccent)),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    final roomRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId);
+    await _writeRoomActionRecord(
+      action: 'Remove',
+      targetUid: memberFirebaseUid,
+      targetName: memberName,
+    );
+    final membersRef = roomRef.collection('members');
+    final matchingMember = await membersRef
+        .where('firebaseUid', isEqualTo: memberFirebaseUid)
+        .limit(1)
+        .get();
+    if (matchingMember.docs.isNotEmpty) {
+      await matchingMember.docs.first.reference.delete();
+    } else {
+      await membersRef.doc(memberFirebaseUid).delete();
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$memberName removed. Record 7 din tak rahega.')),
+      );
+    }
+  }
+
+  Future<void> _showBlockMemberScreen({
+    required String memberFirebaseUid,
+    required String memberName,
+  }) async {
+    final roomRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: panel,
+        child: SizedBox(
+          width: 440,
+          height: 440,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                const Text('BLOCKED MEMBERS',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFB32632),
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user == null) return;
+                      await roomRef.collection('blockedMembers').doc(memberFirebaseUid).set({
+                        'targetUid': memberFirebaseUid,
+                        'targetName': memberName,
+                        'actorUid': user.uid,
+                        'actorName': user.displayName ?? 'Room Staff',
+                        'createdAt': FieldValue.serverTimestamp(),
+                      });
+                      await _writeRoomActionRecord(
+                        action: 'Ban',
+                        targetUid: memberFirebaseUid,
+                        targetName: memberName,
+                      );
+                      if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    },
+                    icon: const Icon(Icons.block_rounded),
+                    label: Text('BLOCK $memberName'),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: roomRef.collection('blockedMembers').snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const Center(child: Text('Blocked list load nahi hui.', style: TextStyle(color: Colors.white70)));
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.data!.docs.isEmpty) {
+                        return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.white60)));
+                      }
+                      return ListView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (context, index) {
+                          final doc = snapshot.data!.docs[index];
+                          final item = doc.data();
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.redAccent.withOpacity(.6)),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text((item['targetName'] ?? 'Member').toString(),
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      Text('Blocked by: ${(item['actorName'] ?? 'Room Staff')}',
+                                          style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                    ],
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await _writeRoomActionRecord(
+                                      action: 'Unban',
+                                      targetUid: doc.id,
+                                      targetName: (item['targetName'] ?? 'Member').toString(),
+                                    );
+                                    await doc.reference.delete();
+                                  },
+                                  child: const Text('UNBAN', style: TextStyle(color: Color(0xFF36D477))),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('CLOSE', style: TextStyle(color: gold)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRoomRecordScreen() async {
+    const tabs = ['Ban', 'Unban', 'Remove', 'Kick'];
+    int selectedTab = 0;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, refresh) => Dialog(
+          backgroundColor: panel,
+          child: SizedBox(
+            width: 460,
+            height: 510,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                children: [
+                  const Text('ROOM RECORD',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: List.generate(tabs.length, (index) => Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                        child: InkWell(
+                          onTap: () => refresh(() => selectedTab = index),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+                            decoration: BoxDecoration(
+                              color: selectedTab == index ? gold : const Color(0xFF211923),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: gold.withOpacity(.7)),
+                            ),
+                            child: Text(tabs[index].toUpperCase(), textAlign: TextAlign.center,
+                                style: TextStyle(color: selectedTab == index ? Colors.black : Colors.white,
+                                    fontWeight: FontWeight.w900, fontSize: 10)),
+                          ),
+                        ),
+                      ),
+                    )),
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                      stream: _roomActionRecords.orderBy('createdAt', descending: true).snapshots(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Center(child: Text('Room record load nahi hua.', style: TextStyle(color: Colors.white70)));
+                        }
+                        if (!snapshot.hasData) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        final action = tabs[selectedTab];
+                        final records = snapshot.data!.docs.where((doc) {
+                          final item = doc.data();
+                          if ((item['action'] ?? '').toString() != action) return false;
+                          if (action == 'Remove') {
+                            final expiry = item['expiresAt'];
+                            if (expiry is Timestamp && expiry.toDate().isBefore(DateTime.now())) return false;
+                          }
+                          return true;
+                        }).toList();
+                        if (records.isEmpty) {
+                          return Center(child: Text('No $action records.', style: const TextStyle(color: Colors.white60)));
+                        }
+                        return ListView.builder(
+                          itemCount: records.length,
+                          itemBuilder: (context, index) {
+                            final item = records[index].data();
+                            final time = item['createdAt'];
+                            final dateText = time is Timestamp ? time.toDate().toString().substring(0, 16) : 'Recent';
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.all(11),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: gold.withOpacity(.55)),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('${item['targetName'] ?? 'Member'}',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+                                  Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                  Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const Text('CLOSE', style: TextStyle(color: gold)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showMemberManagementOptions({
     required String memberFirebaseUid,
     required String memberName,
@@ -10329,14 +10728,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               Row(
                 children: [
                   const Expanded(
-                    child: Text(
-                      'MEMBER SETTINGS',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                    child: Text('MEMBER SETTINGS',
+                        style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(dialogContext),
@@ -10345,85 +10738,54 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ],
               ),
               const SizedBox(height: 5),
-              ...options.map((option) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.pop(dialogContext);
-                        if (option == 'Leader Permission') {
-                          _showLeaderPermissionScreen();
-                        } else if (mounted) {
-                          showDialog<void>(
-                            context: context,
-                            builder: (previewContext) => AlertDialog(
-                              backgroundColor: panel,
-                              title: Text(
-                                option,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              content: const Text(
-                                'UI preview only.',
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(previewContext),
-                                  child: const Text(
-                                    'CLOSE',
-                                    style: TextStyle(color: gold),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        constraints: const BoxConstraints(minHeight: 58),
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF211923),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: gold.withOpacity(0.8),
-                            width: 1,
+              ...options.map((option) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      if (option == 'Leader Permission') {
+                        _showLeaderPermissionScreen();
+                      } else if (option == 'Join Fee') {
+                        _showJoinFeeSettings();
+                      } else if (option == 'Remove Member') {
+                        _showRemoveMemberConfirmation(
+                          memberFirebaseUid: memberFirebaseUid,
+                          memberName: memberName,
+                        );
+                      } else if (option == 'Block Member') {
+                        _showBlockMemberScreen(
+                          memberFirebaseUid: memberFirebaseUid,
+                          memberName: memberName,
+                        );
+                      } else if (option == 'Room Record') {
+                        _showRoomRecordScreen();
+                      }
+                    },
+                    child: Container(
+                      constraints: const BoxConstraints(minHeight: 58),
+                      alignment: Alignment.centerLeft,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF211923),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: gold.withOpacity(0.8), width: 1),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(option,
+                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                option,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ),
-                            const Icon(
-                              Icons.chevron_right_rounded,
-                              color: gold,
-                              size: 25,
-                            ),
-                          ],
-                        ),
+                          const Icon(Icons.chevron_right_rounded, color: gold, size: 25),
+                        ],
                       ),
                     ),
                   ),
-                );
-              }),
+                ),
+              )),
             ],
           ),
         ),
