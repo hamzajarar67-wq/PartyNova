@@ -11957,11 +11957,31 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     unawaited(_ensureCreatorLeaderMemberRecord());
     if (presenceRef == null) return;
     try {
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final profile = userSnapshot.data() ?? <String, dynamic>{};
+      final profileName =
+          (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
+      final profilePhoto = (profile['photoBase64'] ?? '').toString();
+      final profileUserId = (profile['userId'] ?? '').toString();
+      final profileRole = resolvePartyNovaRole(
+        email: user.email,
+        userId: profileUserId,
+        storedRole: profile['role']?.toString(),
+      );
+
       await presenceRef.set({
         'firebaseUid': user.uid,
+        'userId': profileUserId,
+        'name': profileName,
+        'photoBase64': profilePhoto,
+        'role': profileRole,
         'enteredAt': FieldValue.serverTimestamp(),
         'lastSeenAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
       _presenceHeartbeat?.cancel();
       _presenceHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
         presenceRef.set({
@@ -12528,6 +12548,147 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
+  Widget _buildOnlineUsersStrip() {
+    final presenceRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId)
+        .collection('presence');
+
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: presenceRef.snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const SizedBox(height: 8);
+        }
+
+        final now = DateTime.now();
+        final onlineDocs = snapshot.data!.docs.where((doc) {
+          final lastSeen = doc.data()['lastSeenAt'];
+          if (lastSeen is! Timestamp) return false;
+          return now.difference(lastSeen.toDate()) <=
+              const Duration(minutes: 2);
+        }).toList()
+          ..sort((a, b) {
+            final aEntered = a.data()['enteredAt'];
+            final bEntered = b.data()['enteredAt'];
+            if (aEntered is Timestamp && bEntered is Timestamp) {
+              return aEntered.compareTo(bEntered);
+            }
+            return a.id.compareTo(b.id);
+          });
+
+        if (onlineDocs.isEmpty) {
+          return const SizedBox(height: 8);
+        }
+
+        final visibleDocs = onlineDocs.take(10).toList();
+        final extraCount = onlineDocs.length - visibleDocs.length;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
+          child: SizedBox(
+            height: 38,
+            child: Row(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final doc in visibleDocs) ...[
+                          GestureDetector(
+                            onTap: () {
+                              final firebaseUid =
+                                  (doc.data()['firebaseUid'] ?? doc.id)
+                                      .toString();
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PartyNovaPublicProfilePage(
+                                    firebaseUid: firebaseUid,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              width: 30,
+                              height: 30,
+                              margin: const EdgeInsets.only(right: 3),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: gold,
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: panelBlue,
+                                backgroundImage: getCachedProfilePhotoImage(
+                                  (doc.data()['photoBase64'] ?? '').toString(),
+                                ),
+                                child: getCachedProfilePhotoImage(
+                                          (doc.data()['photoBase64'] ?? '')
+                                              .toString(),
+                                        ) ==
+                                        null
+                                    ? const Icon(
+                                        Icons.person_rounded,
+                                        color: Colors.white70,
+                                        size: 17,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                if (extraCount > 0) ...[
+                  const SizedBox(width: 4),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PartyRoomOnlineUsersPage(
+                            roomDocumentId: widget.roomDocumentId,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 46,
+                      height: 32,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: panelBlue,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: gold, width: 1),
+                      ),
+                      child: Text(
+                        '+$extraCount',
+                        style: const TextStyle(
+                          color: gold,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -12734,6 +12895,9 @@ InkWell(
             
                                 
 
+            // Online users appear below the room header and above the mic seats.
+            _buildOnlineUsersStrip(),
+
             // Fifteen seats: three rows of five.
             Padding(
               padding: const EdgeInsets.fromLTRB(5, 64, 5, 0),
@@ -12824,6 +12988,164 @@ InkWell(
   }
 }
   
+class PartyRoomOnlineUsersPage extends StatelessWidget {
+  final String roomDocumentId;
+
+  const PartyRoomOnlineUsersPage({
+    super.key,
+    required this.roomDocumentId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final presenceRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomDocumentId)
+        .collection('presence');
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF100810),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF24101F),
+        foregroundColor: const Color(0xFFFFD700),
+        title: const Text(
+          'Online Users',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: presenceRef.snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Could not load online users.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFFFD700),
+              ),
+            );
+          }
+
+          final now = DateTime.now();
+          final onlineDocs = snapshot.data!.docs.where((doc) {
+            final lastSeen = doc.data()['lastSeenAt'];
+            if (lastSeen is! Timestamp) return false;
+            return now.difference(lastSeen.toDate()) <=
+                const Duration(minutes: 2);
+          }).toList()
+            ..sort((a, b) {
+              final aEntered = a.data()['enteredAt'];
+              final bEntered = b.data()['enteredAt'];
+              if (aEntered is Timestamp && bEntered is Timestamp) {
+                return aEntered.compareTo(bEntered);
+              }
+              return a.id.compareTo(b.id);
+            });
+
+          if (onlineDocs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No users are online right now.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(14),
+            itemCount: onlineDocs.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final doc = onlineDocs[index];
+              final data = doc.data();
+              final firebaseUid =
+                  (data['firebaseUid'] ?? doc.id).toString();
+              final name = (data['name'] ?? 'PartyNova User').toString();
+              final role = (data['role'] ?? 'user').toString();
+              final photo = (data['photoBase64'] ?? '').toString();
+              final photoImage = getCachedProfilePhotoImage(photo);
+
+              return Material(
+                color: const Color(0xFF24101F),
+                borderRadius: BorderRadius.circular(12),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PartyNovaPublicProfilePage(
+                          firebaseUid: firebaseUid,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 23,
+                          backgroundColor: const Color(0xFF100810),
+                          backgroundImage: photoImage,
+                          child: photoImage == null
+                              ? const Icon(
+                                  Icons.person_rounded,
+                                  color: Colors.white70,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          role.toUpperCase() == 'USER'
+                              ? 'ONLINE'
+                              : role.toUpperCase(),
+                          style: const TextStyle(
+                            color: Color(0xFFFFD700),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        const Icon(
+                          Icons.circle,
+                          color: Color(0xFF42D98A),
+                          size: 9,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
 class ScrollingRoomName extends StatefulWidget {
   final String text;
 
@@ -15740,3 +16062,4 @@ class _StableChatAvatar extends StatelessWidget {
     );
   }
 }
+
