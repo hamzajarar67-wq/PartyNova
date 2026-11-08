@@ -2441,7 +2441,7 @@ Widget buildUserSearchResult() {
         return Expanded(
           child: Center(
             child: Text(
-              'Rooms load nahi ho sake: ${snapshot.error}',
+              'Unable to load rooms: ${snapshot.error}',
               style: const TextStyle(color: Colors.white70),
             ),
           ),
@@ -10282,7 +10282,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'UI only — permission functions will be connected later.',
+                  'UI preview only — permission functions will be connected later.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white54, fontSize: 10),
                 ),
@@ -10328,9 +10328,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         .doc(widget.roomDocumentId);
     final snapshot = await roomRef.get();
     final data = snapshot.data() ?? <String, dynamic>{};
-    bool freeJoin = data['freeJoin'] != false;
     final feeController = TextEditingController(
-      text: ((data['joinFeeDiamonds'] ?? 10).toString()),
+      text: ((data['joinFeeDiamonds'] ?? 0).toString()),
     );
     if (!mounted) {
       feeController.dispose();
@@ -10338,75 +10337,64 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
     await showDialog<void>(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, refresh) => AlertDialog(
-          backgroundColor: panel,
-          title: const Text('ROOM JOIN FEE',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<bool>(
-                value: true,
-                groupValue: freeJoin,
-                activeColor: const Color(0xFF36D477),
-                title: const Text('Free Join', style: TextStyle(color: Colors.white)),
-                onChanged: (value) => refresh(() => freeJoin = value ?? true),
-              ),
-              RadioListTile<bool>(
-                value: false,
-                groupValue: freeJoin,
-                activeColor: gold,
-                title: const Text('Diamond Join Fee', style: TextStyle(color: Colors.white)),
-                onChanged: (value) => refresh(() => freeJoin = value ?? false),
-              ),
-              if (!freeJoin) ...[
-                const SizedBox(height: 8),
-                TextField(
-                  controller: feeController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Diamonds (10–2000)',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    prefixIcon: const Icon(Icons.diamond, color: gold),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: gold.withOpacity(.7)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: gold),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panel,
+        title: const Text(
+          'ROOM JOIN FEE',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter 0 for free entry, or enter 10 to 2000 diamonds.',
+              style: TextStyle(color: Colors.white70, fontSize: 13),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black),
-              onPressed: () async {
-                final fee = int.tryParse(feeController.text.trim()) ?? 0;
-                if (!freeJoin && (fee < 10 || fee > 2000)) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Diamond fee 10 se 2000 ke darmiyan honi chahiye.')),
-                  );
-                  return;
-                }
-                await roomRef.set({
-                  'freeJoin': freeJoin,
-                  'joinFeeDiamonds': freeJoin ? 0 : fee,
-                  'joinFeeUpdatedAt': FieldValue.serverTimestamp(),
-                }, SetOptions(merge: true));
-                if (dialogContext.mounted) Navigator.pop(dialogContext);
-              },
-              child: const Text('SAVE'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: feeController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Diamonds (0 or 10–2000)',
+                labelStyle: const TextStyle(color: Colors.white70),
+                prefixIcon: const Icon(Icons.diamond, color: gold),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: gold.withOpacity(.7)),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: gold),
+                ),
+              ),
             ),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black),
+            onPressed: () async {
+              final fee = int.tryParse(feeController.text.trim());
+              if (fee == null || (fee != 0 && (fee < 10 || fee > 2000))) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Enter 0 or a value from 10 to 2000 diamonds.')),
+                );
+                return;
+              }
+              await roomRef.set({
+                'freeJoin': fee == 0,
+                'joinFeeDiamonds': fee,
+                'joinFeeUpdatedAt': FieldValue.serverTimestamp(),
+              }, SetOptions(merge: true));
+              if (dialogContext.mounted) Navigator.pop(dialogContext);
+            },
+            child: const Text('SAVE'),
+          ),
+        ],
       ),
     );
     feeController.dispose();
@@ -10422,7 +10410,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         backgroundColor: panel,
         title: const Text('REMOVE MEMBER?', style: TextStyle(color: Colors.white)),
         content: Text(
-          '$memberName ko room se remove karna hai? Iska record 7 din tak Room Record mein rahega.',
+          'Remove $memberName from this room? The action will remain in Room Record for 7 days.',
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -10458,7 +10446,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$memberName removed. Record 7 din tak rahega.')),
+        SnackBar(content: Text('$memberName removed. The record will remain for 7 days.')),
       );
     }
   }
@@ -10472,53 +10460,75 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         .doc(widget.roomDocumentId);
     await showDialog<void>(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) => Dialog(
+        insetPadding: EdgeInsets.zero,
         backgroundColor: panel,
         child: SizedBox(
-          width: 440,
-          height: 440,
+          width: MediaQuery.of(dialogContext).size.width,
+          height: MediaQuery.of(dialogContext).size.height,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                const Text('BLOCKED MEMBERS',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFB32632),
-                      foregroundColor: Colors.white,
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text('BLOCKED MEMBERS',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
                     ),
-                    onPressed: () async {
-                      final user = FirebaseAuth.instance.currentUser;
-                      if (user == null) return;
-                      await roomRef.collection('blockedMembers').doc(memberFirebaseUid).set({
-                        'targetUid': memberFirebaseUid,
-                        'targetName': memberName,
-                        'actorUid': user.uid,
-                        'actorName': user.displayName ?? 'Room Staff',
-                        'createdAt': FieldValue.serverTimestamp(),
-                      });
-                      await _writeRoomActionRecord(
-                        action: 'Ban',
-                        targetUid: memberFirebaseUid,
-                        targetName: memberName,
-                      );
-                      if (dialogContext.mounted) Navigator.pop(dialogContext);
-                    },
-                    icon: const Icon(Icons.block_rounded),
-                    label: Text('BLOCK $memberName'),
-                  ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 10),
+                if (memberFirebaseUid.isNotEmpty) ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFB32632),
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        final user = FirebaseAuth.instance.currentUser;
+                        if (user == null) return;
+                        await roomRef.collection('blockedMembers').doc(memberFirebaseUid).set({
+                          'targetUid': memberFirebaseUid,
+                          'targetName': memberName,
+                          'actorUid': user.uid,
+                          'actorName': user.displayName ?? 'Room Staff',
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+                        await _writeRoomActionRecord(action: 'Ban', targetUid: memberFirebaseUid, targetName: memberName);
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                      },
+                      icon: const Icon(Icons.block_rounded),
+                      label: Text('BLOCK $memberName'),
+                    ),
+                  ),
+                ] else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        _showRoomMemberPicker(forBlock: true);
+                      },
+                      icon: const Icon(Icons.person_add_alt_1_rounded, color: gold),
+                      label: const Text('SELECT MEMBER TO BLOCK', style: TextStyle(color: gold)),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Expanded(
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                     stream: roomRef.collection('blockedMembers').snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
-                        return const Center(child: Text('Blocked list load nahi hui.', style: TextStyle(color: Colors.white70)));
+                        return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.white70)));
                       }
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
@@ -10592,16 +10602,27 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, refresh) => Dialog(
+          insetPadding: EdgeInsets.zero,
           backgroundColor: panel,
           child: SizedBox(
-            width: 460,
-            height: 510,
+            width: MediaQuery.of(dialogContext).size.width,
+            height: MediaQuery.of(dialogContext).size.height,
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 children: [
-                  const Text('ROOM RECORD',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('ROOM RECORD',
+                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        icon: const Icon(Icons.close, color: Colors.white70),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: List.generate(tabs.length, (index) => Expanded(
@@ -10630,7 +10651,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       stream: _roomActionRecords.orderBy('createdAt', descending: true).snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(child: Text('Room record load nahi hua.', style: TextStyle(color: Colors.white70)));
+                          return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.white70)));
                         }
                         if (!snapshot.hasData) {
                           return const Center(child: CircularProgressIndicator());
@@ -10693,12 +10714,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
-  Future<void> _showMemberManagementOptions({
-    required String memberFirebaseUid,
-    required String memberName,
-    required bool isDeputy,
-    required bool isIncharge,
-  }) async {
+  Future<void> _showRoomSettingsMenu() async {
     if (!await _canManageRoomMembers() || !mounted) return;
 
     const options = <String>[
@@ -10728,7 +10744,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               Row(
                 children: [
                   const Expanded(
-                    child: Text('MEMBER SETTINGS',
+                    child: Text('ROOM SETTINGS',
                         style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
@@ -10751,15 +10767,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       } else if (option == 'Join Fee') {
                         _showJoinFeeSettings();
                       } else if (option == 'Remove Member') {
-                        _showRemoveMemberConfirmation(
-                          memberFirebaseUid: memberFirebaseUid,
-                          memberName: memberName,
-                        );
+                        _showRoomMemberPicker(forBlock: false);
                       } else if (option == 'Block Member') {
-                        _showBlockMemberScreen(
-                          memberFirebaseUid: memberFirebaseUid,
-                          memberName: memberName,
-                        );
+                        _showBlockMemberListAndPicker();
                       } else if (option == 'Room Record') {
                         _showRoomRecordScreen();
                       }
@@ -10791,6 +10801,93 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         ),
       ),
     );
+  }
+
+  Future<void> _showRoomMemberPicker({required bool forBlock}) async {
+    final membersRef = FirebaseFirestore.instance
+        .collection('rooms').doc(widget.roomDocumentId).collection('members');
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        insetPadding: EdgeInsets.zero,
+        backgroundColor: panel,
+        child: SizedBox(
+          width: MediaQuery.of(dialogContext).size.width,
+          height: MediaQuery.of(dialogContext).size.height,
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              children: [
+                Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      forBlock ? 'SELECT MEMBER TO BLOCK' : 'REMOVE MEMBER',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                  ),
+                ],
+              ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: membersRef.snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                      final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+                      final docs = snapshot.data!.docs.where((doc) {
+                        final d = doc.data();
+                        final uid = (d['firebaseUid'] ?? doc.id).toString();
+                        final role = (d['role'] ?? '').toString().toLowerCase();
+                        return uid != currentUid && role != 'owner' && role != 'leader';
+                      }).toList();
+                      if (docs.isEmpty) return const Center(child: Text('No members available.', style: TextStyle(color: Colors.white70)));
+                      return ListView.builder(
+                        itemCount: docs.length,
+                        itemBuilder: (context, index) {
+                          final doc = docs[index];
+                          final data = doc.data();
+                          final uid = (data['firebaseUid'] ?? doc.id).toString();
+                          final name = (data['name'] ?? 'PartyNova User').toString();
+                          return ListTile(
+                            title: Text(name, style: const TextStyle(color: Colors.white)),
+                            subtitle: Text('UID: ${(data['userId'] ?? '').toString()}', style: const TextStyle(color: Colors.white60)),
+                            trailing: const Icon(Icons.chevron_right, color: gold),
+                            onTap: () {
+                              Navigator.pop(dialogContext);
+                              if (forBlock) {
+                                _showBlockMemberScreen(memberFirebaseUid: uid, memberName: name);
+                              } else {
+                                _showRemoveMemberConfirmation(memberFirebaseUid: uid, memberName: name);
+                              }
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                Align(alignment: Alignment.centerRight, child: TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('CLOSE', style: TextStyle(color: gold)),
+                )),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showBlockMemberListAndPicker() async {
+    // The block list is opened from Room Settings; its existing entries and
+    // Unban actions remain available before choosing another member to block.
+    await _showBlockMemberScreen(memberFirebaseUid: '', memberName: '');
   }
 
   Widget _memberActionButton({
@@ -10867,21 +10964,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ),
                 const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
-                IconButton(
-                  tooltip: 'Leader Permission',
-                  onPressed: () {
-                    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                    final roomCreatorUid = (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
-                    if (currentUid.isEmpty || currentUid != roomCreatorUid) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Only this room creator can open Leader Permission.')),
-                      );
-                      return;
-                    }
-                    _showLeaderPermissionScreen();
-                  },
-                  icon: const Icon(Icons.settings_rounded, color: pink),
-                ),
               ],
             );
           },
@@ -10994,15 +11076,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     return InkWell(
                   borderRadius: BorderRadius.circular(13),
                   onTap: () {
-                    if (canManageMembers && !isLeader && !isOwner && role.toLowerCase() != 'owner') {
-                      _showMemberManagementOptions(
-                        memberFirebaseUid: memberFirebaseUid,
-                        memberName: displayName,
-                        isDeputy: isDeputy || role.toLowerCase() == 'deputy leader',
-                        isIncharge: isIncharge,
-                      );
-                      return;
-                    }
                     showDialog<void>(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
@@ -11190,9 +11263,23 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               // Room profile navigation tabs (pink theme preserved).
               Row(
                 children: [
-                  _buildTopTab('Profil', 0),
+                  _buildTopTab('Profile', 0),
                   _buildTopTab('Member', 1),
                   _buildTopTab('Card', 2),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    tooltip: 'Room Settings',
+                    onPressed: () async {
+                      if (!await _canManageRoomMembers() || !mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('You do not have permission to open Room Settings.')),
+                        );
+                        return;
+                      }
+                      _showRoomSettingsMenu();
+                    },
+                    icon: const Icon(Icons.settings_rounded, color: pink, size: 25),
+                  ),
                 ],
               ),
 
