@@ -9016,7 +9016,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   int _selectedTab = 0;
   final TextEditingController _memberSearchController = TextEditingController();
   String _memberSearchQuery = '';
-  // UI preview only: these switches are not connected to Firestore/features yet.
+  // Room permission switch values are stored on the room document.
   final Map<String, bool> _leaderPermissionUiState = {};
   bool _leaderMemberBackfillStarted = false;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _roomDetailsSubscription;
@@ -10108,6 +10108,29 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   }
 
   Future<void> _showLeaderPermissionScreen() async {
+    final roomRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId);
+    try {
+      final roomSnapshot = await roomRef.get();
+      final savedPermissions =
+          roomSnapshot.data()?['leaderPermissions'];
+      _leaderPermissionUiState
+        ..clear()
+        ..addAll(savedPermissions is Map
+            ? Map<String, bool>.fromEntries(
+                savedPermissions.entries.map(
+                  (entry) => MapEntry(
+                    entry.key.toString(),
+                    entry.value == true,
+                  ),
+                ),
+              )
+            : <String, bool>{});
+    } catch (error) {
+      debugPrint('Load room permissions failed: $error');
+    }
+
     const permissionNames = <String>[
       'Activity Notice Management',
       'Tic Tac Toe Game Access',
@@ -10215,10 +10238,28 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             const SizedBox(width: 12),
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
-                              onTap: () {
+                              onTap: () async {
                                 final next = !enabled;
-                                setState(() => _leaderPermissionUiState[label] = next);
+                                _leaderPermissionUiState[label] = next;
                                 refreshDialog(() {});
+                                try {
+                                  await roomRef.set({
+                                    'leaderPermissions':
+                                        Map<String, bool>.from(_leaderPermissionUiState),
+                                    'leaderPermissionsUpdatedAt':
+                                        FieldValue.serverTimestamp(),
+                                  }, SetOptions(merge: true));
+                                } catch (error) {
+                                  _leaderPermissionUiState[label] = !next;
+                                  refreshDialog(() {});
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Could not save permission. Please try again.'),
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 180),
@@ -10282,7 +10323,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'UI preview only — permission functions will be connected later.',
+                  'Permission settings are saved automatically.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white54, fontSize: 10),
                 ),
@@ -10890,6 +10931,208 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     await _showBlockMemberScreen(memberFirebaseUid: '', memberName: '');
   }
 
+  Future<void> _changeRoomMemberRole({
+    required String memberFirebaseUid,
+    required String memberName,
+    required String action,
+  }) async {
+    final roomRef = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId);
+    final membersRef = roomRef.collection('members');
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final roomSnapshot = await roomRef.get();
+    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+    final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+    final ownerUid = (roomData['ownerUid'] ?? leaderUid).toString();
+
+    if (action.contains('Deputy Leader') && !await _canAssignDeputyLeader()) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Only the app Owner/Admin can change Deputy Leader.')),
+        );
+      }
+      return;
+    }
+
+    if (memberFirebaseUid == leaderUid || memberFirebaseUid == ownerUid) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('The Room Leader/Owner cannot be changed from this menu.')),
+        );
+      }
+      return;
+    }
+
+    final matching = await membersRef
+        .where('firebaseUid', isEqualTo: memberFirebaseUid)
+        .limit(1)
+        .get();
+    final memberRef = matching.docs.isNotEmpty
+        ? matching.docs.first.reference
+        : membersRef.doc(memberFirebaseUid);
+
+    if (action == 'Set Deputy Leader' || action == 'Remove Deputy Leader') {
+      final currentDeputies = <String>{
+        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+            .map((value) => value.toString()),
+      };
+      final legacyDeputy = (roomData['deputyLeaderUid'] ?? '').toString();
+      if (legacyDeputy.isNotEmpty) currentDeputies.add(legacyDeputy);
+
+      if (action == 'Set Deputy Leader') {
+        currentDeputies.add(memberFirebaseUid);
+        await memberRef.set({
+          'firebaseUid': memberFirebaseUid,
+          'role': 'Deputy Leader',
+          'roleUpdatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        await roomRef.set({
+          'deputyLeaderUids': currentDeputies.toList(),
+          'deputyLeaderUid': memberFirebaseUid,
+        }, SetOptions(merge: true));
+      } else {
+        currentDeputies.remove(memberFirebaseUid);
+        await memberRef.set({
+          'role': 'Member',
+          'roleUpdatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+        await roomRef.set({
+          'deputyLeaderUids': currentDeputies.toList(),
+          'deputyLeaderUid': currentDeputies.isEmpty
+              ? FieldValue.delete()
+              : currentDeputies.first,
+        }, SetOptions(merge: true));
+      }
+    } else if (action == 'Set In-Charge') {
+      final currentDeputies = <String>{
+        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+            .map((value) => value.toString()),
+      };
+      final legacyDeputy = (roomData['deputyLeaderUid'] ?? '').toString();
+      if (legacyDeputy.isNotEmpty) currentDeputies.add(legacyDeputy);
+      currentDeputies.remove(memberFirebaseUid);
+      await memberRef.set({
+        'firebaseUid': memberFirebaseUid,
+        'role': 'Seat Incharge',
+        'roleUpdatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      await roomRef.set({
+        'deputyLeaderUids': currentDeputies.toList(),
+        'deputyLeaderUid': currentDeputies.isEmpty
+            ? FieldValue.delete()
+            : currentDeputies.first,
+      }, SetOptions(merge: true));
+    } else if (action == 'Remove In-Charge') {
+      await memberRef.set({
+        'role': 'Member',
+        'roleUpdatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } else if (action == 'Remove Member') {
+      await _showRemoveMemberConfirmation(
+        memberFirebaseUid: memberFirebaseUid,
+        memberName: memberName,
+      );
+      return;
+    }
+
+    await _writeRoomActionRecord(
+      action: action,
+      targetUid: memberFirebaseUid,
+      targetName: memberName,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$memberName: $action completed.')),
+      );
+    }
+  }
+
+  Future<void> _showMemberThreeDotMenu({
+    required String memberFirebaseUid,
+    required String memberName,
+    required bool isLeader,
+    required bool isDeputy,
+    required bool isIncharge,
+  }) async {
+    if (!await _canManageRoomMembers() || !mounted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('You do not have permission to manage room members.')),
+        );
+      }
+      return;
+    }
+
+    final actions = <String>[
+      if (!isDeputy) 'Set Deputy Leader',
+      if (isDeputy) 'Remove Deputy Leader',
+      if (!isIncharge) 'Set In-Charge',
+      if (isIncharge) 'Remove In-Charge',
+      'Remove Member',
+    ];
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: panel,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(color: gold, width: 1.2),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                memberName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 10),
+              ...actions.map((action) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _memberActionButton(
+                    label: action,
+                    color: action == 'Remove Member'
+                        ? Colors.redAccent
+                        : action.startsWith('Remove')
+                            ? const Color(0xFFFF8A80)
+                            : gold,
+                    onTap: () {
+                      Navigator.pop(dialogContext);
+                      _changeRoomMemberRole(
+                        memberFirebaseUid: memberFirebaseUid,
+                        memberName: memberName,
+                        action: action,
+                      );
+                    },
+                  ),
+                ),
+              )),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _memberActionButton({
     required String label,
     required Color color,
@@ -10964,6 +11207,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ),
                 const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
+                IconButton(
+                  tooltip: 'Room Settings',
+                  onPressed: () async {
+                    if (!await _canManageRoomMembers() || !mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('You do not have permission to open Room Settings.')),
+                      );
+                      return;
+                    }
+                    _showRoomSettingsMenu();
+                  },
+                  icon: const Icon(Icons.settings_rounded, color: pink, size: 25),
+                ),
               ],
             );
           },
@@ -11229,7 +11485,18 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         const SizedBox(height: 3),
                         Text(joinedDate == null ? 'Joined recently' : 'Joined ${joinedDays == 0 ? 1 : joinedDays} day(s) ago', style: const TextStyle(color: Colors.white54, fontSize: 10)),
                       ])),
-                      const Icon(Icons.chevron_right_rounded, color: gold, size: 25),
+                      IconButton(
+                        tooltip: 'Member Options',
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showMemberThreeDotMenu(
+                          memberFirebaseUid: memberFirebaseUid,
+                          memberName: displayName,
+                          isLeader: isLeader,
+                          isDeputy: isDeputy,
+                          isIncharge: isIncharge,
+                        ),
+                        icon: const Icon(Icons.more_vert_rounded, color: gold, size: 23),
+                      ),
                     ],
                   ),
                 ),
@@ -11266,20 +11533,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   _buildTopTab('Profile', 0),
                   _buildTopTab('Member', 1),
                   _buildTopTab('Card', 2),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    tooltip: 'Room Settings',
-                    onPressed: () async {
-                      if (!await _canManageRoomMembers() || !mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('You do not have permission to open Room Settings.')),
-                        );
-                        return;
-                      }
-                      _showRoomSettingsMenu();
-                    },
-                    icon: const Icon(Icons.settings_rounded, color: pink, size: 25),
-                  ),
                 ],
               ),
 
