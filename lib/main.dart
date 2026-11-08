@@ -10044,34 +10044,53 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   }
 
   Future<bool> _canAssignDeputyLeader() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    // Use the signed-in account first. Looking up the room owner's public
+    // profile here incorrectly checked the room creator instead of the actor.
+    final signedInRole = partyNovaRoleForEmail(user.email);
+    if (signedInRole == 'owner' || signedInRole == 'admin') return true;
+
     try {
-      final room = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(widget.roomDocumentId)
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
           .get();
-      final data = room.data() ?? <String, dynamic>{};
-      final ownerUid = (data['ownerUid'] ?? data['leaderUid'] ?? '').toString();
-      if (ownerUid.isEmpty) return false;
-      final profile = await FirebaseFirestore.instance
-          .collection('publicProfiles')
-          .doc(ownerUid)
-          .get();
-      final profileData = profile.data() ?? <String, dynamic>{};
-      final role = resolvePartyNovaRole(
-        userId: (profileData['userId'] ?? '').toString(),
-        storedRole: profileData['role']?.toString(),
+      final userData = userDoc.data() ?? <String, dynamic>{};
+      final storedRole = resolvePartyNovaRole(
+        email: user.email,
+        userId: (userData['userId'] ?? '').toString(),
+        storedRole: userData['role']?.toString(),
       );
-      return role == 'owner' || role == 'admin';
-    } catch (_) {
+      if (storedRole == 'owner' || storedRole == 'admin') return true;
+
+      final publicProfile = await FirebaseFirestore.instance
+          .collection('publicProfiles')
+          .doc(user.uid)
+          .get();
+      final publicData = publicProfile.data() ?? <String, dynamic>{};
+      final publicRole = resolvePartyNovaRole(
+        email: user.email,
+        userId: (publicData['userId'] ?? '').toString(),
+        storedRole: publicData['role']?.toString(),
+      );
+      return publicRole == 'owner' || publicRole == 'admin';
+    } catch (error) {
+      debugPrint('Check Deputy Leader permission failed: $error');
       return false;
     }
   }
 
-  // Room Owner/Leader and assigned Deputy Leaders can manage room members.
-  // This permission is intentionally separate from editing room settings.
+  // Room Owner/Leader, assigned Deputy Leaders, and app Owner/Admin
+  // accounts can manage room members.
   Future<bool> _canManageRoomMembers() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
+
+    final signedInRole = partyNovaRoleForEmail(user.email);
+    if (signedInRole == 'owner' || signedInRole == 'admin') return true;
+
     try {
       final roomRef = FirebaseFirestore.instance
           .collection('rooms')
@@ -10083,7 +10102,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final leaderUid = (roomData['leaderUid'] ?? '').toString();
       final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
       final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-      if (user.uid == effectiveOwnerUid && user.uid == effectiveLeaderUid) {
+      if (user.uid == effectiveOwnerUid || user.uid == effectiveLeaderUid) {
         return true;
       }
 
@@ -10096,8 +10115,17 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
       if (deputyUids.contains(user.uid)) return true;
 
-      // Compatibility for older rooms where the member role exists but the
-      // room-level deputy UID list has not yet been backfilled.
+      final memberMatches = await roomRef
+          .collection('members')
+          .where('firebaseUid', isEqualTo: user.uid)
+          .limit(1)
+          .get();
+      if (memberMatches.docs.isNotEmpty) {
+        return (memberMatches.docs.first.data()['role'] ?? '')
+                .toString()
+                .toLowerCase() ==
+            'deputy leader';
+      }
       final member = await roomRef.collection('members').doc(user.uid).get();
       return (member.data()?['role'] ?? '').toString().toLowerCase() ==
           'deputy leader';
@@ -10936,117 +10964,135 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     required String memberName,
     required String action,
   }) async {
-    final roomRef = FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(widget.roomDocumentId);
-    final membersRef = roomRef.collection('members');
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final roomSnapshot = await roomRef.get();
-    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-    final leaderUid = (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
-    final ownerUid = (roomData['ownerUid'] ?? leaderUid).toString();
+    try {
+      final roomRef = FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId);
+      final membersRef = roomRef.collection('members');
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) {
+        throw StateError('Room could not be found.');
+      }
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final leaderUid =
+          (roomData['leaderUid'] ?? roomData['ownerUid'] ?? '').toString();
+      final ownerUid = (roomData['ownerUid'] ?? leaderUid).toString();
 
-    if (action.contains('Deputy Leader') && !await _canAssignDeputyLeader()) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Only the app Owner/Admin can change Deputy Leader.')),
+      if (!await _canManageRoomMembers()) {
+        throw StateError('You do not have permission to manage room members.');
+      }
+      if (action.contains('Deputy Leader') &&
+          !await _canAssignDeputyLeader()) {
+        throw StateError(
+          'Only the app Owner/Admin can change Deputy Leader.',
         );
       }
-      return;
-    }
-
-    if (memberFirebaseUid == leaderUid || memberFirebaseUid == ownerUid) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('The Room Leader/Owner cannot be changed from this menu.')),
+      if (memberFirebaseUid == leaderUid || memberFirebaseUid == ownerUid) {
+        throw StateError(
+          'The Room Leader/Owner cannot be changed from this menu.',
         );
       }
-      return;
-    }
 
-    final matching = await membersRef
-        .where('firebaseUid', isEqualTo: memberFirebaseUid)
-        .limit(1)
-        .get();
-    final memberRef = matching.docs.isNotEmpty
-        ? matching.docs.first.reference
-        : membersRef.doc(memberFirebaseUid);
+      final matching = await membersRef
+          .where('firebaseUid', isEqualTo: memberFirebaseUid)
+          .limit(1)
+          .get();
+      final memberRef = matching.docs.isNotEmpty
+          ? matching.docs.first.reference
+          : membersRef.doc(memberFirebaseUid);
 
-    if (action == 'Set Deputy Leader' || action == 'Remove Deputy Leader') {
-      final currentDeputies = <String>{
-        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-            .map((value) => value.toString()),
-      };
-      final legacyDeputy = (roomData['deputyLeaderUid'] ?? '').toString();
-      if (legacyDeputy.isNotEmpty) currentDeputies.add(legacyDeputy);
+      if (action == 'Remove Member') {
+        await _showRemoveMemberConfirmation(
+          memberFirebaseUid: memberFirebaseUid,
+          memberName: memberName,
+        );
+        return;
+      }
 
-      if (action == 'Set Deputy Leader') {
-        currentDeputies.add(memberFirebaseUid);
-        await memberRef.set({
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final latestRoom = await transaction.get(roomRef);
+        final latestMember = await transaction.get(memberRef);
+        if (!latestRoom.exists || !latestMember.exists) {
+          throw StateError('Member or room could not be found.');
+        }
+
+        final latestRoomData = latestRoom.data() ?? <String, dynamic>{};
+        final deputies = <String>{
+          ...((latestRoomData['deputyLeaderUids'] as List?) ?? const [])
+              .map((value) => value.toString()),
+        };
+        final legacyDeputy =
+            (latestRoomData['deputyLeaderUid'] ?? '').toString();
+        if (legacyDeputy.isNotEmpty) deputies.add(legacyDeputy);
+
+        String newRole;
+        switch (action) {
+          case 'Set Deputy Leader':
+            deputies.add(memberFirebaseUid);
+            newRole = 'Deputy Leader';
+            break;
+          case 'Remove Deputy Leader':
+            deputies.remove(memberFirebaseUid);
+            newRole = 'Member';
+            break;
+          case 'Set In-Charge':
+            deputies.remove(memberFirebaseUid);
+            newRole = 'Seat Incharge';
+            break;
+          case 'Remove In-Charge':
+            newRole = 'Member';
+            break;
+          default:
+            throw StateError('Unknown member action: $action');
+        }
+
+        transaction.set(memberRef, {
           'firebaseUid': memberFirebaseUid,
-          'role': 'Deputy Leader',
+          'role': newRole,
           'roleUpdatedAt': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        await roomRef.set({
-          'deputyLeaderUids': currentDeputies.toList(),
-          'deputyLeaderUid': memberFirebaseUid,
-        }, SetOptions(merge: true));
-      } else {
-        currentDeputies.remove(memberFirebaseUid);
-        await memberRef.set({
-          'role': 'Member',
-          'roleUpdatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        await roomRef.set({
-          'deputyLeaderUids': currentDeputies.toList(),
-          'deputyLeaderUid': currentDeputies.isEmpty
-              ? FieldValue.delete()
-              : currentDeputies.first,
-        }, SetOptions(merge: true));
-      }
-    } else if (action == 'Set In-Charge') {
-      final currentDeputies = <String>{
-        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-            .map((value) => value.toString()),
-      };
-      final legacyDeputy = (roomData['deputyLeaderUid'] ?? '').toString();
-      if (legacyDeputy.isNotEmpty) currentDeputies.add(legacyDeputy);
-      currentDeputies.remove(memberFirebaseUid);
-      await memberRef.set({
-        'firebaseUid': memberFirebaseUid,
-        'role': 'Seat Incharge',
-        'roleUpdatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-      await roomRef.set({
-        'deputyLeaderUids': currentDeputies.toList(),
-        'deputyLeaderUid': currentDeputies.isEmpty
-            ? FieldValue.delete()
-            : currentDeputies.first,
-      }, SetOptions(merge: true));
-    } else if (action == 'Remove In-Charge') {
-      await memberRef.set({
-        'role': 'Member',
-        'roleUpdatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } else if (action == 'Remove Member') {
-      await _showRemoveMemberConfirmation(
-        memberFirebaseUid: memberFirebaseUid,
-        memberName: memberName,
-      );
-      return;
-    }
 
-    await _writeRoomActionRecord(
-      action: action,
-      targetUid: memberFirebaseUid,
-      targetName: memberName,
-    );
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('$memberName: $action completed.')),
-      );
+        transaction.set(roomRef, {
+          'deputyLeaderUids': deputies.toList(),
+          'deputyLeaderUid': deputies.isEmpty
+              ? FieldValue.delete()
+              : deputies.first,
+          'updatedAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      });
+
+      try {
+        await _writeRoomActionRecord(
+          action: action,
+          targetUid: memberFirebaseUid,
+          targetName: memberName,
+        );
+      } catch (recordError) {
+        debugPrint('Room action record write failed: $recordError');
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$memberName: $action completed.')),
+        );
+      }
+    } catch (error, stackTrace) {
+      debugPrint('Room member action "$action" failed: $error');
+      debugPrintStack(stackTrace: stackTrace);
+      if (mounted) {
+        final message = error is FirebaseException
+            ? '${error.code}: ${error.message ?? 'Firestore operation failed.'}'
+            : error.toString().replaceFirst('Bad state: ', '');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$action failed: $message'),
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
