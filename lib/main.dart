@@ -10082,8 +10082,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
   }
 
-  // Room Owner/Leader, assigned Deputy Leaders, and app Owner/Admin
-  // accounts can manage room members.
+  // Only the app Owner/Admin and this room's Owner/Leader can manage members.
+  // Deputy Leader controls stay unavailable until the future room-upgrade feature.
   Future<bool> _canManageRoomMembers() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return false;
@@ -10092,43 +10092,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     if (signedInRole == 'owner' || signedInRole == 'admin') return true;
 
     try {
-      final roomRef = FirebaseFirestore.instance
+      final roomSnapshot = await FirebaseFirestore.instance
           .collection('rooms')
-          .doc(widget.roomDocumentId);
-      final roomSnapshot = await roomRef.get();
+          .doc(widget.roomDocumentId)
+          .get();
       if (!roomSnapshot.exists) return false;
+
       final roomData = roomSnapshot.data() ?? <String, dynamic>{};
       final ownerUid = (roomData['ownerUid'] ?? '').toString();
       final leaderUid = (roomData['leaderUid'] ?? '').toString();
       final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
       final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-      if (user.uid == effectiveOwnerUid || user.uid == effectiveLeaderUid) {
-        return true;
-      }
 
-      final deputyUids = <String>{
-        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-            .map((value) => value.toString()),
-      };
-      final legacyDeputyUid =
-          (roomData['deputyLeaderUid'] ?? '').toString();
-      if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
-      if (deputyUids.contains(user.uid)) return true;
-
-      final memberMatches = await roomRef
-          .collection('members')
-          .where('firebaseUid', isEqualTo: user.uid)
-          .limit(1)
-          .get();
-      if (memberMatches.docs.isNotEmpty) {
-        return (memberMatches.docs.first.data()['role'] ?? '')
-                .toString()
-                .toLowerCase() ==
-            'deputy leader';
-      }
-      final member = await roomRef.collection('members').doc(user.uid).get();
-      return (member.data()?['role'] ?? '').toString().toLowerCase() ==
-          'deputy leader';
+      return user.uid == effectiveOwnerUid || user.uid == effectiveLeaderUid;
     } catch (error) {
       debugPrint('Check room member-management permission failed: $error');
       return false;
@@ -11112,9 +11088,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       return;
     }
 
+    // Deputy Leader is reserved for app Owner/Admin until room upgrades
+    // are implemented. Normal room Owners/Leaders only get In-Charge actions.
+    final canManageDeputy = await _canAssignDeputyLeader();
     final actions = <String>[
-      if (!isDeputy) 'Set Deputy Leader',
-      if (isDeputy) 'Remove Deputy Leader',
+      if (canManageDeputy && !isDeputy) 'Set Deputy Leader',
+      if (canManageDeputy && isDeputy) 'Remove Deputy Leader',
       if (!isIncharge) 'Set In-Charge',
       if (isIncharge) 'Remove In-Charge',
       'Remove Member',
@@ -11297,20 +11276,6 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: pink)));
             }
             final currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-            final currentUserIsDeputy = snapshot.data!.docs.any((doc) {
-              final memberData = doc.data();
-              final memberUid =
-                  (memberData['firebaseUid'] ?? doc.id).toString();
-              return memberUid == currentUserUid &&
-                  (memberData['role'] ?? '').toString().toLowerCase() ==
-                      'deputy leader';
-            });
-            final canManageMembers =
-                currentUserUid.isNotEmpty &&
-                (currentUserUid == actualLeaderUid ||
-                    currentUserUid == actualOwnerUid ||
-                    actualDeputyUids.contains(currentUserUid) ||
-                    currentUserIsDeputy);
             final query = _memberSearchQuery;
             final docs = snapshot.data!.docs.where((doc) {
               if (query.isEmpty) return true;
@@ -11437,111 +11402,233 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         },
                       ),
                       const SizedBox(width: 11),
-                      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Row(
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Flexible(
-                              child: Text(displayName, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text(
+                              displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            if (isLeader) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFFFF2A6), Color(0xFFFFD700), Color(0xFFB87900)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: const Color(0xFFFFF6C7), width: 0.8),
-                                  boxShadow: [
-                                    BoxShadow(color: gold.withOpacity(0.55), blurRadius: 9, spreadRadius: 1),
-                                  ],
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.workspace_premium_rounded, size: 12, color: Color(0xFF4A2B00)),
-                                    SizedBox(width: 3),
-                                    Text('LEADER', style: TextStyle(color: Color(0xFF4A2B00), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                                  ],
-                                ),
-                              ),
-                            ] else if (isDeputy || role.toLowerCase() == 'deputy leader') ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Color(0xFFFFB1B1), Color(0xFFFF3030), Color(0xFF970000)],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: const Color(0xFFFFDADA), width: 0.8),
-                                  boxShadow: const [
-                                    BoxShadow(color: Color(0xAAFF2020), blurRadius: 10, spreadRadius: 1),
-                                  ],
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.workspace_premium_rounded, size: 12, color: Colors.white),
-                                    SizedBox(width: 3),
-                                    Text('DEPUTY', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                                  ],
+                            if (!isLeader && !isDeputy && isOwner) ...[
+                              const SizedBox(height: 3),
+                              const Text(
+                                'ROOM OWNER',
+                                style: TextStyle(
+                                  color: gold,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.6,
                                 ),
                               ),
                             ],
-                            if (!isLeader && !isDeputy && isIncharge) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(colors: [Color(0xFFB8F0FF), Color(0xFF168BDB), Color(0xFF064477)]),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: const Color(0xFFD8F7FF), width: 0.8),
-                                  boxShadow: const [BoxShadow(color: Color(0xAA168BDB), blurRadius: 10, spreadRadius: 1)],
-                                ),
-                                child: const Text('INCHARGE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                            const SizedBox(height: 4),
+                            Text(
+                              'UID: $displayUid',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: gold, fontSize: 12),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              joinedDate == null
+                                  ? 'Joined recently'
+                                  : 'Joined ${joinedDays == 0 ? 1 : joinedDays} day(s) ago',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 10,
                               ),
-                            ],
-                            if (isPlatformPrivileged) ...[
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(colors: [Color(0xFFFFE8A6), Color(0xFFD9A43B), Color(0xFFB51F25), Color(0xFF650B16)]),
-                                  borderRadius: BorderRadius.circular(7),
-                                  border: Border.all(color: const Color(0xFFFFE6B8), width: 0.8),
-                                  boxShadow: const [BoxShadow(color: Color(0x99FFB45A), blurRadius: 9), BoxShadow(color: Color(0x88FF2424), blurRadius: 12)],
-                                ),
-                                child: Text(platformRole.toUpperCase(), style: const TextStyle(color: Color(0xFFFFF4D6), fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                              ),
-                            ],
+                            ),
                           ],
                         ),
-                        if (!isLeader && !isDeputy && isOwner) ...[
-                          const SizedBox(height: 3),
-                          const Text('ROOM OWNER', style: TextStyle(color: gold, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
-                        ] else if (!isLeader && !isDeputy && isIncharge) ...[
-                          const SizedBox(height: 3),
-                          const Text('SEAT INCHARGE', style: TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.6)),
+                      ),
+                      const SizedBox(width: 6),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isLeader)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFF2A6),
+                                    Color(0xFFFFD700),
+                                    Color(0xFFB87900),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFFFFF6C7),
+                                  width: 0.8,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: gold.withOpacity(0.55),
+                                    blurRadius: 9,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'LEADER',
+                                style: TextStyle(
+                                  color: Color(0xFF4A2B00),
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            )
+                          else if (isDeputy)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFB1B1),
+                                    Color(0xFFFF3030),
+                                    Color(0xFF970000),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFFFFDADA),
+                                  width: 0.8,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0xAAFF2020),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'DEPUTY',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            )
+                          else if (isIncharge)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFB8F0FF),
+                                    Color(0xFF168BDB),
+                                    Color(0xFF064477),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: const Color(0xFFD8F7FF),
+                                  width: 0.8,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0xAA168BDB),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: const Text(
+                                'INCHARGE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          if (isPlatformPrivileged) ...[
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFFE8A6),
+                                    Color(0xFFD9A43B),
+                                    Color(0xFFB51F25),
+                                    Color(0xFF650B16),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(7),
+                                border: Border.all(
+                                  color: const Color(0xFFFFE6B8),
+                                  width: 0.8,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x99FFB45A),
+                                    blurRadius: 9,
+                                  ),
+                                  BoxShadow(
+                                    color: Color(0x88FF2424),
+                                    blurRadius: 12,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                platformRole.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Color(0xFFFFF4D6),
+                                  fontSize: 7,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                          IconButton(
+                            tooltip: 'Member Options',
+                            visualDensity: VisualDensity.compact,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 30,
+                              minHeight: 36,
+                            ),
+                            onPressed: () => _showMemberThreeDotMenu(
+                              memberFirebaseUid: memberFirebaseUid,
+                              memberName: displayName,
+                              isLeader: isLeader,
+                              isDeputy: isDeputy,
+                              isIncharge: isIncharge,
+                            ),
+                            icon: const Icon(
+                              Icons.more_vert_rounded,
+                              color: gold,
+                              size: 23,
+                            ),
+                          ),
                         ],
-                        const SizedBox(height: 4),
-                        Text('UID: $displayUid', style: const TextStyle(color: gold, fontSize: 12)),
-                        const SizedBox(height: 3),
-                        Text(joinedDate == null ? 'Joined recently' : 'Joined ${joinedDays == 0 ? 1 : joinedDays} day(s) ago', style: const TextStyle(color: Colors.white54, fontSize: 10)),
-                      ])),
-                      IconButton(
-                        tooltip: 'Member Options',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => _showMemberThreeDotMenu(
-                          memberFirebaseUid: memberFirebaseUid,
-                          memberName: displayName,
-                          isLeader: isLeader,
-                          isDeputy: isDeputy,
-                          isIncharge: isIncharge,
-                        ),
-                        icon: const Icon(Icons.more_vert_rounded, color: gold, size: 23),
                       ),
                     ],
                   ),
