@@ -11895,6 +11895,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
+  bool _showLeaveOptions = false;
   Timer? _presenceHeartbeat;
 
   DocumentReference<Map<String, dynamic>>? get _myRoomPresenceRef {
@@ -11952,42 +11953,59 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Future<void> _startRoomPresence() async {
     final user = FirebaseAuth.instance.currentUser;
     final presenceRef = _myRoomPresenceRef;
-    if (user == null) return;
+    if (user == null || presenceRef == null) return;
+
     // Repair older rooms independently of the presence write result.
     unawaited(_ensureCreatorLeaderMemberRecord());
-    if (presenceRef == null) return;
-    try {
-      final userSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      final profile = userSnapshot.data() ?? <String, dynamic>{};
-      final profileName =
-          (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
-      final profilePhoto = (profile['photoBase64'] ?? '').toString();
-      final profileUserId = (profile['userId'] ?? '').toString();
-      final profileRole = resolvePartyNovaRole(
-        email: user.email,
-        userId: profileUserId,
-        storedRole: profile['role']?.toString(),
-      );
 
+    try {
+      // Publish presence first so the user appears even if profile loading is slow.
       await presenceRef.set({
         'firebaseUid': user.uid,
-        'userId': profileUserId,
-        'name': profileName,
-        'photoBase64': profilePhoto,
-        'role': profileRole,
+        'name': user.displayName ?? 'PartyNova User',
+        'photoBase64': '',
+        'role': resolvePartyNovaRole(email: user.email),
         'enteredAt': FieldValue.serverTimestamp(),
         'lastSeenAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+
+      // Add the latest profile information after presence is already active.
+      try {
+        final userSnapshot = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        final profile = userSnapshot.data() ?? <String, dynamic>{};
+        final profileName =
+            (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
+        final profilePhoto = (profile['photoBase64'] ?? '').toString();
+        final profileUserId = (profile['userId'] ?? '').toString();
+        final profileRole = resolvePartyNovaRole(
+          email: user.email,
+          userId: profileUserId,
+          storedRole: profile['role']?.toString(),
+        );
+
+        await presenceRef.set({
+          'firebaseUid': user.uid,
+          'userId': profileUserId,
+          'name': profileName,
+          'photoBase64': profilePhoto,
+          'role': profileRole,
+          'lastSeenAt': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (profileError) {
+        debugPrint('Room presence profile enrichment failed: $profileError');
+      }
 
       _presenceHeartbeat?.cancel();
       _presenceHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
         presenceRef.set({
           'firebaseUid': user.uid,
           'lastSeenAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        }, SetOptions(merge: true)).catchError((error) {
+          debugPrint('Room presence heartbeat failed: $error');
+        });
       });
     } catch (error) {
       debugPrint('Room presence start failed: $error');
@@ -12558,7 +12576,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       stream: presenceRef.snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError || !snapshot.hasData) {
-          return const SizedBox(height: 8);
+          return const SizedBox(height: 42);
         }
 
         final now = DateTime.now();
@@ -12578,7 +12596,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           });
 
         if (onlineDocs.isEmpty) {
-          return const SizedBox(height: 8);
+          return const SizedBox(height: 42);
         }
 
         final visibleDocs = onlineDocs.take(10).toList();
@@ -12694,8 +12712,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     return Scaffold(
       backgroundColor: darkBlue,
       resizeToAvoidBottomInset: true,
-      body: SafeArea(
-        child: Column(
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
           children: [
             // Room header.
 Padding(
@@ -12874,8 +12894,10 @@ InkWell(
           ),
           const SizedBox(width: 7),
           IconButton(
-            onPressed: () => Navigator.pop(context),
-            tooltip: 'Leave room',
+            onPressed: () {
+              setState(() => _showLeaveOptions = true);
+            },
+            tooltip: 'Room options',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(
               minWidth: 42,
@@ -12974,20 +12996,89 @@ InkWell(
               },
             ),
 
-            // Remaining room chat area.
-            const Expanded(
-              child: SizedBox.expand(),
-            ),
-
-            // Bottom controls or SMS typing board.
-            _buildBottomBar(),
+            // Remaining ro            _buildBottomBar(),
           ],
         ),
+      ),
+          if (_showLeaveOptions) ...[
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () => setState(() => _showLeaveOptions = false),
+                child: ColoredBox(
+                  color: Colors.black.withOpacity(0.88),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 22,
+              child: Center(
+                child: Container(
+                  width: 176,
+                  decoration: BoxDecoration(
+                    color: pink,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      InkWell(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(22),
+                        ),
+                        onTap: () => setState(() => _showLeaveOptions = false),
+                        child: const SizedBox(
+                          height: 48,
+                          width: double.infinity,
+                          child: Center(
+                            child: Text(
+                              'Keep',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      InkWell(
+                        borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(22),
+                        ),
+                        onTap: () async {
+                          setState(() => _showLeaveOptions = false);
+                          await _leaveRoomPresence();
+                          if (mounted) Navigator.pop(context);
+                        },
+                        child: const SizedBox(
+                          height: 48,
+                          width: double.infinity,
+                          child: Center(
+                            child: Text(
+                              'Leave',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 }
-  
+
 class PartyRoomOnlineUsersPage extends StatelessWidget {
   final String roomDocumentId;
 
