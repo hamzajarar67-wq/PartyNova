@@ -10083,10 +10083,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       final leaderUid = (roomData['leaderUid'] ?? '').toString();
       final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
       final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-      // The room creator/leader can open the member settings menu.
-      // Match the same owner-or-leader access check used by the member list.
-      if ((effectiveOwnerUid.isNotEmpty && user.uid == effectiveOwnerUid) ||
-          (effectiveLeaderUid.isNotEmpty && user.uid == effectiveLeaderUid)) {
+      if (user.uid == effectiveOwnerUid && user.uid == effectiveLeaderUid) {
         return true;
       }
 
@@ -10512,24 +10509,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   tooltip: 'Leader Permission',
                   onPressed: () {
                     final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                    final roomCreatorUid =
-                        (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
+                    final roomCreatorUid = (roomData['ownerUid'] ?? roomData['leaderUid'] ?? '').toString();
                     if (currentUid.isEmpty || currentUid != roomCreatorUid) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Only this room creator can open Member Settings.'),
-                        ),
+                        const SnackBar(content: Text('Only this room creator can open Leader Permission.')),
                       );
                       return;
                     }
-                    // Settings opens the five-option menu first. Leader Permission
-                    // is opened only after the user selects that menu item.
-                    _showMemberManagementOptions(
-                      memberFirebaseUid: currentUid,
-                      memberName: 'Member Settings',
-                      isDeputy: false,
-                      isIncharge: false,
-                    );
+                    _showLeaderPermissionScreen();
                   },
                   icon: const Icon(Icons.settings_rounded, color: pink),
                 ),
@@ -14918,4 +14905,3 @@ class _StableChatAvatar extends StatelessWidget {
     );
   }
 }
-
