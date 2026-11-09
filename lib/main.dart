@@ -13093,7 +13093,15 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         Expanded(child: Container(
           width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
           decoration: BoxDecoration(color: const Color(0xFF24101F), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFFF4FA3))),
-          child: SingleChildScrollView(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topCenter, child: _buildExactMicSeatLayout(selectedMics))),
+          // Keep preview seats at the exact same size and spacing as the room.
+          // Scroll the preview instead of scaling chairs down or squeezing them.
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: _buildExactMicSeatLayout(selectedMics),
+            ),
+          ),
         )),
         const SizedBox(height: 10),
         SizedBox(width: double.infinity, child: ElevatedButton.icon(
@@ -13109,7 +13117,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('users').limit(100).snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('Users load nahi ho sake.', style: TextStyle(color: Colors.white70)));
+          if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
           final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
           if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
@@ -13138,7 +13146,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         backgroundColor: const Color(0xFFE8D8BD),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: Color(0xFFFF4FA3))),
                         title: Row(children: [CircleAvatar(radius: 20, backgroundImage: image, child: image == null ? const Icon(Icons.person) : null), const SizedBox(width: 10), Expanded(child: Text(name, style: const TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)))]),
-                        content: const Text('Is user ko room invitation send karni hai?', style: TextStyle(color: Color(0xFF241B16))),
+                        content: const Text('Send a room invitation to this user?', style: TextStyle(color: Color(0xFF241B16))),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('CANCEL', style: TextStyle(color: Color(0xFF5D4A35)))),
                           ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.white), child: const Text('SEND')),
