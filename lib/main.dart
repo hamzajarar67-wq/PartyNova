@@ -12783,12 +12783,16 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           padding: const EdgeInsets.fromLTRB(8, 2, 8, 4),
           child: SizedBox(
             height: 44,
-            child: Row(
-              children: [
-                // Actual online profile photos sit directly beside the Online badge.
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Keep the online avatars and badge together on the right,
+                  // directly beneath the room power/exit icon.
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                     for (final doc in visibleDocs)
                       Padding(
                         padding: const EdgeInsets.only(right: 5),
@@ -12859,8 +12863,9 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                       ],
                     ),
                   ),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
