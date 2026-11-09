@@ -12463,10 +12463,9 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     });
   }
 
-  // Empty seat: the same 65px circular pink chair used inside the room.
+  // Empty seat: restore the original room mic size and flexible spacing.
   Widget _buildSeat(int number) {
-    return SizedBox(
-      width: 69,
+    return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Column(
@@ -12479,22 +12478,37 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 color: Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.8),
-                boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white.withOpacity(0.22),
+                    blurRadius: 5,
+                    spreadRadius: 0.5,
+                  ),
+                ],
               ),
-              child: const Center(child: Icon(Icons.chair_rounded, color: pink, size: 40)),
+              child: const Center(
+                child: Icon(Icons.chair_rounded, color: pink, size: 40),
+              ),
             ),
             const SizedBox(height: 5),
-            Text('NO. $number', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
+            Text(
+              'NO. $number',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Keep each chair the same size and center shorter rows.
+  // Each row expands across the available width, matching the original room layout.
   Widget _buildSeatPatternRow(List<int> numbers) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: numbers.map(_buildSeat).toList(),
     );
