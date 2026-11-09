@@ -12028,6 +12028,7 @@ class PartyRoomScreen extends StatefulWidget {
   final String roomDocumentId;
   final VoidCallback? onKeep;
   final VoidCallback? onExit;
+  final bool autoJoinOnOpen;
 
   const PartyRoomScreen({
     super.key,
@@ -12037,6 +12038,7 @@ class PartyRoomScreen extends StatefulWidget {
     required this.roomDocumentId,
     this.onKeep,
     this.onExit,
+    this.autoJoinOnOpen = false,
   });
 
   @override
@@ -12182,7 +12184,15 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   @override
   void initState() {
     super.initState();
-    _startRoomPresence();
+    if (widget.autoJoinOnOpen) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await _joinRoom();
+        if (mounted) await _startRoomPresence();
+      });
+    } else {
+      _startRoomPresence();
+    }
   }
 
   Future<void> _joinRoom() async {
@@ -12453,9 +12463,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     });
   }
 
-  // Empty seat: 65 x 65 pixels.
+  // Empty seat: the same 65px circular pink chair used inside the room.
   Widget _buildSeat(int number) {
-    return Expanded(
+    return SizedBox(
+      width: 69,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Column(
@@ -12467,49 +12478,52 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               decoration: BoxDecoration(
                 color: Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white,
-                  width: 1.8,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.22),
-                    blurRadius: 5,
-                    spreadRadius: 0.5,
-                  ),
-                ],
+                border: Border.all(color: Colors.white, width: 1.8),
+                boxShadow: [BoxShadow(color: Colors.white.withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
               ),
-              child: const Center(
-                child: Icon(
-                  Icons.chair_rounded,
-                  color: pink,
-                  size: 40,
-                ),
-              ),
+              child: const Center(child: Icon(Icons.chair_rounded, color: pink, size: 40)),
             ),
             const SizedBox(height: 5),
-            Text(
-              'NO. $number',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
+            Text('NO. $number', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.3)),
           ],
         ),
       ),
     );
   }
 
-  // Five seats in each row.
-  Widget _buildSeatRow(int firstNumber) {
+  // Keep each chair the same size and center shorter rows.
+  Widget _buildSeatPatternRow(List<int> numbers) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(
-        5,
-        (index) => _buildSeat(firstNumber + index),
+      children: numbers.map(_buildSeat).toList(),
+    );
+  }
+
+  List<List<int>> _micRowsForCount(int count) {
+    switch (count) {
+      case 5: return [[1], [2, 3, 4, 5]];
+      case 7: return [[1], [2, 3, 4], [5, 6, 7]];
+      case 9: return [[1], [2, 3, 4, 5], [6, 7, 8, 9]];
+      case 10: return [[1, 2], [3, 4, 5, 6], [7, 8, 9, 10]];
+      case 11: return [[1], [2, 3, 4, 5, 6], [7, 8, 9, 10, 11]];
+      case 15: return [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15]];
+      default: return [[1], [2, 3, 4, 5, 6], [7, 8, 9, 10, 11]];
+    }
+  }
+
+  Widget _buildRoomSeatLayout(int count) {
+    final rows = _micRowsForCount(count);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var index = 0; index < rows.length; index++) ...[
+            if (index > 0) const SizedBox(height: 13),
+            _buildSeatPatternRow(rows[index]),
+          ],
+        ],
       ),
     );
   }
@@ -12757,73 +12771,34 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             height: 44,
             child: Row(
               children: [
-                // Five profile photos stay in one straight horizontal row.
-                Expanded(
-                  child: Row(
-                    children: [
-                      for (var index = 0; index < 5; index++)
-                        Expanded(
-                          child: Center(
-                            child: index < visibleDocs.length
-                                ? GestureDetector(
-                                    onTap: () {
-                                      final doc = visibleDocs[index];
-                                      final uid = (doc.data()['firebaseUid'] ??
-                                              doc.id)
-                                          .toString();
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              PartyNovaPublicProfilePage(
-                                            firebaseUid: uid,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Container(
-                                      width: 35,
-                                      height: 35,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: const Color(0xFFFF1688),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: CircleAvatar(
-                                        radius: 16,
-                                        backgroundColor:
-                                            const Color(0xFF171017),
-                                        backgroundImage:
-                                            getCachedProfilePhotoImage(
-                                          (visibleDocs[index]
-                                                      .data()['photoBase64'] ??
-                                                  '')
-                                              .toString(),
-                                        ),
-                                        child: getCachedProfilePhotoImage(
-                                                  (visibleDocs[index]
-                                                              .data()[
-                                                          'photoBase64'] ??
-                                                      '')
-                                                      .toString(),
-                                                ) ==
-                                                null
-                                            ? const Icon(
-                                                Icons.person_rounded,
-                                                color: Colors.white70,
-                                                size: 18,
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                  )
-                                : const SizedBox(width: 35, height: 35),
+                // Actual online profile photos sit directly beside the Online badge.
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final doc in visibleDocs)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: GestureDetector(
+                          onTap: () {
+                            final uid = (doc.data()['firebaseUid'] ?? doc.id).toString();
+                            Navigator.push(context, MaterialPageRoute(
+                              builder: (_) => PartyNovaPublicProfilePage(firebaseUid: uid),
+                            ));
+                          },
+                          child: Container(
+                            width: 35, height: 35,
+                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)),
+                            child: CircleAvatar(
+                              radius: 16,
+                              backgroundColor: const Color(0xFF171017),
+                              backgroundImage: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()),
+                              child: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()) == null
+                                  ? const Icon(Icons.person_rounded, color: Colors.white70, size: 18) : null,
+                            ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
                 const SizedBox(width: 5),
                 // Compact Online badge; no connecting line or divider.
@@ -12879,6 +12854,55 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
+  Future<void> _sendRoomInvitation(String receiverUid, Map<String, dynamic> receiverProfile) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || receiverUid.isEmpty || receiverUid == currentUser.uid) return;
+    try {
+      final db = FirebaseFirestore.instance;
+      final myProfileSnapshot = await db.collection('users').doc(currentUser.uid).get();
+      final myProfile = myProfileSnapshot.data() ?? <String, dynamic>{};
+      final roomSnapshot = await db.collection('rooms').doc(widget.roomDocumentId).get();
+      final liveRoom = roomSnapshot.data() ?? <String, dynamic>{};
+      final sharedRoomName = (liveRoom['roomName'] ?? widget.roomName).toString();
+      final sharedRoomUid = (liveRoom['ownerUserId'] ?? widget.roomUid).toString();
+      final sharedRoomPhoto = (liveRoom['roomPhotoBase64'] ?? widget.roomPhotoBase64).toString();
+      final conversationId = _partyNovaConversationId(currentUser.uid, receiverUid);
+      final conversationRef = db.collection('conversations').doc(conversationId);
+      final messageRef = conversationRef.collection('messages').doc();
+      final roomShare = <String, dynamic>{
+        'roomDocumentId': widget.roomDocumentId,
+        'roomName': sharedRoomName,
+        'roomUid': sharedRoomUid,
+        'roomPhotoBase64': sharedRoomPhoto,
+      };
+      final batch = db.batch();
+      batch.set(messageRef, {
+        'senderUid': currentUser.uid,
+        'receiverUid': receiverUid,
+        'senderName': (myProfile['name'] ?? currentUser.displayName ?? 'PartyNova User').toString(),
+        'senderPhotoURL': currentUser.photoURL ?? '',
+        'text': '',
+        'roomShare': roomShare,
+        'roomShareStatus': 'pending',
+        'seenBy': <String>[currentUser.uid],
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      batch.set(conversationRef, {
+        'participants': ([currentUser.uid, receiverUid]..sort()),
+        'lastMessage': 'Room invitation: $sharedRoomName',
+        'lastMessageAt': FieldValue.serverTimestamp(),
+        'lastSenderUid': currentUser.uid,
+        'unreadCounts': <String, dynamic>{receiverUid: FieldValue.increment(1)},
+      }, SetOptions(merge: true));
+      await batch.commit();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Room invitation sent to ${(receiverProfile['name'] ?? 'user').toString()}.')));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Room invitation send nahi hui: $error')));
+    }
+  }
+
   // UI-only room tools sheet. All controls here are visual previews for now.
   Future<void> _showRoomOptionsSheet() async {
     await showModalBottomSheet<void>(
@@ -12892,18 +12916,18 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
             decoration: const BoxDecoration(
-              color: Color(0xFF17112E),
+              color: Color(0xFF100810),
               borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-              border: Border(top: BorderSide(color: Color(0xFFFFD700), width: 1.4)),
+              border: Border(top: BorderSide(color: Color(0xFFFF4FA3), width: 1.4)),
             ),
             child: Column(
               children: [
-                Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8))),
+                Container(width: 42, height: 4, decoration: BoxDecoration(color: Color(0xFFD8C3A0), borderRadius: BorderRadius.circular(8))),
                 const SizedBox(height: 14),
                 const Row(children: [
-                  Icon(Icons.grid_view_rounded, color: Color(0xFFFFD700), size: 20),
+                  Icon(Icons.grid_view_rounded, color: Color(0xFFFF4FA3), size: 20),
                   SizedBox(width: 9),
-                  Text('ROOM OPTIONS', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                  Text('ROOM OPTIONS', style: TextStyle(color: Color(0xFFF0DFC3), fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
                 ]),
                 const SizedBox(height: 14),
                 Expanded(
@@ -12938,23 +12962,33 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       borderRadius: BorderRadius.circular(15),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF211832),
+          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFE8D8BD), Color(0xFFCDB58F)]),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: const Color(0xFFB99545), width: 1),
-          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 7, offset: Offset(0, 3))],
+          border: Border.all(color: const Color(0xFFFF4FA3), width: 1.1),
+          boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 7, offset: Offset(0, 3))],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 9),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(icon, color: const Color(0xFFFFD700), size: 27),
+          Icon(icon, color: const Color(0xFF3A2630), size: 27),
           const SizedBox(height: 7),
-          Text(title, textAlign: TextAlign.center, maxLines: 2, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+          Text(title, textAlign: TextAlign.center, maxLines: 2, style: const TextStyle(color: Color(0xFF241B16), fontSize: 11, fontWeight: FontWeight.w800)),
         ]),
       ),
     );
   }
 
   Future<void> _showRoomToolDetail(String title) async {
-    int selectedMics = 9;
+    int selectedMics = 15;
+    if (title == 'Mic Setting') {
+      try {
+        final roomSnapshot = await FirebaseFirestore.instance
+            .collection('rooms').doc(widget.roomDocumentId).get();
+        final saved = (roomSnapshot.data()?['micCount'] as num?)?.toInt() ?? 15;
+        if ([5, 7, 9, 10, 11, 15].contains(saved)) selectedMics = saved;
+      } catch (error) {
+        debugPrint('Could not read saved mic layout: $error');
+      }
+    }
     bool demoLocked = false;
     String selectedTheme = 'Royal Gold';
     String? selectedFriend;
@@ -12969,15 +13003,15 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
             decoration: const BoxDecoration(
-              color: Color(0xFF17112E),
+              color: Color(0xFF100810),
               borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-              border: Border(top: BorderSide(color: Color(0xFFFFD700), width: 1.4)),
+              border: Border(top: BorderSide(color: Color(0xFFFF4FA3), width: 1.4)),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8)))),
               const SizedBox(height: 13),
               Row(children: [
-                Expanded(child: Text(title.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1))),
+                Expanded(child: Text(title.toUpperCase(), style: const TextStyle(color: Color(0xFFF0DFC3), fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1))),
                 IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.white70)),
               ]),
               const SizedBox(height: 5),
@@ -12986,6 +13020,21 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 demoLocked, (v) => refresh(() => demoLocked = v),
                 selectedTheme, (v) => refresh(() => selectedTheme = v),
                 selectedFriend, (v) => refresh(() => selectedFriend = v),
+                () async {
+                  try {
+                    await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).set({
+                      'micCount': selectedMics,
+                      'micLayout': selectedMics == 5 ? '1-4' : selectedMics == 7 ? '1-3-3' : selectedMics == 9 ? '1-4-4' : selectedMics == 10 ? '2-4-4' : selectedMics == 11 ? '1-5-5' : '5-5-5',
+                      'micLayoutUpdatedAt': FieldValue.serverTimestamp(),
+                    }, SetOptions(merge: true));
+                    if (!mounted) return;
+                    Navigator.pop(detailContext);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mic layout saved and applied to this room.')));
+                  } catch (error) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mic layout could not be saved: $error')));
+                  }
+                },
               )),
             ]),
           ),
@@ -12995,57 +13044,38 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   }
 
   Widget _buildExactMicSeatLayout(int count) {
-    const gold = Color(0xFFFFD700);
-    const outline = Color(0xFFB99545);
-    final seatWidth = count == 15 ? 38.0 : 54.0;
-    final seatHeight = count == 15 ? 46.0 : 54.0;
-    Widget seat(int number) => Container(
-      width: seatWidth, height: seatHeight,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF46351E), Color(0xFF211832)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(12), border: Border.all(color: outline),
-        boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 5, offset: Offset(0, 2))],
-      ),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.mic_rounded, color: gold, size: 21),
-        Text('Mic $number', style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w800)),
-      ]),
+    final rows = _micRowsForCount(count);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var index = 0; index < rows.length; index++) ...[
+          if (index > 0) const SizedBox(height: 13),
+          _buildSeatPatternRow(rows[index]),
+        ],
+      ],
     );
-    Widget row(List<int> nums, {MainAxisAlignment align = MainAxisAlignment.spaceEvenly}) => Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(mainAxisAlignment: align, children: nums.map(seat).toList()),
-    );
-    final rows = <Widget>[];
-    switch (count) {
-      case 5: rows..add(row([1], align: MainAxisAlignment.center))..add(row([2, 3, 4, 5])); break;
-      case 7: rows..add(row([1], align: MainAxisAlignment.center))..add(row([2, 3, 4]))..add(row([5, 6, 7])); break;
-      case 9: rows..add(row([1], align: MainAxisAlignment.center))..add(row([2, 3, 4, 5]))..add(row([6, 7, 8, 9])); break;
-      case 10: rows..add(row([1, 2], align: MainAxisAlignment.center))..add(row([3, 4, 5, 6]))..add(row([7, 8, 9, 10])); break;
-      case 11: rows..add(row([1], align: MainAxisAlignment.center))..add(row([2, 3, 4, 5, 6]))..add(row([7, 8, 9, 10, 11])); break;
-      default: rows..add(row([1], align: MainAxisAlignment.center))..add(row([2, 3, 4, 5, 6, 7, 8]))..add(row([9, 10, 11, 12, 13, 14, 15]));
-    }
-    return Column(mainAxisSize: MainAxisSize.min, children: rows);
   }
 
   Widget _buildRoomToolPreviewContent(
     String title, StateSetter refresh, int selectedMics, ValueChanged<int> setMics,
     bool demoLocked, ValueChanged<bool> setLocked, String selectedTheme,
     ValueChanged<String> setTheme, String? selectedFriend, ValueChanged<String?> setFriend,
+    Future<void> Function() onSaveMicLayout,
   ) {
-    const gold = Color(0xFFFFD700);
-    const outline = Color(0xFFB99545);
+    const gold = Color(0xFFFF4FA3);
+    const outline = Color(0xFFD2B991);
     Widget badgePreview(String label, IconData icon) => Container(
       width: 150, height: 116,
       decoration: BoxDecoration(
         gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFFFF0B8), Color(0xFFD7A63D), Color(0xFF80551A), Color(0xFFE8C56B)]),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFFE8A0), width: 2),
+        border: Border.all(color: const Color(0xFFFF4FA3), width: 2),
         boxShadow: const [BoxShadow(color: Color(0x777D551A), blurRadius: 14, spreadRadius: 1)],
       ),
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(icon, color: const Color(0xFF57370C), size: 42),
+        Icon(icon, color: const Color(0xFF241B16), size: 42),
         const SizedBox(height: 5),
-        Text(label, style: const TextStyle(color: Color(0xFF57370C), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: .7)),
+        Text(label, style: const TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: .7)),
       ]),
     );
 
@@ -13055,57 +13085,86 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         const SizedBox(height: 10),
         Wrap(spacing: 7, runSpacing: 7, children: [5, 7, 9, 10, 11, 15].map((n) => ChoiceChip(
           label: Text('$n Mics'), selected: selectedMics == n,
-          selectedColor: const Color(0xFF8B6727), backgroundColor: const Color(0xFF292039),
-          labelStyle: TextStyle(color: selectedMics == n ? Colors.white : Colors.white70, fontWeight: FontWeight.w800),
+          selectedColor: const Color(0xFFD8C3A0), backgroundColor: const Color(0xFF24101F),
+          labelStyle: TextStyle(color: selectedMics == n ? const Color(0xFF241B16) : const Color(0xFFE8D8BD), fontWeight: FontWeight.w800),
           side: const BorderSide(color: outline), onSelected: (_) => setMics(n),
         )).toList()),
         const SizedBox(height: 12),
         Expanded(child: Container(
-          width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-          decoration: BoxDecoration(color: const Color(0xFF211832), borderRadius: BorderRadius.circular(16), border: Border.all(color: outline)),
-          child: SingleChildScrollView(child: _buildExactMicSeatLayout(selectedMics)),
+          width: double.infinity, padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+          decoration: BoxDecoration(color: const Color(0xFF24101F), borderRadius: BorderRadius.circular(16), border: Border.all(color: const Color(0xFFFF4FA3))),
+          child: SingleChildScrollView(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.topCenter, child: _buildExactMicSeatLayout(selectedMics))),
+        )),
+        const SizedBox(height: 10),
+        SizedBox(width: double.infinity, child: ElevatedButton.icon(
+          onPressed: onSaveMicLayout,
+          icon: const Icon(Icons.save_rounded),
+          label: const Text('SAVE MIC LAYOUT'),
+          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE0C9A4), foregroundColor: const Color(0xFF241B16), padding: const EdgeInsets.symmetric(vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         )),
       ]);
     }
     if (title == 'Share') {
-      return ListView(children: [
-        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF211832), borderRadius: BorderRadius.circular(13), border: Border.all(color: outline)), child: Row(children: [const CircleAvatar(radius: 23, backgroundColor: Color(0xFF8B6727), child: Icon(Icons.meeting_room_rounded, color: Colors.white)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.roomName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)), Text('UID: ${widget.roomUid}', style: const TextStyle(color: Colors.white60, fontSize: 11))]))])),
-        const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text('Friends / Messages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
-        ...['Ali Khan', 'Ahmed', 'Sara', 'Hamza'].map((name) => ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const CircleAvatar(backgroundColor: Color(0xFF3A2A45), child: Icon(Icons.person, color: gold)), title: Text(name, style: const TextStyle(color: Colors.white)), trailing: OutlinedButton(onPressed: () => setFriend(name), style: OutlinedButton.styleFrom(foregroundColor: gold, side: const BorderSide(color: outline)), child: const Text('Share')))),
-        if (selectedFriend != null)
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF211832),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: outline),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Room invitation · $selectedFriend', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 7),
-                Row(children: [
-                  Expanded(child: OutlinedButton(onPressed: () => setFriend(null), child: const Text('Unjoin'))),
-                  const SizedBox(width: 8),
-                  Expanded(child: ElevatedButton(onPressed: () => setFriend(null), child: const Text('Join Now'))),
-                ]),
-              ],
-            ),
-          ),
-      ]);
+      final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('users').limit(100).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) return const Center(child: Text('Users load nahi ho sake.', style: TextStyle(color: Colors.white70)));
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
+          final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
+          if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
+          return ListView.builder(
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              final doc = users[index];
+              final profile = doc.data();
+              final name = (profile['name'] ?? 'PartyNova User').toString();
+              final uid = (profile['userId'] ?? '').toString();
+              final photo = (profile['photoBase64'] ?? '').toString();
+              final image = getCachedProfilePhotoImage(photo);
+              return Container(
+                margin: const EdgeInsets.only(bottom: 7),
+                decoration: BoxDecoration(color: const Color(0xFFE8D8BD), borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF4FA3))),
+                child: ListTile(
+                  dense: true,
+                  leading: CircleAvatar(radius: 22, backgroundColor: const Color(0xFF24101F), backgroundImage: image, child: image == null ? const Icon(Icons.person, color: Color(0xFFE8D8BD)) : null),
+                  title: Text(name, style: const TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)),
+                  subtitle: Text(uid.isEmpty ? 'PartyNova user' : 'UID: $uid', style: const TextStyle(color: Color(0xFF5D4A35), fontSize: 11)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFF3A2630)),
+                  onTap: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        backgroundColor: const Color(0xFFE8D8BD),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: Color(0xFFFF4FA3))),
+                        title: Row(children: [CircleAvatar(radius: 20, backgroundImage: image, child: image == null ? const Icon(Icons.person) : null), const SizedBox(width: 10), Expanded(child: Text(name, style: const TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)))]),
+                        content: const Text('Is user ko room invitation send karni hai?', style: TextStyle(color: Color(0xFF241B16))),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('CANCEL', style: TextStyle(color: Color(0xFF5D4A35)))),
+                          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.white), child: const Text('SEND')),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true) await _sendRoomInvitation(doc.id, profile);
+                  },
+                ),
+              );
+            },
+          );
+        },
+      );
     }
-    if (title == 'Room Lock') return SwitchListTile(contentPadding: EdgeInsets.zero, value: demoLocked, onChanged: setLocked, activeColor: gold, title: const Text('Room Lock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)), subtitle: const Text('Preview only', style: TextStyle(color: Colors.white54)), secondary: const Icon(Icons.lock_outline_rounded, color: gold));
+    if (title == 'Room Lock') return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFE8D8BD), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFFF4FA3))), child: SwitchListTile(contentPadding: EdgeInsets.zero, value: demoLocked, onChanged: setLocked, activeColor: const Color(0xFFFF4FA3), title: const Text('Room Lock', style: TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)), subtitle: const Text('Lock room entry', style: TextStyle(color: Color(0xFF5D4A35))), secondary: const Icon(Icons.lock_outline_rounded, color: Color(0xFF3A2630))));
     if (title == 'Upgrade') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 168, height: 132, decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFFFF4C9), Color(0xFFE7B94D), Color(0xFF9B641D), Color(0xFFFFD978)]), borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFFFEAB0), width: 2), boxShadow: const [BoxShadow(color: Color(0x997D551A), blurRadius: 18, spreadRadius: 2)]), child: Stack(alignment: Alignment.center, children: [const Positioned(top: 9, child: Icon(Icons.auto_awesome, color: Color(0xFF70440E), size: 18)), Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.workspace_premium, color: Color(0xFF70440E), size: 58), const Text('UPGRADE', style: TextStyle(color: Color(0xFF57370C), fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.2)), const Text('ROYAL ROOM', style: TextStyle(color: Color(0xFF70440E), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5))])])), const SizedBox(height: 9), const Text('Premium room upgrade badge', style: TextStyle(color: Colors.white70, fontSize: 11))]));
+      Container(width: 168, height: 132, decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF1E4CD), Color(0xFFD8C3A0), Color(0xFFB89A6A), Color(0xFFE8D8BD)]), borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFFF4FA3), width: 2), boxShadow: const [BoxShadow(color: Color(0x997D551A), blurRadius: 18, spreadRadius: 2)]), child: Stack(alignment: Alignment.center, children: [const Positioned(top: 9, child: Icon(Icons.auto_awesome, color: Color(0xFF3A2630), size: 18)), Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.workspace_premium, color: Color(0xFF3A2630), size: 58), const Text('UPGRADE', style: TextStyle(color: Color(0xFF241B16), fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.2)), const Text('ROYAL ROOM', style: TextStyle(color: Color(0xFF3A2630), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5))])])), const SizedBox(height: 9), const Text('Premium room upgrade badge', style: TextStyle(color: Color(0xFFE8D8BD), fontSize: 11))]));
     if (title == 'Room Level') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 142, height: 126, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFFFF0B0), Color(0xFFD7A63D), Color(0xFF80551A)]), border: Border.all(color: const Color(0xFFFFE8A0), width: 3), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 17, spreadRadius: 2)]), child: Container(margin: const EdgeInsets.all(7), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFFE8A0), width: 1.5)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.shield, color: Color(0xFF57370C), size: 39), const Text('LEVEL', style: TextStyle(color: Color(0xFF57370C), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)), const Text('05', style: TextStyle(color: Color(0xFF57370C), fontSize: 27, fontWeight: FontWeight.w900))]))), const SizedBox(height: 8), const Text('Room level badge', style: TextStyle(color: Colors.white70, fontSize: 11))]));
+      Container(width: 142, height: 126, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF1E4CD), Color(0xFFD8C3A0), Color(0xFFB89A6A)]), border: Border.all(color: const Color(0xFFFF4FA3), width: 3), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 17, spreadRadius: 2)]), child: Container(margin: const EdgeInsets.all(7), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.shield, color: Color(0xFF241B16), size: 39), const Text('LEVEL', style: TextStyle(color: Color(0xFF241B16), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)), const Text('05', style: TextStyle(color: Color(0xFF241B16), fontSize: 27, fontWeight: FontWeight.w900))]))), const SizedBox(height: 8), const Text('Room level badge', style: TextStyle(color: Color(0xFFE8D8BD), fontSize: 11))]));
     if (title == 'Daily Bonus') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 104, height: 92, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFFFFE9A3), Color(0xFFB87920)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFFFE8A0), width: 2), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 13)]), child: const Stack(alignment: Alignment.center, children: [Icon(Icons.card_giftcard_rounded, color: Color(0xFF57370C), size: 58), Positioned(top: 5, right: 7, child: Icon(Icons.auto_awesome, color: Color(0xFFFFF4D6), size: 18))])), const SizedBox(height: 8), const Text('DAILY BONUS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)), const Text('+100 Coins · Preview', style: TextStyle(color: gold, fontWeight: FontWeight.w800))]));
+      Container(width: 104, height: 92, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFFF1E4CD), Color(0xFFC9AE82)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFFF4FA3), width: 2), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 13)]), child: const Stack(alignment: Alignment.center, children: [Icon(Icons.card_giftcard_rounded, color: Color(0xFF241B16), size: 58), Positioned(top: 5, right: 7, child: Icon(Icons.auto_awesome, color: Color(0xFF3A2630), size: 18))])), const SizedBox(height: 8), const Text('DAILY BONUS', style: TextStyle(color: Color(0xFFE8D8BD), fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)), const Text('+100 Coins · Preview', style: TextStyle(color: gold, fontWeight: FontWeight.w800))]));
     if (title == 'Shop') return ListView(children: [
-      Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF5B421D), Color(0xFF241832)]), borderRadius: BorderRadius.circular(14), border: Border.all(color: outline)), child: Row(children: [const Icon(Icons.shopping_bag, color: Color(0xFFFFD978), size: 35), const SizedBox(width: 10), const Expanded(child: Text('ROOM PREMIUM SHOP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: .8))), const Icon(Icons.stars_rounded, color: Color(0xFFFFD978))])),
-      ...['Room Gifts', 'Room Frames', 'Room Decorations'].map((v) => Container(margin: const EdgeInsets.only(bottom: 6), decoration: BoxDecoration(color: const Color(0xFF211832), borderRadius: BorderRadius.circular(12), border: Border.all(color: outline)), child: ListTile(dense: true, leading: Icon(v == 'Room Gifts' ? Icons.card_giftcard : v == 'Room Frames' ? Icons.crop_square_rounded : Icons.auto_awesome, color: const Color(0xFFFFD978), size: 28), title: Text(v, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)), trailing: const Icon(Icons.chevron_right, color: Colors.white54))))]);
-    if (title == 'Themes') return Column(children: ['Royal Gold', 'Classic Purple', 'Midnight'].map((v) => RadioListTile<String>(contentPadding: EdgeInsets.zero, value: v, groupValue: selectedTheme, activeColor: gold, onChanged: (value) { if (value != null) setTheme(value); }, title: Text(v, style: const TextStyle(color: Colors.white)))).toList());
+      Container(margin: const EdgeInsets.only(bottom: 8), padding: const EdgeInsets.all(12), decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFFE8D8BD), Color(0xFFCDB58F)]), borderRadius: BorderRadius.circular(14), border: Border.all(color: outline)), child: Row(children: [const Icon(Icons.shopping_bag, color: Color(0xFF3A2630), size: 35), const SizedBox(width: 10), const Expanded(child: Text('ROOM PREMIUM SHOP', style: TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900, letterSpacing: .8))), const Icon(Icons.stars_rounded, color: Color(0xFF3A2630))])),
+      ...['Room Gifts', 'Room Frames', 'Room Decorations'].map((v) => Container(margin: const EdgeInsets.only(bottom: 6), decoration: BoxDecoration(color: const Color(0xFFE8D8BD), borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFFF4FA3))), child: ListTile(dense: true, leading: Icon(v == 'Room Gifts' ? Icons.card_giftcard : v == 'Room Frames' ? Icons.crop_square_rounded : Icons.auto_awesome, color: const Color(0xFF3A2630), size: 28), title: Text(v, style: const TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)), trailing: const Icon(Icons.chevron_right, color: Color(0xFF5D4A35)))))]);
+    if (title == 'Themes') return Column(children: ['Royal Gold', 'Classic Purple', 'Midnight'].map((v) => RadioListTile<String>(contentPadding: EdgeInsets.zero, value: v, groupValue: selectedTheme, activeColor: gold, onChanged: (value) { if (value != null) setTheme(value); }, title: Text(v, style: const TextStyle(color: Color(0xFFE8D8BD), fontWeight: FontWeight.w700)))).toList());
     return const SizedBox.shrink();
   }
 
@@ -13323,18 +13382,17 @@ InkWell(
             // Online users appear below the room header and above the mic seats.
             _buildOnlineUsersStrip(),
 
-            // Fifteen seats: three rows of five.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
-              child: Column(
-                children: [
-                  _buildSeatRow(1),
-                  const SizedBox(height: 13),
-                  _buildSeatRow(6),
-                  const SizedBox(height: 13),
-                  _buildSeatRow(11),
-                ],
-              ),
+            // The room always uses the last mic layout saved by its owner.
+            StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('rooms')
+                  .doc(widget.roomDocumentId)
+                  .snapshots(),
+              builder: (context, micSnapshot) {
+                final savedCount = (micSnapshot.data?.data()?['micCount'] as num?)?.toInt() ?? 15;
+                final safeCount = [5, 7, 9, 10, 11, 15].contains(savedCount) ? savedCount : 15;
+                return _buildRoomSeatLayout(safeCount);
+              },
             ),
 
             // Permanent PartyNova welcome message in every room.
@@ -15964,6 +16022,59 @@ void dispose() {
   super.dispose();
 }
 
+  Widget _buildRoomShareCard(Map<String, dynamic> roomShare, String messageId, String status) {
+    final roomName = (roomShare['roomName'] ?? 'PartyNova Room').toString();
+    final roomUid = (roomShare['roomUid'] ?? '').toString();
+    final roomId = (roomShare['roomDocumentId'] ?? '').toString();
+    final roomPhoto = (roomShare['roomPhotoBase64'] ?? '').toString();
+    final image = getCachedProfilePhotoImage(roomPhoto);
+    final actionsVisible = status != 'ignored' && status != 'joined' && roomId.isNotEmpty;
+    return Container(
+      width: 235,
+      margin: const EdgeInsets.only(top: 7, bottom: 5),
+      padding: const EdgeInsets.all(9),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8D8BD),
+        borderRadius: BorderRadius.circular(13),
+        border: Border.all(color: const Color(0xFFFF4FA3), width: 1.2),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          CircleAvatar(radius: 21, backgroundColor: const Color(0xFF24101F), backgroundImage: image, child: image == null ? const Icon(Icons.meeting_room_rounded, color: Color(0xFFE8D8BD), size: 19) : null),
+          const SizedBox(width: 8),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(roomName, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF241B16), fontSize: 13, fontWeight: FontWeight.w900)),
+            Text('UID: $roomUid', style: const TextStyle(color: Color(0xFF5D4A35), fontSize: 10)),
+          ])),
+        ]),
+        if (actionsVisible) ...[
+          const SizedBox(height: 9),
+          Row(children: [
+            Expanded(child: OutlinedButton(
+              onPressed: () async {
+                await _messagesRef.doc(messageId).set({'roomShareStatus': 'ignored'}, SetOptions(merge: true));
+              },
+              style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFF4A3827), side: const BorderSide(color: Color(0xFFFF4FA3)), padding: const EdgeInsets.symmetric(vertical: 7)),
+              child: const Text('UNJOIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+            )),
+            const SizedBox(width: 7),
+            Expanded(child: ElevatedButton(
+              onPressed: () async {
+                if (!mounted) return;
+                Navigator.push(context, MaterialPageRoute(builder: (_) => PartyRoomScreen(
+                  roomName: roomName, roomUid: roomUid, roomPhotoBase64: roomPhoto,
+                  roomDocumentId: roomId, autoJoinOnOpen: true,
+                )));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 7)),
+              child: const Text('JOIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+            )),
+          ]),
+        ],
+      ]),
+    );
+  }
+
   Future<void> _sendMessage() async {
     final text = _messageController.text.trim();
     if (text.isEmpty || _sending.value) return;
@@ -16212,7 +16323,13 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                                 children: [
                                   Text(senderName, style: TextStyle(color: textColor.withOpacity(0.75), fontSize: 11, fontWeight: FontWeight.w700)),
                                   const SizedBox(height: 3),
-                                  Text(text, style: TextStyle(color: textColor, fontSize: 15)),
+                                  if (data['roomShare'] is Map)
+                                    _buildRoomShareCard(
+                                      Map<String, dynamic>.from(data['roomShare'] as Map),
+                                      messages[index].id,
+                                      (data['roomShareStatus'] ?? 'pending').toString(),
+                                    ),
+                                  if (text.isNotEmpty) Text(text, style: TextStyle(color: textColor, fontSize: 15)),
                                   const SizedBox(height: 4),
                                   Row(mainAxisSize: MainAxisSize.min, children: [
                                     Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.white70, fontSize: 10)),
