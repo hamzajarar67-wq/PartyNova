@@ -12922,8 +12922,93 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     }
   }
 
-  // UI-only room tools sheet. All controls here are visual previews for now.
+  Future<String> _currentRoomOptionsRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'notMember';
+
+    try {
+      final roomRef = FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return 'notMember';
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+
+      final leaderUid = (roomData['leaderUid'] ?? '').toString().trim();
+      final ownerUid = (roomData['ownerUid'] ?? '').toString().trim();
+      final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+      if (user.uid == actualLeaderUid || user.uid == ownerUid) return 'leader';
+
+      final deputyUids = <String>{
+        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
+            .map((value) => value.toString()),
+      };
+      final legacyDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
+      if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
+
+      final memberSnapshot = await roomRef.collection('members').doc(user.uid).get();
+      if (!memberSnapshot.exists) return 'notMember';
+      final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+      final memberRole = (memberData['role'] ?? '').toString().trim().toLowerCase();
+
+      if (deputyUids.contains(user.uid) || memberRole == 'deputy leader') {
+        return 'deputy';
+      }
+      if (memberRole == 'seat incharge' ||
+          memberRole == 'in-charge' ||
+          memberRole == 'incharge' ||
+          memberRole == 'admin') {
+        return 'incharge';
+      }
+      return 'member';
+    } catch (error) {
+      debugPrint('Could not resolve room option role: $error');
+      return 'notMember';
+    }
+  }
+
+  void _showLeaderOnlyThemesNotice() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF24101F),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFFFD700), width: 1.2),
+        ),
+        content: const Text(
+          'Allow only this room leaders.',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK', style: TextStyle(color: Color(0xFFFFD700))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Role-based room tools sheet. Existing room tools and layouts are preserved.
   Future<void> _showRoomOptionsSheet() async {
+    final accessRole = await _currentRoomOptionsRole();
+    if (!mounted) return;
+    if (accessRole == 'notMember') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Join this room to access room options.')),
+      );
+      return;
+    }
+    final isLeader = accessRole == 'leader';
+    final isDeputyOrIncharge = accessRole == 'deputy' || accessRole == 'incharge';
+    final optionNames = isLeader
+        ? const <String>['Share', 'Room Lock', 'Mic Setting', 'Upgrade', 'Shop', 'Daily Bonus', 'Room Level', 'Themes']
+        : isDeputyOrIncharge
+            ? const <String>['Share', 'Mic Setting', 'Room Level', 'Shop', 'Themes']
+            : const <String>['Share', 'Room Level', 'Themes'];
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -12955,16 +13040,26 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
                     childAspectRatio: 1.18,
-                    children: [
-                      _roomToolTile(Icons.share_rounded, 'Share', () { Navigator.pop(sheetContext); _showRoomToolDetail('Share'); }),
-                      _roomToolTile(Icons.lock_rounded, 'Room Lock', () { Navigator.pop(sheetContext); _showRoomToolDetail('Room Lock'); }),
-                      _roomToolTile(Icons.mic_rounded, 'Mic Setting', () { Navigator.pop(sheetContext); _showRoomToolDetail('Mic Setting'); }),
-                      _roomToolTile(Icons.workspace_premium_rounded, 'Upgrade', () { Navigator.pop(sheetContext); _showRoomToolDetail('Upgrade'); }),
-                      _roomToolTile(Icons.shopping_bag_rounded, 'Shop', () { Navigator.pop(sheetContext); _showRoomToolDetail('Shop'); }),
-                      _roomToolTile(Icons.card_giftcard_rounded, 'Daily Bonus', () { Navigator.pop(sheetContext); _showRoomToolDetail('Daily Bonus'); }),
-                      _roomToolTile(Icons.military_tech_rounded, 'Room Level', () { Navigator.pop(sheetContext); _showRoomToolDetail('Room Level'); }),
-                      _roomToolTile(Icons.palette_rounded, 'Themes', () { Navigator.pop(sheetContext); _showRoomToolDetail('Themes'); }),
-                    ],
+                    children: optionNames.map((option) {
+                      final icon = switch (option) {
+                        'Share' => Icons.share_rounded,
+                        'Room Lock' => Icons.lock_rounded,
+                        'Mic Setting' => Icons.mic_rounded,
+                        'Upgrade' => Icons.workspace_premium_rounded,
+                        'Shop' => Icons.shopping_bag_rounded,
+                        'Daily Bonus' => Icons.card_giftcard_rounded,
+                        'Room Level' => Icons.military_tech_rounded,
+                        _ => Icons.palette_rounded,
+                      };
+                      return _roomToolTile(icon, option, () {
+                        Navigator.pop(sheetContext);
+                        if (option == 'Themes' && !isLeader) {
+                          _showLeaderOnlyThemesNotice();
+                        } else {
+                          _showRoomToolDetail(option);
+                        }
+                      });
+                    }).toList(),
                   ),
                 ),
               ],
@@ -13184,8 +13279,16 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (title == 'Room Lock') return Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFE8D8BD), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFFF4FA3))), child: SwitchListTile(contentPadding: EdgeInsets.zero, value: demoLocked, onChanged: setLocked, activeColor: const Color(0xFFFF4FA3), title: const Text('Room Lock', style: TextStyle(color: Color(0xFF241B16), fontWeight: FontWeight.w900)), subtitle: const Text('Lock room entry', style: TextStyle(color: Color(0xFF5D4A35))), secondary: const Icon(Icons.lock_outline_rounded, color: Color(0xFF3A2630))));
     if (title == 'Upgrade') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Container(width: 168, height: 132, decoration: BoxDecoration(gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF1E4CD), Color(0xFFD8C3A0), Color(0xFFB89A6A), Color(0xFFE8D8BD)]), borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFFF4FA3), width: 2), boxShadow: const [BoxShadow(color: Color(0x997D551A), blurRadius: 18, spreadRadius: 2)]), child: Stack(alignment: Alignment.center, children: [const Positioned(top: 9, child: Icon(Icons.auto_awesome, color: Color(0xFF3A2630), size: 18)), Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.workspace_premium, color: Color(0xFF3A2630), size: 58), const Text('UPGRADE', style: TextStyle(color: Color(0xFF241B16), fontSize: 15, fontWeight: FontWeight.w900, letterSpacing: 1.2)), const Text('ROYAL ROOM', style: TextStyle(color: Color(0xFF3A2630), fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1.5))])])), const SizedBox(height: 9), const Text('Premium room upgrade badge', style: TextStyle(color: Color(0xFFE8D8BD), fontSize: 11))]));
-    if (title == 'Room Level') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      Container(width: 142, height: 126, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF1E4CD), Color(0xFFD8C3A0), Color(0xFFB89A6A)]), border: Border.all(color: const Color(0xFFFF4FA3), width: 3), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 17, spreadRadius: 2)]), child: Container(margin: const EdgeInsets.all(7), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.shield, color: Color(0xFF241B16), size: 39), const Text('LEVEL', style: TextStyle(color: Color(0xFF241B16), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)), const Text('05', style: TextStyle(color: Color(0xFF241B16), fontSize: 27, fontWeight: FontWeight.w900))]))), const SizedBox(height: 8), const Text('Room level badge', style: TextStyle(color: Color(0xFFE8D8BD), fontSize: 11))]));
+    if (title == 'Room Level') return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream: FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId).snapshots(),
+      builder: (context, snapshot) {
+        final roomData = snapshot.data?.data() ?? <String, dynamic>{};
+        final roomLevel = (roomData['roomLevel'] ?? roomData['level'] ?? roomData['levelNumber'] ?? 1);
+        final levelText = roomLevel is num ? roomLevel.toInt().toString().padLeft(2, '0') : roomLevel.toString();
+        return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(width: 142, height: 126, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFF1E4CD), Color(0xFFD8C3A0), Color(0xFFB89A6A)]), border: Border.all(color: const Color(0xFFFF4FA3), width: 3), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 17, spreadRadius: 2)]), child: Container(margin: const EdgeInsets.all(7), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.shield, color: Color(0xFF241B16), size: 39), const Text('LEVEL', style: TextStyle(color: Color(0xFF241B16), fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)), Text(levelText, style: const TextStyle(color: Color(0xFF241B16), fontSize: 27, fontWeight: FontWeight.w900))]))), const SizedBox(height: 8), const Text('Current room level', style: TextStyle(color: Color(0xFFE8D8BD), fontSize: 11))]));
+      },
+    );
     if (title == 'Daily Bonus') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Container(width: 104, height: 92, decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFFF1E4CD), Color(0xFFC9AE82)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(18), border: Border.all(color: const Color(0xFFFF4FA3), width: 2), boxShadow: const [BoxShadow(color: Color(0x887D551A), blurRadius: 13)]), child: const Stack(alignment: Alignment.center, children: [Icon(Icons.card_giftcard_rounded, color: Color(0xFF241B16), size: 58), Positioned(top: 5, right: 7, child: Icon(Icons.auto_awesome, color: Color(0xFF3A2630), size: 18))])), const SizedBox(height: 8), const Text('DAILY BONUS', style: TextStyle(color: Color(0xFFE8D8BD), fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1)), const Text('+100 Coins · Preview', style: TextStyle(color: gold, fontWeight: FontWeight.w800))]));
     if (title == 'Shop') return ListView(children: [
@@ -15438,6 +15541,79 @@ Widget _friendPopupButton({
 
 
 
+Future<void> _sendPartyNovaFriendRequestFromProfile(
+  BuildContext context, {
+  required String receiverFirebaseUid,
+  required String receiverPartyNovaUid,
+  required String receiverName,
+  required String receiverPhotoBase64,
+}) async {
+  final currentUser = FirebaseAuth.instance.currentUser;
+  void showMessage(String message) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  if (currentUser == null) {
+    showMessage('Please log in first.');
+    return;
+  }
+  if (currentUser.uid == receiverFirebaseUid) return;
+
+  try {
+    final firestore = FirebaseFirestore.instance;
+    final senderSnapshot = await firestore.collection('publicProfiles').doc(currentUser.uid).get();
+    if (!senderSnapshot.exists) throw StateError('Your public profile was not found.');
+    final senderData = senderSnapshot.data() ?? <String, dynamic>{};
+    final senderPartyNovaUid = (senderData['userId'] ?? '').toString();
+    if (senderPartyNovaUid.isEmpty) throw StateError('Your PartyNova ID was not found.');
+
+    final requestId = '${currentUser.uid}_$receiverFirebaseUid';
+    final reverseRequestId = '${receiverFirebaseUid}_${currentUser.uid}';
+    final requestRef = firestore.collection('friendRequests').doc(requestId);
+    final reverseRef = firestore.collection('friendRequests').doc(reverseRequestId);
+    final existing = await requestRef.get();
+    if (existing.exists) {
+      final status = (existing.data()?['status'] ?? '').toString();
+      showMessage(status == 'accepted'
+          ? 'You are already friends.'
+          : status == 'pending'
+              ? 'Friend request already sent.'
+              : 'A request already exists.');
+      return;
+    }
+    final reverse = await reverseRef.get();
+    if (reverse.exists && reverse.data()?['status'] == 'accepted') {
+      showMessage('You are already friends.');
+      return;
+    }
+    if (reverse.exists && reverse.data()?['status'] == 'pending') {
+      showMessage('This user has already sent you a request.');
+      return;
+    }
+
+    await requestRef.set({
+      'senderUid': currentUser.uid,
+      'receiverUid': receiverFirebaseUid,
+      'senderPartyNovaUid': senderPartyNovaUid,
+      'receiverPartyNovaUid': receiverPartyNovaUid,
+      'senderName': (senderData['name'] ?? currentUser.displayName ?? 'PartyNova User').toString(),
+      'senderPhotoBase64': (senderData['photoBase64'] ?? '').toString(),
+      'receiverName': receiverName,
+      'receiverPhotoBase64': receiverPhotoBase64,
+      'status': 'pending',
+      'seenByReceiver': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    showMessage('Friend request sent successfully.');
+  } catch (error) {
+    debugPrint('Profile friend request failed: $error');
+    showMessage('Could not send friend request. Please try again.');
+  }
+}
+
 class PartyNovaPublicProfilePage extends StatelessWidget {
   final String firebaseUid;
   final bool hideBlockReport;
@@ -15815,6 +15991,33 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     PartyNovaGoldenIdCard(userId: userId),
                   ],
 
+                  if (firebaseUid != FirebaseAuth.instance.currentUser?.uid) ...[
+                    const SizedBox(height: 22),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _sendPartyNovaFriendRequestFromProfile(
+                          context,
+                          receiverFirebaseUid: firebaseUid,
+                          receiverPartyNovaUid: userId,
+                          receiverName: name,
+                          receiverPhotoBase64: photoBase64,
+                        ),
+                        icon: const Icon(Icons.add_rounded, size: 23),
+                        label: const Text('Add Friend', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: .4)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFD9A43B),
+                          foregroundColor: const Color(0xFF24101F),
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(13),
+                            side: const BorderSide(color: Color(0xFFFFE6B8), width: 1.4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 20),
                 ],
               ),
