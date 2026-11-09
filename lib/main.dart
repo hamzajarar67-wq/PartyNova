@@ -1119,6 +1119,48 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
   String _roomSearchQuery = '';
 
+  String? _activeRoomName;
+  String? _activeRoomUid;
+  String? _activeRoomPhotoBase64;
+  String? _activeRoomDocumentId;
+  bool _roomMinimized = false;
+
+  void _openRoom({
+    required String roomName,
+    required String roomUid,
+    required String roomPhotoBase64,
+    required String roomDocumentId,
+  }) {
+    setState(() {
+      _activeRoomName = roomName;
+      _activeRoomUid = roomUid;
+      _activeRoomPhotoBase64 = roomPhotoBase64;
+      _activeRoomDocumentId = roomDocumentId;
+      _roomMinimized = false;
+    });
+  }
+
+  void _keepRoomMini() {
+    if (!mounted) return;
+    setState(() => _roomMinimized = true);
+  }
+
+  void _restoreRoom() {
+    if (!mounted) return;
+    setState(() => _roomMinimized = false);
+  }
+
+  void _exitActiveRoom() {
+    if (!mounted) return;
+    setState(() {
+      _activeRoomName = null;
+      _activeRoomUid = null;
+      _activeRoomPhotoBase64 = null;
+      _activeRoomDocumentId = null;
+      _roomMinimized = false;
+    });
+  }
+
   @override
   void dispose() {
     _roomSearchController.dispose();
@@ -1138,7 +1180,10 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    return Scaffold(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Scaffold(
       backgroundColor: partyBlack,
       appBar: AppBar(
         backgroundColor: const Color(0xFF21101F),
@@ -1244,6 +1289,32 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
           ),
         ),
       ),
+        ),
+        if (_activeRoomDocumentId != null)
+          Positioned.fill(
+            child: Offstage(
+              offstage: _roomMinimized,
+              child: PartyRoomScreen(
+                key: ValueKey(_activeRoomDocumentId),
+                roomName: _activeRoomName ?? '',
+                roomUid: _activeRoomUid ?? '',
+                roomPhotoBase64: _activeRoomPhotoBase64 ?? '',
+                roomDocumentId: _activeRoomDocumentId!,
+                onKeep: _keepRoomMini,
+                onExit: _exitActiveRoom,
+              ),
+            ),
+          ),
+        if (_activeRoomDocumentId != null && _roomMinimized)
+          Positioned(
+            right: 12,
+            bottom: 104,
+            child: _PartyNovaMiniRoom(
+              roomPhotoBase64: _activeRoomPhotoBase64 ?? '',
+              onTap: _restoreRoom,
+            ),
+          ),
+      ],
     );
   }
 
@@ -1828,16 +1899,11 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           (selectedRoomData['roomPhotoBase64'] ?? ownerPhotoBase64).toString();
 
       if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => PartyRoomScreen(
-            roomName: selectedRoomName,
-            roomUid: selectedRoomUid,
-            roomPhotoBase64: selectedRoomPhoto,
-            roomDocumentId: selectedRoomRef!.id,
-          ),
-        ),
+      _openRoom(
+        roomName: selectedRoomName,
+        roomUid: selectedRoomUid,
+        roomPhotoBase64: selectedRoomPhoto,
+        roomDocumentId: selectedRoomRef!.id,
       );
     } catch (error) {
       debugPrint('Create room failed: $error');
@@ -1884,16 +1950,11 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PartyRoomScreen(
-                    roomName: roomName,
-                    roomUid: (data['ownerUserId'] ?? '').toString(),
-                    roomPhotoBase64: roomPhoto,
-                    roomDocumentId: room.id,
-                  ),
-                ),
+              _openRoom(
+                roomName: roomName,
+                roomUid: (data['ownerUserId'] ?? '').toString(),
+                roomPhotoBase64: roomPhoto,
+                roomDocumentId: room.id,
               );
             },
             child: Stack(
@@ -2545,16 +2606,11 @@ Widget buildUserSearchResult() {
                 key: ValueKey(room['docId']),
                 borderRadius: BorderRadius.circular(16),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PartyRoomScreen(
-                        roomName: room['name'].toString(),
-                        roomUid: room['uid'].toString(),
-                        roomPhotoBase64: roomPhoto,
-                        roomDocumentId: room['docId'].toString(),
-                      ),
-                    ),
+                  _openRoom(
+                    roomName: room['name'].toString(),
+                    roomUid: room['uid'].toString(),
+                    roomPhotoBase64: roomPhoto,
+                    roomDocumentId: room['docId'].toString(),
                   );
                 },
                 child: Container(
@@ -11865,11 +11921,112 @@ class _FourCornerFramePainter extends CustomPainter {
   bool shouldRepaint(covariant _FourCornerFramePainter oldDelegate) => oldDelegate.color != color;
 }
 
+class _PartyNovaMiniRoom extends StatefulWidget {
+  final String roomPhotoBase64;
+  final VoidCallback onTap;
+
+  const _PartyNovaMiniRoom({
+    required this.roomPhotoBase64,
+    required this.onTap,
+  });
+
+  @override
+  State<_PartyNovaMiniRoom> createState() => _PartyNovaMiniRoomState();
+}
+
+class _PartyNovaMiniRoomState extends State<_PartyNovaMiniRoom>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final roomImage = getCachedProfilePhotoImage(widget.roomPhotoBase64);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: 116,
+          height: 76,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF17112E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
+            boxShadow: const [
+              BoxShadow(color: Color(0x88000000), blurRadius: 12, offset: Offset(0, 4)),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: roomImage == null
+                      ? const ColoredBox(
+                          color: Color(0xFF24101F),
+                          child: Icon(Icons.meeting_room_rounded, color: Color(0xFFFFD700), size: 30),
+                        )
+                      : Image(image: roomImage, fit: BoxFit.cover),
+                ),
+              ),
+              const SizedBox(width: 5),
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (context, child) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: List.generate(4, (index) {
+                      final phase = (_controller.value + index * 0.19) * pi * 2;
+                      final barHeight = 9 + (sin(phase).abs() * 25);
+                      return Container(
+                        width: 3,
+                        height: barHeight,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFD700),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      );
+                    }),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class PartyRoomScreen extends StatefulWidget {
   final String roomName;
   final String roomUid;
   final String roomPhotoBase64;
   final String roomDocumentId;
+  final VoidCallback? onKeep;
+  final VoidCallback? onExit;
 
   const PartyRoomScreen({
     super.key,
@@ -11877,6 +12034,8 @@ class PartyRoomScreen extends StatefulWidget {
     required this.roomUid,
     this.roomPhotoBase64 = '',
     required this.roomDocumentId,
+    this.onKeep,
+    this.onExit,
   });
 
   @override
@@ -13019,16 +13178,16 @@ InkWell(
                 child: const ColoredBox(color: Color(0xE6000000)),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 34,
+            Positioned.fill(
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     InkWell(
-                      onTap: () => setState(() => _showLeaveOptions = false),
+                      onTap: () {
+                        setState(() => _showLeaveOptions = false);
+                        widget.onKeep?.call();
+                      },
                       borderRadius: BorderRadius.circular(60),
                       child: Column(
                         children: [
@@ -13054,8 +13213,12 @@ InkWell(
                     InkWell(
                       onTap: () async {
                         setState(() => _showLeaveOptions = false);
-                        await _leaveRoomPresence();
-                        if (mounted) Navigator.pop(context);
+                        if (widget.onExit != null) {
+                          widget.onExit!.call();
+                        } else {
+                          await _leaveRoomPresence();
+                          if (mounted) Navigator.pop(context);
+                        }
                       },
                       borderRadius: BorderRadius.circular(60),
                       child: Column(
