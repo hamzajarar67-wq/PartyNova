@@ -12571,15 +12571,14 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: presenceRef.snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const SizedBox(height: 42);
-        }
-
         final now = DateTime.now();
-        final onlineDocs = snapshot.data!.docs.where((doc) {
+        final onlineDocs = (snapshot.data?.docs ??
+                <QueryDocumentSnapshot<Map<String, dynamic>>>[])
+            .where((doc) {
           final lastSeen = doc.data()['lastSeenAt'];
           if (lastSeen is! Timestamp) return false;
-          return now.difference(lastSeen.toDate()) <= const Duration(minutes: 2);
+          return now.difference(lastSeen.toDate()) <=
+              const Duration(minutes: 2);
         }).toList()
           ..sort((a, b) {
             final aEntered = a.data()['enteredAt'];
@@ -12591,75 +12590,127 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           });
 
         final visibleDocs = onlineDocs.take(5).toList();
-        final hasMore = onlineDocs.length > 5;
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(10, 3, 10, 9),
+          padding: const EdgeInsets.fromLTRB(8, 2, 8, 4),
           child: SizedBox(
-            height: 42,
+            height: 44,
             child: Row(
               children: [
-                for (final doc in visibleDocs)
-                  GestureDetector(
-                    onTap: () {
-                      final uid = (doc.data()['firebaseUid'] ?? doc.id).toString();
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => PartyNovaPublicProfilePage(firebaseUid: uid),
-                      ));
-                    },
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      margin: const EdgeInsets.only(right: 7),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
-                      ),
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: const Color(0xFF171017),
-                        backgroundImage: getCachedProfilePhotoImage(
-                          (doc.data()['photoBase64'] ?? '').toString(),
+                // Five profile photos stay in one straight horizontal row.
+                Expanded(
+                  child: Row(
+                    children: [
+                      for (var index = 0; index < 5; index++)
+                        Expanded(
+                          child: Center(
+                            child: index < visibleDocs.length
+                                ? GestureDetector(
+                                    onTap: () {
+                                      final doc = visibleDocs[index];
+                                      final uid = (doc.data()['firebaseUid'] ??
+                                              doc.id)
+                                          .toString();
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              PartyNovaPublicProfilePage(
+                                            firebaseUid: uid,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 35,
+                                      height: 35,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: const Color(0xFFFF1688),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 16,
+                                        backgroundColor:
+                                            const Color(0xFF171017),
+                                        backgroundImage:
+                                            getCachedProfilePhotoImage(
+                                          (visibleDocs[index]
+                                                      .data()['photoBase64'] ??
+                                                  '')
+                                              .toString(),
+                                        ),
+                                        child: getCachedProfilePhotoImage(
+                                                  (visibleDocs[index]
+                                                              .data()[
+                                                          'photoBase64'] ??
+                                                      '')
+                                                      .toString(),
+                                                ) ==
+                                                null
+                                            ? const Icon(
+                                                Icons.person_rounded,
+                                                color: Colors.white70,
+                                                size: 18,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox(width: 35, height: 35),
+                          ),
                         ),
-                        child: getCachedProfilePhotoImage(
-                          (doc.data()['photoBase64'] ?? '').toString(),
-                        ) == null
-                            ? const Icon(Icons.person_rounded, color: Colors.white70, size: 18)
-                            : null,
-                      ),
-                    ),
+                    ],
                   ),
-                if (hasMore)
-                  InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(
+                ),
+                const SizedBox(width: 5),
+                // Compact Online badge; no connecting line or divider.
+                InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
                         builder: (_) => PartyRoomOnlineUsersPage(
                           roomDocumentId: widget.roomDocumentId,
                         ),
-                      ));
-                    },
-                    child: Container(
-                      height: 34,
-                      padding: const EdgeInsets.symmetric(horizontal: 13),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
                       ),
-                      child: const Text(
-                        'USERS',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.6,
-                        ),
+                    );
+                  },
+                  child: Container(
+                    height: 34,
+                    padding: const EdgeInsets.symmetric(horizontal: 9),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF171017),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFFF1688),
+                        width: 1.3,
                       ),
                     ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.circle,
+                          color: Color(0xFF35D07F),
+                          size: 8,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Online ${onlineDocs.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                const Spacer(),
+                ),
               ],
             ),
           ),
@@ -12883,7 +12934,7 @@ InkWell(
 
             // Fifteen seats: three rows of five.
             Padding(
-              padding: const EdgeInsets.fromLTRB(5, 64, 5, 0),
+              padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
               child: Column(
                 children: [
                   _buildSeatRow(1),
