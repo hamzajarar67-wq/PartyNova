@@ -11959,44 +11959,40 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     unawaited(_ensureCreatorLeaderMemberRecord());
 
     try {
-      // Publish presence first so the user appears even if profile loading is slow.
+      // Load the complete PartyNova profile before creating presence. The
+      // Firestore presence rules validate these fields on the initial write.
+      final userSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final profile = userSnapshot.data() ?? <String, dynamic>{};
+
+      var profileUserId = (profile['userId'] ?? '').toString().trim();
+      if (!RegExp(r'^(?:[0-9]{6}|[0-9]{8}|[0-9]{10})$')
+          .hasMatch(profileUserId)) {
+        profileUserId = await assignPartyNovaUserId(user);
+      }
+
+      final profileName =
+          (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
+      final profilePhoto = (profile['photoBase64'] ?? '').toString();
+      final profileRole = resolvePartyNovaRole(
+        email: user.email,
+        userId: profileUserId,
+        storedRole: profile['role']?.toString(),
+      );
+
+      // One complete write: avoids leaving a minimal/stale presence document
+      // when the rules reject a later profile-enrichment write.
       await presenceRef.set({
         'firebaseUid': user.uid,
-        'name': user.displayName ?? 'PartyNova User',
-        'photoBase64': '',
-        'role': resolvePartyNovaRole(email: user.email),
+        'userId': profileUserId,
+        'name': profileName,
+        'photoBase64': profilePhoto,
+        'role': profileRole,
         'enteredAt': FieldValue.serverTimestamp(),
         'lastSeenAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-
-      // Add the latest profile information after presence is already active.
-      try {
-        final userSnapshot = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        final profile = userSnapshot.data() ?? <String, dynamic>{};
-        final profileName =
-            (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
-        final profilePhoto = (profile['photoBase64'] ?? '').toString();
-        final profileUserId = (profile['userId'] ?? '').toString();
-        final profileRole = resolvePartyNovaRole(
-          email: user.email,
-          userId: profileUserId,
-          storedRole: profile['role']?.toString(),
-        );
-
-        await presenceRef.set({
-          'firebaseUid': user.uid,
-          'userId': profileUserId,
-          'name': profileName,
-          'photoBase64': profilePhoto,
-          'role': profileRole,
-          'lastSeenAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-      } catch (profileError) {
-        debugPrint('Room presence profile enrichment failed: $profileError');
-      }
 
       _presenceHeartbeat?.cancel();
       _presenceHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
