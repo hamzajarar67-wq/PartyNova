@@ -1307,8 +1307,8 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
           ),
         if (_activeRoomDocumentId != null && _roomMinimized)
           Positioned(
-            right: 12,
-            bottom: 104,
+            right: 8,
+            top: MediaQuery.of(context).size.height * 0.43,
             child: _PartyNovaMiniRoom(
               roomPhotoBase64: _activeRoomPhotoBase64 ?? '',
               onTap: _restoreRoom,
@@ -11702,6 +11702,201 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  // UI-only room tools sheet. All controls here are visual previews for now.
+  Future<void> _showRoomOptionsSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        return FractionallySizedBox(
+          heightFactor: 0.52,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+            decoration: const BoxDecoration(
+              color: Color(0xFF17112E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              border: Border(top: BorderSide(color: Color(0xFFFFD700), width: 1.4)),
+            ),
+            child: Column(
+              children: [
+                Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8))),
+                const SizedBox(height: 14),
+                const Row(children: [
+                  Icon(Icons.grid_view_rounded, color: Color(0xFFFFD700), size: 20),
+                  SizedBox(width: 9),
+                  Text('ROOM OPTIONS', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1.1)),
+                ]),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 1.18,
+                    children: [
+                      _roomToolTile(Icons.share_rounded, 'Share', () { Navigator.pop(sheetContext); _showRoomToolDetail('Share'); }),
+                      _roomToolTile(Icons.lock_rounded, 'Room Lock', () { Navigator.pop(sheetContext); _showRoomToolDetail('Room Lock'); }),
+                      _roomToolTile(Icons.mic_rounded, 'Mic Setting', () { Navigator.pop(sheetContext); _showRoomToolDetail('Mic Setting'); }),
+                      _roomToolTile(Icons.workspace_premium_rounded, 'Upgrade', () { Navigator.pop(sheetContext); _showRoomToolDetail('Upgrade'); }),
+                      _roomToolTile(Icons.shopping_bag_rounded, 'Shop', () { Navigator.pop(sheetContext); _showRoomToolDetail('Shop'); }),
+                      _roomToolTile(Icons.card_giftcard_rounded, 'Daily Bonus', () { Navigator.pop(sheetContext); _showRoomToolDetail('Daily Bonus'); }),
+                      _roomToolTile(Icons.military_tech_rounded, 'Room Level', () { Navigator.pop(sheetContext); _showRoomToolDetail('Room Level'); }),
+                      _roomToolTile(Icons.palette_rounded, 'Themes', () { Navigator.pop(sheetContext); _showRoomToolDetail('Themes'); }),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _roomToolTile(IconData icon, String title, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF211832),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: const Color(0xFFB99545), width: 1),
+          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 7, offset: Offset(0, 3))],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 9),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(icon, color: const Color(0xFFFFD700), size: 27),
+          const SizedBox(height: 7),
+          Text(title, textAlign: TextAlign.center, maxLines: 2, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _showRoomToolDetail(String title) async {
+    int selectedMics = 9;
+    bool demoLocked = false;
+    String selectedTheme = 'Royal Gold';
+    String? selectedFriend;
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (detailContext) => StatefulBuilder(
+        builder: (context, refresh) => FractionallySizedBox(
+          heightFactor: 0.52,
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
+            decoration: const BoxDecoration(
+              color: Color(0xFF17112E),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              border: Border(top: BorderSide(color: Color(0xFFFFD700), width: 1.4)),
+            ),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8)))),
+              const SizedBox(height: 13),
+              Row(children: [
+                Expanded(child: Text(title.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1))),
+                IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.white70)),
+              ]),
+              const SizedBox(height: 5),
+              Expanded(child: _buildRoomToolPreviewContent(
+                title, refresh, selectedMics, (v) => refresh(() => selectedMics = v),
+                demoLocked, (v) => refresh(() => demoLocked = v),
+                selectedTheme, (v) => refresh(() => selectedTheme = v),
+                selectedFriend, (v) => refresh(() => selectedFriend = v),
+              )),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoomToolPreviewContent(
+    String title, StateSetter refresh, int selectedMics, ValueChanged<int> setMics,
+    bool demoLocked, ValueChanged<bool> setLocked, String selectedTheme,
+    ValueChanged<String> setTheme, String? selectedFriend, ValueChanged<String?> setFriend,
+  ) {
+    const gold = Color(0xFFFFD700);
+    const outline = Color(0xFFB99545);
+    Widget badgePreview(String label, IconData icon) => Container(
+      width: 150, height: 116,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFFFFF0B8), Color(0xFFD7A63D), Color(0xFF80551A), Color(0xFFE8C56B)]),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFFE8A0), width: 2),
+        boxShadow: const [BoxShadow(color: Color(0x777D551A), blurRadius: 14, spreadRadius: 1)],
+      ),
+      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(icon, color: const Color(0xFF57370C), size: 42),
+        const SizedBox(height: 5),
+        Text(label, style: const TextStyle(color: Color(0xFF57370C), fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: .7)),
+      ]),
+    );
+
+    if (title == 'Mic Setting') {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Choose mic layout', style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const SizedBox(height: 10),
+        Wrap(spacing: 7, runSpacing: 7, children: [5, 7, 9, 10, 11, 15].map((n) => ChoiceChip(
+          label: Text('$n Mics'), selected: selectedMics == n,
+          selectedColor: const Color(0xFF8B6727), backgroundColor: const Color(0xFF292039),
+          labelStyle: TextStyle(color: selectedMics == n ? Colors.white : Colors.white70, fontWeight: FontWeight.w800),
+          side: const BorderSide(color: outline), onSelected: (_) => setMics(n),
+        )).toList()),
+        const SizedBox(height: 12),
+        Expanded(child: Center(child: Container(
+          width: double.infinity, padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: const Color(0xFF211832), borderRadius: BorderRadius.circular(16), border: Border.all(color: outline)),
+          child: GridView.count(crossAxisCount: selectedMics == 5 ? 3 : selectedMics == 7 ? 4 : 5, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), mainAxisSpacing: 7, crossAxisSpacing: 7, children: List.generate(selectedMics, (i) => Container(
+            decoration: BoxDecoration(color: const Color(0xFF30233E), borderRadius: BorderRadius.circular(10), border: Border.all(color: outline)),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.mic_rounded, color: gold, size: 20), Text('Seat ${i + 1}', style: const TextStyle(color: Colors.white70, fontSize: 9))]),
+          ))),
+        ))),
+      ]);
+    }
+    if (title == 'Share') {
+      return ListView(children: [
+        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: const Color(0xFF211832), borderRadius: BorderRadius.circular(13), border: Border.all(color: outline)), child: Row(children: [const CircleAvatar(radius: 23, backgroundColor: Color(0xFF8B6727), child: Icon(Icons.meeting_room_rounded, color: Colors.white)), const SizedBox(width: 10), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(widget.roomName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)), Text('UID: ${widget.roomUid}', style: const TextStyle(color: Colors.white60, fontSize: 11))]))])),
+        const Padding(padding: EdgeInsets.symmetric(vertical: 10), child: Text('Friends / Messages', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800))),
+        ...['Ali Khan', 'Ahmed', 'Sara', 'Hamza'].map((name) => ListTile(dense: true, contentPadding: EdgeInsets.zero, leading: const CircleAvatar(backgroundColor: Color(0xFF3A2A45), child: Icon(Icons.person, color: gold)), title: Text(name, style: const TextStyle(color: Colors.white)), trailing: OutlinedButton(onPressed: () => setFriend(name), style: OutlinedButton.styleFrom(foregroundColor: gold, side: const BorderSide(color: outline)), child: const Text('Share')))),
+        if (selectedFriend != null)
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF211832),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: outline),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Room invitation · $selectedFriend', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 7),
+                Row(children: [
+                  Expanded(child: OutlinedButton(onPressed: () => setFriend(null), child: const Text('Unjoin'))),
+                  const SizedBox(width: 8),
+                  Expanded(child: ElevatedButton(onPressed: () => setFriend(null), child: const Text('Join Now'))),
+                ]),
+              ],
+            ),
+          ),
+      ]);
+    }
+    if (title == 'Room Lock') return SwitchListTile(contentPadding: EdgeInsets.zero, value: demoLocked, onChanged: setLocked, activeColor: gold, title: const Text('Room Lock', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)), subtitle: const Text('Preview only', style: TextStyle(color: Colors.white54)), secondary: const Icon(Icons.lock_outline_rounded, color: gold));
+    if (title == 'Upgrade') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [badgePreview('ROOM UPGRADE', Icons.workspace_premium_rounded), const SizedBox(height: 10), const Text('Premium room badge preview', style: TextStyle(color: Colors.white70, fontSize: 12))]));
+    if (title == 'Room Level') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [badgePreview('LEVEL 05', Icons.military_tech_rounded), const SizedBox(height: 10), const Text('Room level badge only', style: TextStyle(color: Colors.white70, fontSize: 12))]));
+    if (title == 'Daily Bonus') return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.card_giftcard_rounded, color: gold, size: 52), const SizedBox(height: 8), const Text('DAILY BONUS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)), const Text('+100 Coins · Preview', style: TextStyle(color: gold, fontWeight: FontWeight.w800))]));
+    if (title == 'Shop') return ListView(children: ['Room Gifts', 'Room Frames', 'Room Decorations'].map((v) => ListTile(leading: const Icon(Icons.shopping_bag_rounded, color: gold), title: Text(v, style: const TextStyle(color: Colors.white)), trailing: const Icon(Icons.chevron_right, color: Colors.white54))).toList());
+    if (title == 'Themes') return Column(children: ['Royal Gold', 'Classic Purple', 'Midnight'].map((v) => RadioListTile<String>(contentPadding: EdgeInsets.zero, value: v, groupValue: selectedTheme, activeColor: gold, onChanged: (value) { if (value != null) setTheme(value); }, title: Text(v, style: const TextStyle(color: Colors.white)))).toList());
+    return const SizedBox.shrink();
+  }
+
   @override
   Widget build(BuildContext context) {
     final roomImage = getCachedProfilePhotoImage(
@@ -13050,7 +13245,7 @@ InkWell(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            onPressed: () {},
+            onPressed: _showRoomOptionsSheet,
             tooltip: 'Room options',
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(
