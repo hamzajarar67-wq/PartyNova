@@ -13229,7 +13229,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (title == 'Share') {
       final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
       return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance.collection('users').limit(100).snapshots(),
+        stream: FirebaseFirestore.instance.collection('publicProfiles').limit(100).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
