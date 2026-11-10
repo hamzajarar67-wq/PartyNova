@@ -2453,48 +2453,100 @@ Widget buildUserSearchResult() {
             child: Center(child: Text(label, style: const TextStyle(color: Colors.white70))),
           );
         }
-        return Column(
-          children: docs.map((doc) {
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 20),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: docs.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 14,
+            childAspectRatio: 0.68,
+          ),
+          itemBuilder: (context, index) {
+            final doc = docs[index];
             final data = doc.data();
             final name = (data['roomName'] ?? 'Room').toString();
             final uid = (data['ownerUserId'] ?? data['leaderUserId'] ?? '').toString();
             final photo = (data['roomPhotoBase64'] ?? '').toString();
             final image = getCachedProfilePhotoImage(photo);
-            return Container(
-              margin: const EdgeInsets.fromLTRB(14, 5, 14, 9),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF21101F),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: const Color(0xFFFF4FA3), width: 1),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: const Color(0xFF392047),
-                    backgroundImage: image,
-                    child: image == null ? const Icon(Icons.groups_rounded, color: Colors.white) : null,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        Text('UID: $uid', style: const TextStyle(color: Colors.white60, fontSize: 11)),
-                      ],
+            final followed = _followedRoomIds.contains(doc.id);
+            final joined = _joinedRoomIds.contains(doc.id);
+            return InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: () => _openRoom(roomName: name, roomUid: uid, roomPhotoBase64: photo, roomDocumentId: doc.id),
+              child: Container(
+                clipBehavior: Clip.antiAlias,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0FFF7),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (image != null)
+                            Image(image: image, fit: BoxFit.cover)
+                          else
+                            const ColoredBox(
+                              color: Color(0xFF392047),
+                              child: Icon(Icons.groups_rounded, size: 52, color: Color(0xFFFFB9DD)),
+                            ),
+                          Positioned(
+                            right: 7,
+                            top: 7,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                              decoration: BoxDecoration(color: Colors.black.withOpacity(0.62), borderRadius: BorderRadius.circular(20)),
+                              child: Text('${data['memberCount'] ?? 0} members', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Open room',
-                    onPressed: () => _openRoom(roomName: name, roomUid: uid, roomPhotoBase64: photo, roomDocumentId: doc.id),
-                    icon: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFFF4FA3), size: 18),
-                  ),
-                ],
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 7),
+                      color: const Color(0xFFE0FFF7),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF174B40), fontSize: 14, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 3),
+                          Text('UID: $uid', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF39766A), fontSize: 10)),
+                          const SizedBox(height: 7),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: followed ? null : () => _followRoomLocally(doc.id),
+                                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB02D72), padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
+                                  child: Text(followed ? 'Following' : 'Follow', maxLines: 1, style: const TextStyle(fontSize: 10)),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: joined ? null : () => _joinRoomFromCard({'docId': doc.id}),
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2477D4), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
+                                  child: Text(joined ? 'Joined' : 'Join', maxLines: 1, style: const TextStyle(fontSize: 10)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
-          }).toList(),
+          },
         );
       },
     );
@@ -12879,6 +12931,22 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
+  Widget _buildImageAction({
+    required String asset,
+    required String tooltip,
+    required VoidCallback onPressed,
+    double size = 34,
+  }) {
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      constraints: const BoxConstraints(minWidth: 42, minHeight: 48),
+      padding: EdgeInsets.zero,
+      icon: Image.asset(asset, width: size, height: size, fit: BoxFit.contain),
+    );
+  }
+
   // The message composer is UI-only for now: typing works, but there is no
   // send action or Firestore message write yet.
   Widget _buildBottomBar() {
@@ -12897,36 +12965,42 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           ),
           _buildActionIcon(
             icon: _micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-            color: _micMuted ? Colors.redAccent : gold,
+            color: pink,
             size: 32,
             tooltip: _micMuted ? 'Unmute microphone' : 'Mute microphone',
             onPressed: () => setState(() => _micMuted = !_micMuted),
           ),
-          _buildActionIcon(
-            icon: _speakerMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-            color: _speakerMuted ? Colors.redAccent : Colors.white,
-            size: 31,
-            tooltip: _speakerMuted ? 'Unmute speaker' : 'Mute speaker',
-            onPressed: () => setState(() => _speakerMuted = !_speakerMuted),
-          ),
-          _buildActionIcon(
-            icon: Icons.emoji_emotions_rounded,
-            color: gold,
-            size: 31,
+          if (_speakerMuted)
+            _buildActionIcon(
+              icon: Icons.volume_off_rounded,
+              color: pink,
+              size: 31,
+              tooltip: 'Unmute speaker',
+              onPressed: () => setState(() => _speakerMuted = false),
+            )
+          else
+            _buildImageAction(
+              asset: 'assets/room_toolbar/speaker.png',
+              tooltip: 'Mute speaker',
+              onPressed: () => setState(() => _speakerMuted = true),
+              size: 37,
+            ),
+          _buildImageAction(
+            asset: 'assets/room_toolbar/heart_emoji.png',
             tooltip: 'Emoji',
             onPressed: () {},
+            size: 37,
           ),
-          _buildActionIcon(
-            icon: Icons.card_giftcard_rounded,
-            color: pink,
-            size: 32,
+          _buildImageAction(
+            asset: 'assets/room_toolbar/gift.png',
             tooltip: 'Gift',
             onPressed: () {},
+            size: 37,
           ),
           _buildActionIcon(
-            icon: Icons.more_vert_rounded,
-            color: Colors.white,
-            size: 31,
+            icon: Icons.more_horiz_rounded,
+            color: pink,
+            size: 33,
             tooltip: 'More',
             onPressed: () {},
           ),
@@ -13557,6 +13631,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     return Scaffold(
       backgroundColor: darkBlue,
       resizeToAvoidBottomInset: true,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: _buildBottomBar(),
+      ),
       body: Stack(
         children: [
           SafeArea(
@@ -13747,9 +13825,9 @@ InkWell(
               minHeight: 46,
             ),
             icon: const Icon(
-              Icons.share_rounded,
+              Icons.reply_rounded,
               color: Color(0xFFFF4FA3),
-              size: 27,
+              size: 30,
             ),
           ),
           const SizedBox(width: 3),
@@ -13777,6 +13855,10 @@ InkWell(
             
                                 
 
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
             // Online users appear below the room header and above the mic seats.
             _buildOnlineUsersStrip(),
 
@@ -13855,7 +13937,10 @@ InkWell(
               },
             ),
 
-            _buildBottomBar(),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
