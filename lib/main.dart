@@ -12317,7 +12317,36 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   bool _micMuted = false;
   bool _speakerMuted = false;
   bool _showLeaveOptions = false;
+  bool _roomFollowStateLoaded = false;
+  bool _isRoomFollowed = false;
   Timer? _presenceHeartbeat;
+
+  Future<void> _loadRoomFollowState() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final followedIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    if (!mounted) return;
+    setState(() {
+      _isRoomFollowed = followedIds.contains(widget.roomDocumentId);
+      _roomFollowStateLoaded = true;
+    });
+  }
+
+  Future<void> _followRoomFromHeader() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final followedIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    followedIds.add(widget.roomDocumentId);
+    await _saveLocalRoomIds(user.uid, 'followed_rooms', followedIds);
+    if (!mounted) return;
+    setState(() {
+      _isRoomFollowed = true;
+      _roomFollowStateLoaded = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Room followed. You can join now.')),
+    );
+  }
 
   DocumentReference<Map<String, dynamic>>? get _myRoomPresenceRef {
     final user = FirebaseAuth.instance.currentUser;
@@ -12443,6 +12472,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   @override
   void initState() {
     super.initState();
+    _loadRoomFollowState();
     if (widget.autoJoinOnOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (!mounted) return;
@@ -12675,20 +12705,21 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         final leaderUid = (roomData['leaderUid'] ?? '').toString();
         final ownerUid = (roomData['ownerUid'] ?? '').toString();
         final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-        if (user.uid == actualLeaderUid) {
-          return _buildLeaderStatueIcon();
-        }
+        if (user.uid == actualLeaderUid) return _buildLeaderStatueIcon();
         return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
           stream: roomRef.collection('members').doc(user.uid).snapshots(),
           builder: (context, memberSnapshot) {
             if (memberSnapshot.data?.exists == true) {
               return _buildMembershipFrame('1', leader: false);
             }
+            final followed = _roomFollowStateLoaded && _isRoomFollowed;
             return SizedBox(
-              width: 58,
+              width: 64,
               height: 42,
               child: ElevatedButton(
-                onPressed: _joinRoom,
+                onPressed: !_roomFollowStateLoaded
+                    ? null
+                    : followed ? _joinRoom : _followRoomFromHeader,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFFD700),
                   foregroundColor: const Color(0xFF4A2B00),
@@ -12702,7 +12733,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 ),
                 child: Stack(alignment: Alignment.center, children: [
                   Positioned.fill(child: CustomPaint(painter: _FourCornerFramePainter(color: const Color(0xFFFFF7CF)))),
-                  const Text('JOIN', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, letterSpacing: 0.8)),
+                  Text(
+                    !_roomFollowStateLoaded ? '...' : followed ? 'JOIN' : 'FOLLOW',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 0.5),
+                  ),
                 ]),
               ),
             );
@@ -13224,10 +13258,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     final isLeader = accessRole == 'leader';
     final isDeputyOrIncharge = accessRole == 'deputy' || accessRole == 'incharge';
     final optionNames = isLeader
-        ? const <String>['Share', 'Room Lock', 'Mic Setting', 'Upgrade', 'Shop', 'Daily Bonus', 'Room Level', 'Themes']
+        ? const <String>['Room Lock', 'Mic Setting', 'Upgrade', 'Shop', 'Daily Bonus', 'Room Level', 'Themes']
         : isDeputyOrIncharge
-            ? const <String>['Share', 'Mic Setting', 'Room Level', 'Shop', 'Themes']
-            : const <String>['Share', 'Room Level', 'Themes'];
+            ? const <String>['Mic Setting', 'Room Level', 'Shop', 'Themes']
+            : const <String>['Room Level', 'Themes'];
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -13703,7 +13737,22 @@ InkWell(
               size: 35,
             ),
           ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 3),
+          IconButton(
+            onPressed: () => _showRoomToolDetail('Share'),
+            tooltip: 'Share room',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 38,
+              minHeight: 46,
+            ),
+            icon: const Icon(
+              Icons.share_rounded,
+              color: Color(0xFFFF4FA3),
+              size: 27,
+            ),
+          ),
+          const SizedBox(width: 3),
           IconButton(
             onPressed: () {
               setState(() => _showLeaveOptions = true);
@@ -13806,7 +13855,7 @@ InkWell(
               },
             ),
 
-            // Remaining ro            _buildBottomBar(),
+            _buildBottomBar(),
           ],
         ),
       ),
