@@ -11246,12 +11246,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             ? storedLeaderUid
             : (roomData['ownerUid'] ?? '').toString();
         final actualOwnerUid = (roomData['ownerUid'] ?? '').toString();
-        final actualDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
-        final actualDeputyUids = <String>{
-          ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-              .map((value) => value.toString()),
-          if (actualDeputyUid.isNotEmpty) actualDeputyUid,
-        };
+        // Member documents are the single source of truth for Deputy status.
+        // Do not use legacy room-level deputy UID fields here: they can remain
+        // stale after a role is removed and keep showing a false DEPUTY badge.
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -11339,7 +11336,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               final memberData = doc.data();
               final uid = (memberData['firebaseUid'] ?? doc.id).toString();
               final role = (memberData['role'] ?? '').toString().toLowerCase();
-              if (actualDeputyUids.contains(uid) || role == 'deputy leader') return 1;
+              if (role == 'deputy leader') return 1;
               if (role == 'seat incharge' || role == 'admin') return 2;
               return 3;
             }
@@ -11371,7 +11368,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     role.toLowerCase() == 'leader' ||
                     data['isRoomLeader'] == true;
                 final isOwner = actualOwnerUid.isNotEmpty && memberFirebaseUid == actualOwnerUid;
-                final isDeputy = actualDeputyUids.contains(memberFirebaseUid) || role.toLowerCase() == 'deputy leader';
+                final isDeputy = role.toLowerCase() == 'deputy leader';
                 final isIncharge = role.toLowerCase() == 'seat incharge' || role.toLowerCase() == 'admin';
                 return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                   stream: FirebaseFirestore.instance.collection('publicProfiles').doc(memberFirebaseUid).snapshots(),
@@ -12872,19 +12869,14 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
       if (user.uid == actualLeaderUid || user.uid == ownerUid) return 'leader';
 
-      final deputyUids = <String>{
-        ...((roomData['deputyLeaderUids'] as List?) ?? const [])
-            .map((value) => value.toString()),
-      };
-      final legacyDeputyUid = (roomData['deputyLeaderUid'] ?? '').toString();
-      if (legacyDeputyUid.isNotEmpty) deputyUids.add(legacyDeputyUid);
-
       final memberSnapshot = await roomRef.collection('members').doc(user.uid).get();
       if (!memberSnapshot.exists) return 'notMember';
       final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+      // The member role field is authoritative. Legacy deputy UID fields may
+      // be stale after Remove Deputy Leader and must not restore deputy access.
       final memberRole = (memberData['role'] ?? '').toString().trim().toLowerCase();
 
-      if (deputyUids.contains(user.uid) || memberRole == 'deputy leader') {
+      if (memberRole == 'deputy leader') {
         return 'deputy';
       }
       if (memberRole == 'seat incharge' ||
