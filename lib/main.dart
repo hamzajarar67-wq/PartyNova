@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
@@ -84,6 +85,28 @@ ImageProvider? getCachedProfilePhotoImage(String encoded) {
 }
 
 
+
+// Local room lists are stored per signed-in account on this device.
+String _roomListStorageKey(String uid, String listName) =>
+    'partynova_${listName}_$uid';
+
+Future<Set<String>> _loadLocalRoomIds(String uid, String listName) async {
+  final prefs = await SharedPreferences.getInstance();
+  return (prefs.getStringList(_roomListStorageKey(uid, listName)) ?? <String>[])
+      .toSet();
+}
+
+Future<void> _saveLocalRoomIds(
+  String uid,
+  String listName,
+  Iterable<String> roomIds,
+) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList(
+    _roomListStorageKey(uid, listName),
+    roomIds.toList(),
+  );
+}
 
 const String partyNovaOwnerEmail = 'hamzajarar76@gmail.com';
 const String partyNovaAdminEmail = 'hamzajarar67@gmail.com';
@@ -1113,6 +1136,107 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   int _selectedIndex = 0;
   int _selectedRoomFilter = 0;
   int _selectedMyRoomFilter = 0;
+  final Set<String> _followedRoomIds = <String>{};
+  final Set<String> _joinedRoomIds = <String>{};
+  final Set<String> _recentRoomIds = <String>{};
+  bool _roomListsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoomLists();
+  }
+
+  Future<void> _loadRoomLists() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final followed = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    final joined = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+    final recent = await _loadLocalRoomIds(user.uid, 'recent_rooms');
+    if (!mounted) return;
+    setState(() {
+      _followedRoomIds..clear()..addAll(followed);
+      _joinedRoomIds..clear()..addAll(joined);
+      _recentRoomIds..clear()..addAll(recent);
+      _roomListsLoaded = true;
+    });
+  }
+
+  Future<void> _updateLocalRoomList(String listName, Set<String> values) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await _saveLocalRoomIds(user.uid, listName, values);
+  }
+
+  Future<void> _followRoomLocally(String roomId) async {
+    setState(() => _followedRoomIds.add(roomId));
+    await _updateLocalRoomList('followed_rooms', _followedRoomIds);
+  }
+
+  Future<void> _joinRoomFromCard(Map<String, dynamic> room) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final roomId = room['docId'].toString();
+    if (!_followedRoomIds.contains(roomId)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Follow this room first.')),
+      );
+      return;
+    }
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final userDoc = await firestore.collection('users').doc(user.uid).get();
+      if (!userDoc.exists) throw StateError('Your PartyNova profile was not found.');
+      final profile = userDoc.data() ?? <String, dynamic>{};
+      await syncPartyNovaPublicProfile(user);
+      final partyNovaUid = (profile['userId'] ?? '').toString();
+      if (!RegExp(r'^(?:[0-9]{6}|[0-9]{8}|[0-9]{10})$').hasMatch(partyNovaUid)) {
+        throw StateError('Your PartyNova UID is invalid.');
+      }
+      final roomRef = firestore.collection('rooms').doc(roomId);
+      final memberRef = roomRef.collection('members').doc(user.uid);
+      await firestore.runTransaction((transaction) async {
+        final roomSnapshot = await transaction.get(roomRef);
+        final memberSnapshot = await transaction.get(memberRef);
+        if (!roomSnapshot.exists) throw StateError('Room not found.');
+        final data = roomSnapshot.data() ?? <String, dynamic>{};
+        final leaderUid = (data['leaderUid'] ?? '').toString();
+        final ownerUid = (data['ownerUid'] ?? '').toString();
+        if ((leaderUid.isNotEmpty ? leaderUid : ownerUid) == user.uid || memberSnapshot.exists) return;
+        final count = (data['memberCount'] as num?)?.toInt() ?? 0;
+        if (count >= 1000) throw StateError('This room has reached its 1000-member limit.');
+        transaction.set(memberRef, {
+          'firebaseUid': user.uid,
+          'userId': partyNovaUid,
+          'name': (profile['name'] ?? 'PartyNova User').toString(),
+          'photoBase64': (profile['photoBase64'] ?? '').toString(),
+          'clubName': (data['clubName'] ?? '').toString(),
+          'role': 'Member',
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+        transaction.update(roomRef, {
+          'memberCount': FieldValue.increment(1),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+      });
+      if (!mounted) return;
+      setState(() {
+        _joinedRoomIds.add(roomId);
+        _recentRoomIds.remove(roomId);
+        _recentRoomIds.add(roomId);
+      });
+      await _updateLocalRoomList('joined_rooms', _joinedRoomIds);
+      await _updateLocalRoomList('recent_rooms', _recentRoomIds);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You joined the room.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not join room: $error')),
+      );
+    }
+  }
 
     final TextEditingController _roomSearchController =
       TextEditingController();
@@ -1152,6 +1276,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
   void _exitActiveRoom() {
     if (!mounted) return;
+    _loadRoomLists();
     setState(() {
       _activeRoomName = null;
       _activeRoomUid = null;
@@ -1973,7 +2098,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 88),
+                      const SizedBox(height: 108),
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
@@ -2018,43 +2143,42 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   ),
                 ),
                 Positioned(
-                  top: -34,
-                  left: 18,
-                  right: 18,
-                  height: 132,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: roomImage != null
-                        ? Image(image: roomImage, fit: BoxFit.cover)
-                        : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                            stream: ownerUid.isEmpty
-                                ? null
-                                : FirebaseFirestore.instance
-                                    .collection('publicProfiles')
-                                    .doc(ownerUid)
-                                    .snapshots(),
-                            builder: (context, profileSnapshot) {
-                              final profileData = profileSnapshot.data?.data();
-                              final profilePhoto =
-                                  (profileData?['photoBase64'] ?? '').toString();
-                              final fallbackImage =
-                                  getCachedProfilePhotoImage(profilePhoto);
-                              if (fallbackImage != null) {
-                                return Image(
-                                  image: fallbackImage,
-                                  fit: BoxFit.cover,
-                                );
-                              }
-                              return const ColoredBox(
-                                color: Color(0xFF392047),
-                                child: Icon(
+                  top: -54,
+                  left: (MediaQuery.of(context).size.width - 180) / 2,
+                  width: 152,
+                  height: 152,
+                  child: ClipOval(
+                    child: Container(
+                      color: const Color(0xFF392047),
+                      child: roomImage != null
+                          ? Image(image: roomImage, fit: BoxFit.contain)
+                          : StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                              stream: ownerUid.isEmpty
+                                  ? null
+                                  : FirebaseFirestore.instance
+                                      .collection('publicProfiles')
+                                      .doc(ownerUid)
+                                      .snapshots(),
+                              builder: (context, profileSnapshot) {
+                                final profileData = profileSnapshot.data?.data();
+                                final profilePhoto =
+                                    (profileData?['photoBase64'] ?? '').toString();
+                                final fallbackImage =
+                                    getCachedProfilePhotoImage(profilePhoto);
+                                if (fallbackImage != null) {
+                                  return Image(
+                                    image: fallbackImage,
+                                    fit: BoxFit.contain,
+                                  );
+                                }
+                                return const Icon(
                                   Icons.groups_rounded,
                                   color: Colors.white,
                                   size: 48,
-                                ),
-                              );
-                            },
-                          ),
+                                );
+                              },
+                            ),
+                    ),
                   ),
                 ),
                 Positioned(
@@ -2279,6 +2403,103 @@ Widget buildUserSearchResult() {
     );
   }
 
+  Widget _buildMyRoomSavedList() {
+    if (!_roomListsLoaded) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+      );
+    }
+    if (_selectedMyRoomFilter == 3) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: Text('Friends rooms will appear here.', style: TextStyle(color: Colors.white70))),
+      );
+    }
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _activeRoomsStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.all(20),
+            child: Text('Could not load your room list.', style: TextStyle(color: Colors.white70)),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+          );
+        }
+        final ids = _selectedMyRoomFilter == 0
+            ? _recentRoomIds
+            : _selectedMyRoomFilter == 1
+                ? _joinedRoomIds
+                : _followedRoomIds;
+        final docs = snapshot.data!.docs.where((doc) => ids.contains(doc.id)).toList();
+        docs.sort((a, b) {
+          final aRecent = _recentRoomIds.toList().indexOf(a.id);
+          final bRecent = _recentRoomIds.toList().indexOf(b.id);
+          return bRecent.compareTo(aRecent);
+        });
+        if (docs.isEmpty) {
+          final label = _selectedMyRoomFilter == 0
+              ? 'No recent rooms yet.'
+              : _selectedMyRoomFilter == 1
+                  ? 'You have not joined any room yet.'
+                  : 'You are not following any room yet.';
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(child: Text(label, style: const TextStyle(color: Colors.white70))),
+          );
+        }
+        return Column(
+          children: docs.map((doc) {
+            final data = doc.data();
+            final name = (data['roomName'] ?? 'Room').toString();
+            final uid = (data['ownerUserId'] ?? data['leaderUserId'] ?? '').toString();
+            final photo = (data['roomPhotoBase64'] ?? '').toString();
+            final image = getCachedProfilePhotoImage(photo);
+            return Container(
+              margin: const EdgeInsets.fromLTRB(14, 5, 14, 9),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF21101F),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: const Color(0xFFFF4FA3), width: 1),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 25,
+                    backgroundColor: const Color(0xFF392047),
+                    backgroundImage: image,
+                    child: image == null ? const Icon(Icons.groups_rounded, color: Colors.white) : null,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        Text('UID: $uid', style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: 'Open room',
+                    onPressed: () => _openRoom(roomName: name, roomUid: uid, roomPhotoBase64: photo, roomDocumentId: doc.id),
+                    icon: const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFFF4FA3), size: 18),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
   Widget buildMyRoomContent() {
     final titles = [
       'Recent Join',
@@ -2452,41 +2673,7 @@ Widget buildUserSearchResult() {
 
         const SizedBox(height: 24),
 
-        // Selected option content placeholder
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25),
-            child: Column(
-              children: [
-                Icon(
-                  icons[_selectedMyRoomFilter],
-                  size: 48,
-                  color: pink.withOpacity(0.85),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  titles[_selectedMyRoomFilter],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  descriptions[_selectedMyRoomFilter],
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white60,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        _buildMyRoomSavedList(),
       ],
     );
   }
@@ -2592,7 +2779,7 @@ Widget buildUserSearchResult() {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 18,
-              childAspectRatio: 0.76,
+              childAspectRatio: 0.66,
             ),
             itemBuilder: (context, index) {
               final room = rooms[index];
@@ -2729,6 +2916,54 @@ Widget buildUserSearchResult() {
                                 ),
                               ),
                             ],
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _followedRoomIds.contains(room['docId'].toString())
+                                        ? null
+                                        : () => _followRoomLocally(room['docId'].toString()),
+                                    icon: Icon(
+                                      _followedRoomIds.contains(room['docId'].toString())
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      size: 15,
+                                    ),
+                                    label: Text(
+                                      _followedRoomIds.contains(room['docId'].toString())
+                                          ? 'Following'
+                                          : 'Follow',
+                                      maxLines: 1,
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFFB02D72),
+                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: !_followedRoomIds.contains(room['docId'].toString()) ||
+                                            _joinedRoomIds.contains(room['docId'].toString())
+                                        ? null
+                                        : () => _joinRoomFromCard(room),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2477D4),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    child: Text(
+                                      _joinedRoomIds.contains(room['docId'].toString()) ? 'Joined' : 'Join',
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -9969,6 +10204,15 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   Future<void> _joinRoomFromProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    if (!followedRoomIds.contains(widget.roomDocumentId)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Follow this room first.')),
+        );
+      }
+      return;
+    }
     try {
       final firestore = FirebaseFirestore.instance;
       final userDoc = await firestore.collection('users').doc(user.uid).get();
@@ -10007,6 +10251,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
+      final prefsUser = FirebaseAuth.instance.currentUser;
+      if (prefsUser != null) {
+        final joinedIds = await _loadLocalRoomIds(prefsUser.uid, 'joined_rooms');
+        final recentIds = await _loadLocalRoomIds(prefsUser.uid, 'recent_rooms');
+        joinedIds.add(widget.roomDocumentId);
+        recentIds.remove(widget.roomDocumentId);
+        recentIds.add(widget.roomDocumentId);
+        await _saveLocalRoomIds(prefsUser.uid, 'joined_rooms', joinedIds);
+        await _saveLocalRoomIds(prefsUser.uid, 'recent_rooms', recentIds);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You joined the room as a Member.')),
@@ -10022,6 +10276,19 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   Future<void> _unjoinRoomFromProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF21101F),
+        title: const Text('Room options', style: TextStyle(color: Colors.white)),
+        content: const Text('Choose how you want to leave this room.', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, 'unjoin'), child: const Text('Unjoin')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, 'both'), child: const Text('Unjoin and Unfollow')),
+        ],
+      ),
+    );
+    if (choice == null) return;
     try {
       final firestore = FirebaseFirestore.instance;
       final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
@@ -10046,9 +10313,17 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
+      final joinedIds = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+      joinedIds.remove(widget.roomDocumentId);
+      await _saveLocalRoomIds(user.uid, 'joined_rooms', joinedIds);
+      if (choice == 'both') {
+        final followedIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+        followedIds.remove(widget.roomDocumentId);
+        await _saveLocalRoomIds(user.uid, 'followed_rooms', followedIds);
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You left the room.')),
+        SnackBar(content: Text(choice == 'both' ? 'You left and unfollowed the room.' : 'You left the room.')),
       );
     } catch (error) {
       if (!mounted) return;
@@ -12182,6 +12457,15 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Future<void> _joinRoom() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    if (!followedRoomIds.contains(widget.roomDocumentId)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Follow this room first.')),
+        );
+      }
+      return;
+    }
     try {
       final firestore = FirebaseFirestore.instance;
       final userDoc = await firestore.collection('users').doc(user.uid).get();
@@ -12221,6 +12505,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
+      final joinedIds = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+      final recentIds = await _loadLocalRoomIds(user.uid, 'recent_rooms');
+      joinedIds.add(widget.roomDocumentId);
+      recentIds.remove(widget.roomDocumentId);
+      recentIds.add(widget.roomDocumentId);
+      await _saveLocalRoomIds(user.uid, 'joined_rooms', joinedIds);
+      await _saveLocalRoomIds(user.uid, 'recent_rooms', recentIds);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You joined the room as a Member.')),
@@ -12260,6 +12551,9 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           'updatedAt': FieldValue.serverTimestamp(),
         });
       });
+      final joinedIds = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+      joinedIds.remove(widget.roomDocumentId);
+      await _saveLocalRoomIds(user.uid, 'joined_rooms', joinedIds);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You left the room.')),
