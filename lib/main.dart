@@ -11051,27 +11051,21 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           throw StateError('Member or room could not be found.');
         }
 
-        final latestRoomData = latestRoom.data() ?? <String, dynamic>{};
-        final deputies = <String>{
-          ...((latestRoomData['deputyLeaderUids'] as List?) ?? const [])
-              .map((value) => value.toString()),
-        };
-        final legacyDeputy =
-            (latestRoomData['deputyLeaderUid'] ?? '').toString();
-        if (legacyDeputy.isNotEmpty) deputies.add(legacyDeputy);
-
+        // Firestore member-role rules intentionally permit changing only
+        // the role field. The previous implementation also wrote
+        // roleUpdatedAt and deputy arrays on the room document; those extra
+        // writes were rejected by the published security rules, including
+        // when the actor was the App Owner/Admin.
+        final currentRole = (latestMember.data()?['role'] ?? 'Member').toString();
         String newRole;
         switch (action) {
           case 'Set Deputy Leader':
-            deputies.add(memberFirebaseUid);
             newRole = 'Deputy Leader';
             break;
           case 'Remove Deputy Leader':
-            deputies.remove(memberFirebaseUid);
             newRole = 'Member';
             break;
           case 'Set In-Charge':
-            deputies.remove(memberFirebaseUid);
             newRole = 'Seat Incharge';
             break;
           case 'Remove In-Charge':
@@ -11081,19 +11075,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             throw StateError('Unknown member action: $action');
         }
 
-        transaction.set(memberRef, {
-          'firebaseUid': memberFirebaseUid,
-          'role': newRole,
-          'roleUpdatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-
-        transaction.set(roomRef, {
-          'deputyLeaderUids': deputies.toList(),
-          'deputyLeaderUid': deputies.isEmpty
-              ? FieldValue.delete()
-              : deputies.first,
-          'updatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        if (action == 'Set Deputy Leader' && currentRole == 'Leader') {
+          throw StateError('The Room Leader cannot be changed.');
+        }
+        transaction.update(memberRef, {'role': newRole});
       });
 
       try {
@@ -12057,6 +12042,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
+  bool _micMuted = false;
+  bool _speakerMuted = false;
   bool _showLeaveOptions = false;
   Timer? _presenceHeartbeat;
 
@@ -12567,184 +12554,130 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
-  // SMS opens a large multiline typing board.
-  // When open, all other bottom icons are hidden.
+  // The message composer is UI-only for now: typing works, but there is no
+  // send action or Firestore message write yet.
   Widget _buildBottomBar() {
-    final keyboardOpen =
-        MediaQuery.of(context).viewInsets.bottom > 0;
+    final screenHeight = MediaQuery.of(context).size.height;
 
-    if (_messageOpen) {
-      return Container(
-        width: double.infinity,
-        padding: EdgeInsets.fromLTRB(
-          10,
-          10,
-          10,
-          keyboardOpen ? 5 : 10,
-        ),
-        decoration: const BoxDecoration(
-          color: panelBlue,
-          border: Border(
-            top: BorderSide(
-              color: pink,
-              width: 1.5,
-            ),
-            bottom: BorderSide(
-              color: pink,
-              width: 1.5,
-            ),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.sms_rounded,
-                  color: pink,
-                  size: 32,
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'Message',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  onPressed: _closeMessageBoard,
-                  tooltip: 'Close message board',
-                  constraints: const BoxConstraints(
-                    minWidth: 44,
-                    minHeight: 44,
-                  ),
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    color: pink,
-                    size: 30,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-
-            // Large multiline text area.
-            Container(
-              width: double.infinity,
-              constraints: const BoxConstraints(
-                minHeight: 100,
-                maxHeight: 180,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: darkBlue,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: pink,
-                  width: 1.5,
-                ),
-              ),
-              child: TextField(
-                controller: _messageController,
-                focusNode: _messageFocusNode,
-                minLines: 3,
-                maxLines: 6,
-                keyboardType: TextInputType.multiline,
-                textInputAction: TextInputAction.newline,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 17,
-                ),
-                cursorColor: pink,
-                decoration: const InputDecoration(
-                  hintText: 'Write your message...',
-                  hintStyle: TextStyle(
-                    color: Colors.white60,
-                    fontSize: 16,
-                  ),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Normal bottom row: SMS, Mic, Speaker, Emoji, Gift, More.
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 5,
-        vertical: 8,
-      ),
-      decoration: const BoxDecoration(
-        color: panelBlue,
-        border: Border(
-          top: BorderSide(
-            color: pink,
-            width: 1.5,
-          ),
-          bottom: BorderSide(
-            color: pink,
-            width: 1.5,
-          ),
-        ),
-      ),
-      child: Row(
+    Widget actionRow() {
+      return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildActionIcon(
-            icon: Icons.sms_rounded,
+            icon: _messageOpen ? Icons.close_rounded : Icons.sms_rounded,
             color: pink,
-            size: 32,
-            tooltip: 'Open messages',
-            onPressed: _openMessageBoard,
+            size: 31,
+            tooltip: _messageOpen ? 'Close message box' : 'Open messages',
+            onPressed: _messageOpen ? _closeMessageBoard : _openMessageBoard,
           ),
           _buildActionIcon(
-            icon: Icons.mic_rounded,
-            color: gold,
-            size: 33,
-            tooltip: 'Microphone',
-            onPressed: () {},
+            icon: _micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
+            color: _micMuted ? Colors.redAccent : gold,
+            size: 32,
+            tooltip: _micMuted ? 'Unmute microphone' : 'Mute microphone',
+            onPressed: () => setState(() => _micMuted = !_micMuted),
           ),
           _buildActionIcon(
-            icon: Icons.volume_up_rounded,
-            color: Colors.white,
-            size: 32,
-            tooltip: 'Speaker',
-            onPressed: () {},
+            icon: _speakerMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+            color: _speakerMuted ? Colors.redAccent : Colors.white,
+            size: 31,
+            tooltip: _speakerMuted ? 'Unmute speaker' : 'Mute speaker',
+            onPressed: () => setState(() => _speakerMuted = !_speakerMuted),
           ),
           _buildActionIcon(
             icon: Icons.emoji_emotions_rounded,
             color: gold,
-            size: 32,
+            size: 31,
             tooltip: 'Emoji',
             onPressed: () {},
           ),
           _buildActionIcon(
             icon: Icons.card_giftcard_rounded,
             color: pink,
-            size: 33,
+            size: 32,
             tooltip: 'Gift',
             onPressed: () {},
           ),
           _buildActionIcon(
-            icon: Icons.more_horiz_rounded,
+            icon: Icons.more_vert_rounded,
             color: Colors.white,
-            size: 34,
+            size: 31,
             tooltip: 'More',
             onPressed: () {},
           ),
+        ],
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.fromLTRB(8, _messageOpen ? 8 : 5, 8, 6),
+      decoration: const BoxDecoration(
+        color: panelBlue,
+        border: Border(
+          top: BorderSide(color: pink, width: 1.5),
+          bottom: BorderSide(color: pink, width: 1.5),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_messageOpen) ...[
+            Row(
+              children: [
+                const Icon(Icons.sms_rounded, color: pink, size: 25),
+                const SizedBox(width: 9),
+                const Expanded(
+                  child: Text(
+                    'Message',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: _closeMessageBoard,
+                  tooltip: 'Close message box',
+                  icon: const Icon(Icons.close_rounded, color: pink, size: 27),
+                ),
+              ],
+            ),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: 105,
+                maxHeight: screenHeight * 0.43,
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: pink, width: 1.4),
+                ),
+                child: TextField(
+                  controller: _messageController,
+                  focusNode: _messageFocusNode,
+                  minLines: 3,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  textInputAction: TextInputAction.newline,
+                  style: const TextStyle(color: Colors.black, fontSize: 16),
+                  cursorColor: pink,
+                  decoration: const InputDecoration(
+                    hintText: 'Write your message...',
+                    hintStyle: TextStyle(color: Colors.black45, fontSize: 15),
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 7),
+          ],
+          actionRow(),
         ],
       ),
     );
@@ -15614,6 +15547,20 @@ Future<void> _sendPartyNovaFriendRequestFromProfile(
   }
 }
 
+Future<bool> _isPartyNovaFriend(String otherFirebaseUid) async {
+  final currentUid = FirebaseAuth.instance.currentUser?.uid;
+  if (currentUid == null || currentUid == otherFirebaseUid) return false;
+  final firestore = FirebaseFirestore.instance;
+  final outgoingId = '${currentUid}_$otherFirebaseUid';
+  final incomingId = '${otherFirebaseUid}_$currentUid';
+  final results = await Future.wait([
+    firestore.collection('friendRequests').doc(outgoingId).get(),
+    firestore.collection('friendRequests').doc(incomingId).get(),
+  ]);
+  return results.any((doc) =>
+      doc.exists && (doc.data()?['status'] ?? '').toString() == 'accepted');
+}
+
 class PartyNovaPublicProfilePage extends StatelessWidget {
   final String firebaseUid;
   final bool hideBlockReport;
@@ -15993,29 +15940,42 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
 
                   if (firebaseUid != FirebaseAuth.instance.currentUser?.uid) ...[
                     const SizedBox(height: 22),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 52,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _sendPartyNovaFriendRequestFromProfile(
-                          context,
-                          receiverFirebaseUid: firebaseUid,
-                          receiverPartyNovaUid: userId,
-                          receiverName: name,
-                          receiverPhotoBase64: photoBase64,
-                        ),
-                        icon: const Icon(Icons.add_rounded, size: 23),
-                        label: const Text('Add Friend', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: .4)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD9A43B),
-                          foregroundColor: const Color(0xFF24101F),
-                          elevation: 5,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                            side: const BorderSide(color: Color(0xFFFFE6B8), width: 1.4),
+                    FutureBuilder<bool>(
+                      future: _isPartyNovaFriend(firebaseUid),
+                      builder: (context, friendshipSnapshot) {
+                        final alreadyFriend = friendshipSnapshot.data == true;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: alreadyFriend || friendshipSnapshot.connectionState == ConnectionState.waiting
+                                ? null
+                                : () => _sendPartyNovaFriendRequestFromProfile(
+                                      context,
+                                      receiverFirebaseUid: firebaseUid,
+                                      receiverPartyNovaUid: userId,
+                                      receiverName: name,
+                                      receiverPhotoBase64: photoBase64,
+                                    ),
+                            icon: Icon(alreadyFriend ? Icons.check_circle_rounded : Icons.add_rounded, size: 23),
+                            label: Text(
+                              alreadyFriend ? 'Already Friend' : 'Add Friend',
+                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: .4),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFFD9A43B),
+                              foregroundColor: alreadyFriend ? Colors.white : const Color(0xFF24101F),
+                              disabledBackgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFF806A43),
+                              disabledForegroundColor: Colors.white,
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(13),
+                                side: BorderSide(color: alreadyFriend ? const Color(0xFF8FE0B0) : const Color(0xFFFFE6B8), width: 1.4),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      },
                     ),
                   ],
                   const SizedBox(height: 20),
