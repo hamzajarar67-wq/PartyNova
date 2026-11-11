@@ -12980,19 +12980,19 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             )
           else
             _buildImageAction(
-              asset: 'assets/room_toolbar/speaker.png',
+              asset: 'assets/PartyNova_Speaker.png',
               tooltip: 'Mute speaker',
               onPressed: () => setState(() => _speakerMuted = true),
               size: 37,
             ),
           _buildImageAction(
-            asset: 'assets/room_toolbar/heart_emoji.png',
+            asset: 'assets/PartyNova_Heart_Emoji.png',
             tooltip: 'Emoji',
             onPressed: () {},
             size: 37,
           ),
           _buildImageAction(
-            asset: 'assets/room_toolbar/gift.png',
+            asset: 'assets/PartyNova_Gift.png',
             tooltip: 'Gift',
             onPressed: () {},
             size: 37,
