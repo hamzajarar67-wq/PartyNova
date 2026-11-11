@@ -12950,57 +12950,56 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   // The message composer is UI-only for now: typing works, but there is no
   // send action or Firestore message write yet.
   Widget _buildBottomBar() {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     Widget actionRow() {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildActionIcon(
             icon: _messageOpen ? Icons.close_rounded : Icons.sms_rounded,
-            color: pink,
-            size: 31,
+            color: Colors.white,
+            size: 29,
             tooltip: _messageOpen ? 'Close message box' : 'Open messages',
             onPressed: _messageOpen ? _closeMessageBoard : _openMessageBoard,
           ),
           _buildActionIcon(
             icon: _micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-            color: pink,
-            size: 32,
+            color: Colors.white,
+            size: 30,
             tooltip: _micMuted ? 'Unmute microphone' : 'Mute microphone',
             onPressed: () => setState(() => _micMuted = !_micMuted),
           ),
-          if (_speakerMuted)
-            _buildActionIcon(
-              icon: Icons.volume_off_rounded,
-              color: pink,
-              size: 31,
-              tooltip: 'Unmute speaker',
-              onPressed: () => setState(() => _speakerMuted = false),
-            )
-          else
-            _buildImageAction(
-              asset: 'assets/PartyNova_Speaker.png',
-              tooltip: 'Mute speaker',
-              onPressed: () => setState(() => _speakerMuted = true),
-              size: 37,
-            ),
-          _buildImageAction(
-            asset: 'assets/PartyNova_Heart_Emoji.png',
+          _buildActionIcon(
+            icon: _speakerMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+            color: Colors.white,
+            size: 29,
+            tooltip: _speakerMuted ? 'Unmute speaker' : 'Mute speaker',
+            onPressed: () => setState(() => _speakerMuted = !_speakerMuted),
+          ),
+          _buildActionIcon(
+            icon: Icons.emoji_emotions_outlined,
+            color: Colors.white,
+            size: 29,
             tooltip: 'Emoji',
             onPressed: () {},
-            size: 37,
           ),
-          _buildImageAction(
-            asset: 'assets/PartyNova_Gift.png',
-            tooltip: 'Gift',
+          IconButton(
             onPressed: () {},
-            size: 37,
+            tooltip: 'Gift',
+            visualDensity: VisualDensity.compact,
+            constraints: const BoxConstraints(minWidth: 42, minHeight: 46),
+            padding: EdgeInsets.zero,
+            icon: const Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(Icons.card_giftcard_rounded, color: Color(0xFFFFD700), size: 30),
+                Positioned(top: -3, right: -4, child: Icon(Icons.circle, color: Color(0xFFE53935), size: 9)),
+              ],
+            ),
           ),
           _buildActionIcon(
             icon: Icons.more_horiz_rounded,
-            color: pink,
-            size: 33,
+            color: Colors.white,
+            size: 31,
             tooltip: 'More',
             onPressed: () {},
           ),
@@ -13024,57 +13023,36 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           if (_messageOpen) ...[
             Row(
               children: [
-                const Icon(Icons.sms_rounded, color: pink, size: 25),
-                const SizedBox(width: 9),
-                const Expanded(
-                  child: Text(
-                    'Message',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
+                Expanded(
+                  child: TextField(
+                    controller: _messageController,
+                    focusNode: _messageFocusNode,
+                    minLines: 1,
+                    maxLines: 1,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _messageFocusNode.requestFocus(),
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    cursorColor: pink,
+                    decoration: const InputDecoration(
+                      hintText: 'Write a message...',
+                      hintStyle: TextStyle(color: Colors.white60, fontSize: 15),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                     ),
                   ),
                 ),
                 IconButton(
                   onPressed: _closeMessageBoard,
                   tooltip: 'Close message box',
-                  icon: const Icon(Icons.close_rounded, color: pink, size: 27),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
                 ),
               ],
             ),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: 105,
-                maxHeight: screenHeight * 0.43,
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: pink, width: 1.4),
-                ),
-                child: TextField(
-                  controller: _messageController,
-                  focusNode: _messageFocusNode,
-                  minLines: 3,
-                  maxLines: null,
-                  keyboardType: TextInputType.multiline,
-                  textInputAction: TextInputAction.newline,
-                  style: const TextStyle(color: Colors.black, fontSize: 16),
-                  cursorColor: pink,
-                  decoration: const InputDecoration(
-                    hintText: 'Write your message...',
-                    hintStyle: TextStyle(color: Colors.black45, fontSize: 15),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 7),
+            const SizedBox(height: 3),
           ],
           actionRow(),
         ],
@@ -13817,21 +13795,6 @@ InkWell(
           ),
           const SizedBox(width: 3),
           IconButton(
-            onPressed: () => _showRoomToolDetail('Share'),
-            tooltip: 'Share room',
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(
-              minWidth: 38,
-              minHeight: 46,
-            ),
-            icon: const Icon(
-              Icons.reply_rounded,
-              color: Color(0xFFFF4FA3),
-              size: 30,
-            ),
-          ),
-          const SizedBox(width: 3),
-          IconButton(
             onPressed: () {
               setState(() => _showLeaveOptions = true);
             },
@@ -13845,6 +13808,21 @@ InkWell(
               Icons.power_settings_new_rounded,
               color: gold,
               size: 32,
+            ),
+          ),
+          const SizedBox(width: 3),
+          IconButton(
+            onPressed: () => _showRoomToolDetail('Share'),
+            tooltip: 'Share room',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 38,
+              minHeight: 46,
+            ),
+            icon: const Icon(
+              Icons.reply_rounded,
+              color: Color(0xFFFF4FA3),
+              size: 30,
             ),
           ),
         ],
@@ -16769,6 +16747,7 @@ void dispose() {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _chatBackground,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: const Color(0xFFB9E8FF),
         foregroundColor: Colors.black,
@@ -16898,81 +16877,82 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                         (data['seenBy'] as List).contains(widget.friendUid);
 
                     return Align(
-  key: ValueKey<String>(messages[index].id),
+                      key: ValueKey<String>(messages[index].id),
                       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (!isMine) ...[
-                            GestureDetector(
-                              onTap: () => Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => PartyNovaPublicProfilePage(firebaseUid: widget.friendUid),
-                              )),
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: const Color(0xFF101B36),
-                                backgroundImage: senderPhotoImage,
-                                child: senderPhotoImage == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (!isMine) ...[
+                              GestureDetector(
+                                onTap: () => Navigator.push(context, MaterialPageRoute(
+                                  builder: (_) => PartyNovaPublicProfilePage(firebaseUid: widget.friendUid),
+                                )),
+                                child: CircleAvatar(
+                                  radius: 17,
+                                  backgroundColor: const Color(0xFF101B36),
+                                  backgroundImage: senderPhotoImage,
+                                  child: senderPhotoImage == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 6),
-                          ],
-                          Flexible(
-                            child: Container(
-                              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
-                              margin: const EdgeInsets.symmetric(vertical: 5),
-                              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                              decoration: BoxDecoration(
-                                color: bubbleColor,
-                                borderRadius: BorderRadius.circular(15),
-                                border: Border.all(color: isMine ? const Color(0xFFE0E0E0) : Colors.black, width: 0.8),
-                              ),
+                              const SizedBox(width: 7),
+                            ],
+                            Flexible(
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                 children: [
-                                  Text(senderName, style: TextStyle(color: textColor.withOpacity(0.75), fontSize: 11, fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 3),
-                                  if (data['roomShare'] is Map)
-                                    _buildRoomShareCard(
-                                      Map<String, dynamic>.from(data['roomShare'] as Map),
-                                      messages[index].id,
-                                      (data['roomShareStatus'] ?? 'pending').toString(),
-                                    ),
-                                  if (text.isNotEmpty) Text(text, style: TextStyle(color: textColor, fontSize: 15)),
+                                  Text(senderName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w700)),
                                   const SizedBox(height: 4),
-                                  Row(mainAxisSize: MainAxisSize.min, children: [
-                                    Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.white70, fontSize: 10)),
-                                    if (isMine) ...[
-                                      const SizedBox(width: 5),
-                                      Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.black54, fontSize: 10)),
-                                    ],
-                                  ]),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
+                                    decoration: BoxDecoration(
+                                      color: bubbleColor,
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(color: isMine ? const Color(0xFFE0E0E0) : Colors.black, width: 0.8),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (data['roomShare'] is Map)
+                                          _buildRoomShareCard(
+                                            Map<String, dynamic>.from(data['roomShare'] as Map),
+                                            messages[index].id,
+                                            (data['roomShareStatus'] ?? 'pending').toString(),
+                                          ),
+                                        if (text.isNotEmpty) Text(text, style: TextStyle(color: textColor, fontSize: 15)),
+                                        const SizedBox(height: 4),
+                                        Row(mainAxisSize: MainAxisSize.min, children: [
+                                          Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.white70, fontSize: 10)),
+                                          if (isMine) ...[
+                                            const SizedBox(width: 5),
+                                            Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.black54, fontSize: 10)),
+                                          ],
+                                        ]),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                          ),
-                          if (isMine) ...[
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () => Navigator.push(context, MaterialPageRoute(
-                                builder: (_) => PartyNovaPublicProfilePage(firebaseUid: _myUid),
-                              )),
-                              child: CircleAvatar(
-                                radius: 16,
-                                backgroundColor: const Color(0xFF101B36),
-backgroundImage: senderPhotoImage,
-child: senderPhotoImage == null
-    ? const Icon(
-        Icons.person,
-        size: 18,
-        color: Color(0xFFFFC857),
-      )
-    : null,
-),
-                            ),
+                            if (isMine) ...[
+                              const SizedBox(width: 7),
+                              GestureDetector(
+                                onTap: () => Navigator.push(context, MaterialPageRoute(
+                                  builder: (_) => PartyNovaPublicProfilePage(firebaseUid: _myUid),
+                                )),
+                                child: CircleAvatar(
+                                  radius: 17,
+                                  backgroundColor: const Color(0xFF101B36),
+                                  backgroundImage: senderPhotoImage,
+                                  child: senderPhotoImage == null ? const Icon(Icons.person, size: 18, color: Color(0xFFFFC857)) : null,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     );
                   },
@@ -16996,7 +16976,8 @@ child: senderPhotoImage == null
                     child: TextField(
                       controller: _messageController,
                       minLines: 1,
-                      maxLines: 4,
+                      maxLines: 1,
+                      textInputAction: TextInputAction.send,
                       style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
