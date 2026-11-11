@@ -10257,7 +10257,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
-    if (requireFollow && !followedRoomIds.contains(widget.roomDocumentId)) {
+    if (!followedRoomIds.contains(widget.roomDocumentId)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Follow this room first.')),
@@ -13491,6 +13491,31 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     }
   }
 
+  Future<void> _writeRoomActionRecord({
+    required String action,
+    required String targetUid,
+    required String targetName,
+  }) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    await FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(widget.roomDocumentId)
+        .collection('roomRecords')
+        .add({
+      'action': action,
+      'targetUid': targetUid,
+      'targetName': targetName,
+      'actorUid': user.uid,
+      'actorName': user.displayName ?? 'Room Staff',
+      'createdAt': FieldValue.serverTimestamp(),
+      if (action == 'Remove')
+        'expiresAt': Timestamp.fromDate(
+          DateTime.now().add(const Duration(days: 7)),
+        ),
+    });
+  }
+
   Future<void> _banOnlineUser(String targetUid, String targetName) async {
     final confirm = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
@@ -13976,7 +14001,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       children: [
         for (var index = 0; index < rows.length; index++) ...[
           if (index > 0) const SizedBox(height: 13),
-          _buildSeatPatternRow(rows[index]),
+          _buildSeatPatternRow(rows[index], const <String, Map<String, dynamic>>{}),
         ],
       ],
     );
