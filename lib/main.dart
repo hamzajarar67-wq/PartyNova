@@ -12366,6 +12366,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   final FocusNode _messageFocusNode = FocusNode();
 
   bool _messageOpen = false;
+  int? _myMicSeat;
   bool _micMuted = false;
   bool _speakerMuted = false;
   bool _showLeaveOptions = false;
@@ -12827,44 +12828,67 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     });
   }
 
-  // Empty seat: restore the original room mic size and flexible spacing.
+  // Users can take one empty mic seat. Voice streaming is not enabled yet.
   Widget _buildSeat(int number) {
+    final isMySeat = _myMicSeat == number;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final displayName = (currentUser?.displayName ?? '').trim();
+    final seatLabel = isMySeat
+        ? (displayName.isEmpty ? 'YOU' : displayName.toUpperCase())
+        : 'NO. $number';
+
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 65,
-              height: 65,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.8),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.22),
-                    blurRadius: 5,
-                    spreadRadius: 0.5,
+        child: GestureDetector(
+          onTap: () {
+            if (isMySeat) {
+              setState(() => _myMicSeat = null);
+              return;
+            }
+            setState(() => _myMicSeat = number);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 65,
+                height: 65,
+                decoration: BoxDecoration(
+                  color: isMySeat ? const Color(0xFF24101F) : Colors.transparent,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isMySeat ? gold : Colors.white,
+                    width: isMySeat ? 2.4 : 1.8,
                   ),
-                ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: (isMySeat ? gold : Colors.white).withOpacity(0.22),
+                      blurRadius: 5,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: isMySeat
+                      ? const Icon(Icons.person_rounded, color: gold, size: 39)
+                      : const Icon(Icons.chair_rounded, color: pink, size: 40),
+                ),
               ),
-              child: const Center(
-                child: Icon(Icons.chair_rounded, color: pink, size: 40),
+              const SizedBox(height: 5),
+              Text(
+                seatLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: isMySeat ? gold : Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
+                ),
               ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'NO. $number',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -13027,6 +13051,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                   child: TextField(
                     controller: _messageController,
                     focusNode: _messageFocusNode,
+                    maxLength: 400,
+                    buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
                     minLines: 1,
                     maxLines: 1,
                     keyboardType: TextInputType.text,
@@ -13609,10 +13635,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     return Scaffold(
       backgroundColor: darkBlue,
       resizeToAvoidBottomInset: true,
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: _buildBottomBar(),
-      ),
       body: Stack(
         children: [
           SafeArea(
@@ -13820,7 +13842,7 @@ InkWell(
               minHeight: 46,
             ),
             icon: const Icon(
-              Icons.reply_rounded,
+              Icons.forward_rounded,
               color: Color(0xFFFF4FA3),
               size: 30,
             ),
@@ -13918,6 +13940,10 @@ InkWell(
                   ],
                 ),
               ),
+            ),
+            SafeArea(
+              top: false,
+              child: _buildBottomBar(),
             ),
           ],
         ),
