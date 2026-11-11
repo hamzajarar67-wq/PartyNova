@@ -33,7 +33,9 @@ flutter:
   assets:
     - assets/games/
     - assets/frames/
-    - assets/room_toolbar/
+    - assets/PartyNova_Speaker.png
+    - assets/PartyNova_Heart_Emoji.png
+    - assets/PartyNova_Gift.png
 
 flutter_launcher_icons:
   android: true
