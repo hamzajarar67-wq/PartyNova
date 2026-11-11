@@ -33,6 +33,7 @@ flutter:
   assets:
     - assets/games/
     - assets/frames/
+    - assets/room_toolbar/
 
 flutter_launcher_icons:
   android: true
