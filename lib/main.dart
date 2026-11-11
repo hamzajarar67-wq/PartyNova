@@ -10257,7 +10257,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
-    if (!followedRoomIds.contains(widget.roomDocumentId)) {
+    if (requireFollow && !followedRoomIds.contains(widget.roomDocumentId)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Follow this room first.')),
@@ -12373,6 +12373,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   bool _roomFollowStateLoaded = false;
   bool _isRoomFollowed = false;
   Timer? _presenceHeartbeat;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _micInvitationSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _kickSubscription;
+  String? _lastHandledMicInvitationId;
+  bool _micInvitationDialogOpen = false;
+  bool _roomEntryBlockedByKick = false;
+  bool _kickDialogOpen = false;
 
   Future<void> _loadRoomFollowState() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -12526,22 +12532,194 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   void initState() {
     super.initState();
     _loadRoomFollowState();
-    if (widget.autoJoinOnOpen) {
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        await _joinRoom();
-        if (mounted) await _startRoomPresence();
-      });
-    } else {
-      _startRoomPresence();
+    _listenForMicInvitation();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final kicked = await _showKickRestrictionIfActive();
+      if (!mounted || kicked) return;
+      _listenForRoomKick();
+      if (widget.autoJoinOnOpen) await _joinRoom();
+      if (mounted) await _startRoomPresence();
+    });
+  }
+
+  Future<bool> _showKickRestrictionIfActive() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    try {
+      final ref = FirebaseFirestore.instance
+          .collection('rooms').doc(widget.roomDocumentId)
+          .collection('kickedMembers').doc(user.uid);
+      final snapshot = await ref.get();
+      if (!snapshot.exists) return false;
+      final data = snapshot.data() ?? <String, dynamic>{};
+      final expiresAt = data['expiresAt'];
+      if (expiresAt is Timestamp && !expiresAt.toDate().isAfter(DateTime.now())) {
+        return false;
+      }
+      _roomEntryBlockedByKick = true;
+      if (!mounted) return true;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: pink, width: 1.5),
+          ),
+          title: const Text('ROOM ACCESS RESTRICTED',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: const Text(
+            'You have been kicked from this room. You can enter again after the kick period ends.',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK', style: TextStyle(color: pink)),
+            ),
+          ],
+        ),
+      );
+      if (mounted && Navigator.of(context).canPop()) Navigator.of(context).pop();
+      return true;
+    } catch (error) {
+      debugPrint('Kick status check failed: $error');
+      return false;
     }
   }
 
-  Future<void> _joinRoom() async {
+  void _listenForRoomKick() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+    final ref = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
+        .collection('kickedMembers').doc(user.uid);
+    _kickSubscription = ref.snapshots().listen((snapshot) async {
+      if (!snapshot.exists || !mounted || _kickDialogOpen) return;
+      final expiresAt = snapshot.data()?['expiresAt'];
+      if (expiresAt is Timestamp && !expiresAt.toDate().isAfter(DateTime.now())) return;
+      _kickDialogOpen = true;
+      _presenceHeartbeat?.cancel();
+      await _leaveRoomPresence();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: pink, width: 1.5)),
+          title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: const Text('You have been kicked from this room and cannot stay here during the kick period.', style: TextStyle(color: Colors.white70)),
+          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
+        ),
+      );
+      if (mounted && Navigator.of(context).canPop()) Navigator.of(context).pop();
+    }, onError: (error) => debugPrint('Room kick listener failed: $error'));
+  }
+
+  void _listenForMicInvitation() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final invitationRef = FirebaseFirestore.instance
+        .collection('rooms').doc(widget.roomDocumentId)
+        .collection('micInvitations').doc(user.uid);
+    _micInvitationSubscription = invitationRef.snapshots().listen((snapshot) {
+      if (!snapshot.exists || !mounted || _micInvitationDialogOpen) return;
+      final data = snapshot.data() ?? <String, dynamic>{};
+      if (data['status'] != 'pending') return;
+      final invitationId = (data['invitationId'] ?? snapshot.id).toString();
+      if (_lastHandledMicInvitationId == invitationId) return;
+      _lastHandledMicInvitationId = invitationId;
+      _showMicInvitationDialog(invitationRef, data);
+    }, onError: (error) {
+      debugPrint('Mic invitation listener failed: $error');
+    });
+  }
+
+  Future<void> _showMicInvitationDialog(
+    DocumentReference<Map<String, dynamic>> invitationRef,
+    Map<String, dynamic> invitation,
+  ) async {
+    if (!mounted || _micInvitationDialogOpen) return;
+    _micInvitationDialogOpen = true;
+    final inviterName = (invitation['inviterName'] ?? 'Room Staff').toString();
+    final inviterRole = (invitation['inviterRole'] ?? 'Room Staff').toString();
+    final seatNumber = (invitation['seatNumber'] as num?)?.toInt() ?? 1;
+    final answer = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panelBlue,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: pink, width: 1.5),
+        ),
+        title: const Text('MIC INVITATION',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+        content: Text(
+          '$inviterName ($inviterRole) invited you to take the mic. Do you want to join?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+    _micInvitationDialogOpen = false;
+    if (!mounted) return;
+    try {
+      if (answer == true) {
+        await invitationRef.update({
+          'status': 'accepted',
+          'respondedAt': FieldValue.serverTimestamp(),
+        });
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) return;
+        final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        final profile = profileSnapshot.data() ?? <String, dynamic>{};
+        final seatRef = FirebaseFirestore.instance
+            .collection('rooms').doc(widget.roomDocumentId)
+            .collection('micSeats').doc('$seatNumber');
+        await FirebaseFirestore.instance.runTransaction((transaction) async {
+          final currentSeat = await transaction.get(seatRef);
+          if (currentSeat.exists) throw StateError('This mic seat is no longer available.');
+          transaction.set(seatRef, {
+            'seatNumber': seatNumber,
+            'firebaseUid': user.uid,
+            'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+            'photoBase64': (profile['photoBase64'] ?? '').toString(),
+            'joinedAt': FieldValue.serverTimestamp(),
+          });
+        });
+      } else {
+        await invitationRef.update({
+          'status': 'declined',
+          'respondedAt': FieldValue.serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Mic invitation update failed: $error')),
+      );
+    }
+  }
+
+  Future<void> _joinRoom({bool requireFollow = true}) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final kicked = await _showKickRestrictionIfActive();
+    if (kicked || !mounted) return;
     final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
-    if (!followedRoomIds.contains(widget.roomDocumentId)) {
+    if (requireFollow && !followedRoomIds.contains(widget.roomDocumentId)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Follow this room first.')),
@@ -12802,6 +12980,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   @override
   void dispose() {
     _presenceHeartbeat?.cancel();
+    _micInvitationSubscription?.cancel();
+    _kickSubscription?.cancel();
     unawaited(_leaveRoomPresence());
     _messageController.dispose();
     _messageFocusNode.dispose();
@@ -12828,26 +13008,88 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     });
   }
 
-  // Users can take one empty mic seat. Voice streaming is not enabled yet.
-  Widget _buildSeat(int number) {
-    final isMySeat = _myMicSeat == number;
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final displayName = (currentUser?.displayName ?? '').trim();
-    final seatLabel = isMySeat
-        ? (displayName.isEmpty ? 'YOU' : displayName.toUpperCase())
-        : 'NO. $number';
+  Future<void> _handleMicSeatTap(int number, Map<String, dynamic>? occupant) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final seatRef = roomRef.collection('micSeats').doc('$number');
+    if (occupant != null) {
+      if ((occupant['firebaseUid'] ?? '').toString() != user.uid) return;
+      final leave = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
+          title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+            TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
+          ],
+        ),
+      );
+      if (leave == true) await seatRef.delete();
+      return;
+    }
+    final roomSnapshot = await roomRef.get();
+    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+    final rawLevel = roomData['roomLevel'] ?? roomData['level'] ?? roomData['levelNumber'] ?? 1;
+    final roomLevel = rawLevel is num ? rawLevel.toInt() : int.tryParse(rawLevel.toString()) ?? 1;
+    if (roomLevel > 7) {
+      final join = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17), side: const BorderSide(color: pink, width: 1.6)),
+          title: const Text('JOIN ROOM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: const Text('Join this room before taking a mic seat?', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Join')),
+          ],
+        ),
+      );
+      if (join != true) return;
+      final memberBefore = await roomRef.collection('members').doc(user.uid).get();
+      if (!memberBefore.exists) {
+        await _joinRoom(requireFollow: false);
+      }
+      final memberAfter = await roomRef.collection('members').doc(user.uid).get();
+      if (!memberAfter.exists) return;
+    }
+    try {
+      final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final seatSnapshot = await transaction.get(seatRef);
+        if (seatSnapshot.exists) throw StateError('This mic seat is already taken.');
+        transaction.set(seatRef, {
+          'seatNumber': number,
+          'firebaseUid': user.uid,
+          'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+          'photoBase64': (profile['photoBase64'] ?? '').toString(),
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
+      });
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not take mic: $error')));
+    }
+  }
 
+  Widget _buildSeat(int number, Map<String, dynamic>? occupant) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isMySeat = occupant != null && (occupant['firebaseUid'] ?? '').toString() == currentUser?.uid;
+    final isOccupied = occupant != null;
+    final seatLabel = isOccupied
+        ? ((occupant['name'] ?? 'USER').toString().toUpperCase())
+        : 'NO. $number';
+    final photo = isOccupied ? (occupant['photoBase64'] ?? '').toString() : '';
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: GestureDetector(
-          onTap: () {
-            if (isMySeat) {
-              setState(() => _myMicSeat = null);
-              return;
-            }
-            setState(() => _myMicSeat = number);
-          },
+          onTap: () => _handleMicSeatTap(number, occupant),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -12855,38 +13097,24 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 width: 65,
                 height: 65,
                 decoration: BoxDecoration(
-                  color: isMySeat ? const Color(0xFF24101F) : Colors.transparent,
+                  color: isOccupied ? const Color(0xFF24101F) : Colors.transparent,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isMySeat ? gold : Colors.white,
-                    width: isMySeat ? 2.4 : 1.8,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isMySeat ? gold : Colors.white).withOpacity(0.22),
-                      blurRadius: 5,
-                      spreadRadius: 0.5,
-                    ),
-                  ],
+                  border: Border.all(color: isMySeat ? gold : (isOccupied ? pink : Colors.white), width: isOccupied ? 2.2 : 1.8),
+                  boxShadow: [BoxShadow(color: (isOccupied ? pink : Colors.white).withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
                 ),
-                child: Center(
-                  child: isMySeat
-                      ? const Icon(Icons.person_rounded, color: gold, size: 39)
-                      : const Icon(Icons.chair_rounded, color: pink, size: 40),
-                ),
+                child: isOccupied
+                    ? CircleAvatar(
+                        backgroundColor: const Color(0xFF171017),
+                        backgroundImage: getCachedProfilePhotoImage(photo),
+                        child: getCachedProfilePhotoImage(photo) == null
+                            ? Icon(Icons.person_rounded, color: isMySeat ? gold : Colors.white70, size: 39)
+                            : null,
+                      )
+                    : const Center(child: Icon(Icons.chair_rounded, color: pink, size: 40)),
               ),
               const SizedBox(height: 5),
-              Text(
-                seatLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: isMySeat ? gold : Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
-                ),
-              ),
+              Text(seatLabel, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: isMySeat ? gold : Colors.white, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
             ],
           ),
         ),
@@ -12894,11 +13122,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
-  // Each row expands across the available width, matching the original room layout.
-  Widget _buildSeatPatternRow(List<int> numbers) {
+  Widget _buildSeatPatternRow(List<int> numbers, Map<String, Map<String, dynamic>> seats) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: numbers.map(_buildSeat).toList(),
+      children: numbers.map((number) => _buildSeat(number, seats['$number'])).toList(),
     );
   }
 
@@ -12916,17 +13143,26 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
   Widget _buildRoomSeatLayout(int count) {
     final rows = _micRowsForCount(count);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var index = 0; index < rows.length; index++) ...[
-            if (index > 0) const SizedBox(height: 13),
-            _buildSeatPatternRow(rows[index]),
-          ],
-        ],
-      ),
+    final seatsStream = FirebaseFirestore.instance
+        .collection('rooms').doc(widget.roomDocumentId)
+        .collection('micSeats').snapshots();
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: seatsStream,
+      builder: (context, snapshot) {
+        final seats = <String, Map<String, dynamic>>{};
+        for (final doc in snapshot.data?.docs ?? []) {
+          seats[doc.id] = doc.data();
+        }
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            for (var index = 0; index < rows.length; index++) ...[
+              if (index > 0) const SizedBox(height: 13),
+              _buildSeatPatternRow(rows[index], seats),
+            ],
+          ]),
+        );
+      },
     );
   }
 
@@ -12971,8 +13207,40 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     );
   }
 
-  // The message composer is UI-only for now: typing works, but there is no
-  // send action or Firestore message write yet.
+  Future<void> _sendRoomMessage() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final message = _messageController.text.trim();
+    if (user == null || message.isEmpty) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    try {
+      final ban = await roomRef.collection('blockedMembers').doc(user.uid).get();
+      if (ban.exists) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You cannot send the message')));
+        return;
+      }
+      final kick = await roomRef.collection('kickedMembers').doc(user.uid).get();
+      final kickData = kick.data();
+      final expiresAt = kickData?['expiresAt'];
+      if (kick.exists && (expiresAt is! Timestamp || expiresAt.toDate().isAfter(DateTime.now()))) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You cannot send the message')));
+        return;
+      }
+      final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      await roomRef.collection('roomMessages').add({
+        'senderUid': user.uid,
+        'senderName': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+        'senderPhotoBase64': (profile['photoBase64'] ?? '').toString(),
+        'text': message,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      _messageController.clear();
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Message send failed: $error')));
+    }
+  }
+
+  // Room chat messages are written to Firestore and synchronized in real time.
   Widget _buildBottomBar() {
     Widget actionRow() {
       return Row(
@@ -13045,6 +13313,35 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (_messageOpen) ...[
+            SizedBox(
+              height: 150,
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
+                    .collection('roomMessages').orderBy('createdAt', descending: true).limit(40).snapshots(),
+                builder: (context, snapshot) {
+                  final messages = snapshot.data?.docs ?? [];
+                  if (messages.isEmpty) return const Center(child: Text('No messages yet.', style: TextStyle(color: Colors.white54)));
+                  return ListView.builder(
+                    reverse: true,
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final data = messages[index].data();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 5),
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          CircleAvatar(radius: 13, backgroundImage: getCachedProfilePhotoImage((data['senderPhotoBase64'] ?? '').toString()), child: getCachedProfilePhotoImage((data['senderPhotoBase64'] ?? '').toString()) == null ? const Icon(Icons.person, size: 14) : null),
+                          const SizedBox(width: 7),
+                          Expanded(child: RichText(text: TextSpan(children: [
+                            TextSpan(text: '${data['senderName'] ?? 'User'}: ', style: const TextStyle(color: pink, fontWeight: FontWeight.w800)),
+                            TextSpan(text: (data['text'] ?? '').toString(), style: const TextStyle(color: Colors.white)),
+                          ]))),
+                        ]),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
             Row(
               children: [
                 Expanded(
@@ -13072,6 +13369,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                   ),
                 ),
                 IconButton(
+                  onPressed: _sendRoomMessage,
+                  tooltip: 'Send message',
+                  icon: const Icon(Icons.send_rounded, color: pink, size: 22),
+                ),
+                IconButton(
                   onPressed: _closeMessageBoard,
                   tooltip: 'Close message box',
                   icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
@@ -13084,6 +13386,183 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _showOnlineUserActions({
+    required String targetUid,
+    required String targetName,
+    required String targetPhoto,
+  }) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || targetUid == currentUser.uid) {
+      if (targetUid == currentUser?.uid) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: targetUid)));
+      }
+      return;
+    }
+    final role = await _currentRoomOptionsRole();
+    if (!mounted) return;
+    final isStaff = role == 'leader' || role == 'deputy' || role == 'incharge';
+    if (!isStaff) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: targetUid)));
+      return;
+    }
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: Colors.black, borderRadius: const BorderRadius.vertical(top: Radius.circular(18)), border: Border.all(color: pink, width: 1.5)),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(targetName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          const SizedBox(height: 10),
+          for (final item in <(String, IconData, Color)>[
+            ('Take the Mic', Icons.mic_rounded, Colors.white),
+            ('Kick', Icons.sports_kabaddi_rounded, Colors.white),
+            ('Ban', Icons.block_rounded, Colors.redAccent),
+            ('Profile', Icons.person_rounded, Colors.white),
+          ])
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(border: Border.all(color: pink, width: 1), borderRadius: BorderRadius.circular(11)),
+              child: ListTile(
+                dense: true,
+                leading: Icon(item.$2, color: item.$3),
+                title: Text(item.$1, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                onTap: () => Navigator.pop(sheetContext, item.$1),
+              ),
+            ),
+          TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        ]),
+      ),
+    );
+    if (!mounted || choice == null) return;
+    if (choice == 'Profile') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => PartyNovaPublicProfilePage(firebaseUid: targetUid)));
+    } else if (choice == 'Take the Mic') {
+      await _inviteUserToMic(targetUid, targetName);
+    } else if (choice == 'Ban') {
+      await _banOnlineUser(targetUid, targetName);
+    } else if (choice == 'Kick') {
+      await _kickOnlineUser(targetUid, targetName, role);
+    }
+  }
+
+  Future<int?> _findAvailableMicSeat() async {
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final room = await roomRef.get();
+    final data = room.data() ?? <String, dynamic>{};
+    final count = (data['micCount'] as num?)?.toInt() ?? 15;
+    final seats = await roomRef.collection('micSeats').get();
+    final occupied = seats.docs.map((doc) => int.tryParse(doc.id)).whereType<int>().toSet();
+    for (var i = 1; i <= count; i++) { if (!occupied.contains(i)) return i; }
+    return null;
+  }
+
+  Future<void> _inviteUserToMic(String targetUid, String targetName) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final role = await _currentRoomOptionsRole();
+    if (!['leader', 'deputy', 'incharge'].contains(role)) return;
+    final seat = await _findAvailableMicSeat();
+    if (seat == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No empty mic seat available.')));
+      return;
+    }
+    final userProfile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final profile = userProfile.data() ?? <String, dynamic>{};
+    final roleLabel = role == 'leader' ? 'Room Leader' : (role == 'deputy' ? 'Deputy Leader' : 'Seat Incharge');
+    try {
+      await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
+          .collection('micInvitations').doc(targetUid).set({
+        'invitationId': '${user.uid}_${DateTime.now().microsecondsSinceEpoch}',
+        'targetUid': targetUid,
+        'targetName': targetName,
+        'inviterUid': user.uid,
+        'inviterName': (profile['name'] ?? user.displayName ?? 'Room Staff').toString(),
+        'inviterRole': roleLabel,
+        'seatNumber': seat,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mic invitation sent to $targetName.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Invitation failed: $error')));
+    }
+  }
+
+  Future<void> _banOnlineUser(String targetUid, String targetName) async {
+    final confirm = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
+      backgroundColor: panelBlue,
+      title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.white)),
+      content: Text('Ban $targetName from sending messages in this room?', style: const TextStyle(color: Colors.white70)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
+        TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Ban', style: TextStyle(color: Colors.redAccent))),
+      ],
+    ));
+    if (confirm != true) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+      await roomRef.collection('blockedMembers').doc(targetUid).set({
+        'targetUid': targetUid, 'targetName': targetName,
+        'actorUid': user.uid, 'actorName': user.displayName ?? 'Room Staff',
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+      await _writeRoomActionRecord(action: 'Ban', targetUid: targetUid, targetName: targetName);
+      await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get().then((q) async {
+        for (final doc in q.docs) { await doc.reference.delete(); }
+      });
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$targetName is banned from room messages.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ban failed: $error')));
+    }
+  }
+
+  Future<void> _kickOnlineUser(String targetUid, String targetName, String actorRole) async {
+    final isLeader = actorRole == 'leader';
+    final selectedDuration = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
+      backgroundColor: panelBlue,
+      title: const Text('KICK MEMBER?', style: TextStyle(color: Colors.white)),
+      content: Text('Choose the kick duration for $targetName.', style: const TextStyle(color: Colors.white70)),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        TextButton(
+          onPressed: isLeader ? null : () => Navigator.pop(dialogContext, 'Two Hours Kick'),
+          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.white30 : pink)),
+        ),
+        TextButton(
+          onPressed: isLeader ? () => Navigator.pop(dialogContext, 'Twelve Months Kick') : null,
+          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.white30)),
+        ),
+      ],
+    ));
+    if (selectedDuration == null) return;
+    final allowedDuration = isLeader ? 'Twelve Months Kick' : 'Two Hours Kick';
+    if (selectedDuration != allowedDuration) return;
+    final duration = isLeader ? const Duration(days: 365) : const Duration(hours: 2);
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+      await roomRef.collection('kickedMembers').doc(targetUid).set({
+        'targetUid': targetUid, 'targetName': targetName,
+        'actorUid': user.uid,
+        'actorRole': actorRole == 'leader' ? 'leader' : (actorRole == 'deputy' ? 'Deputy Leader' : 'Seat Incharge'),
+        'durationLabel': selectedDuration,
+        'createdAt': FieldValue.serverTimestamp(),
+        'expiresAt': Timestamp.fromDate(DateTime.now().add(duration)),
+      });
+      await _writeRoomActionRecord(action: 'Kick', targetUid: targetUid, targetName: targetName);
+      await roomRef.collection('presence').doc(targetUid).delete().catchError((_) {});
+      final seats = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get();
+      for (final doc in seats.docs) { await doc.reference.delete(); }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$targetName kicked: $selectedDuration.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kick failed: $error')));
+    }
   }
 
   Widget _buildOnlineUsersStrip() {
@@ -13134,10 +13613,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         padding: const EdgeInsets.only(right: 5),
                         child: GestureDetector(
                           onTap: () {
-                            final uid = (doc.data()['firebaseUid'] ?? doc.id).toString();
-                            Navigator.push(context, MaterialPageRoute(
-                              builder: (_) => PartyNovaPublicProfilePage(firebaseUid: uid),
-                            ));
+                            final userData = doc.data();
+                            final uid = (userData['firebaseUid'] ?? doc.id).toString();
+                            _showOnlineUserActions(
+                              targetUid: uid,
+                              targetName: (userData['name'] ?? 'PartyNova User').toString(),
+                              targetPhoto: (userData['photoBase64'] ?? '').toString(),
+                            );
                           },
                           child: Container(
                             width: 35, height: 35,
@@ -13287,8 +13769,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       }
       if (memberRole == 'seat incharge' ||
           memberRole == 'in-charge' ||
-          memberRole == 'incharge' ||
-          memberRole == 'admin') {
+          memberRole == 'incharge') {
         return 'incharge';
       }
       return 'member';
