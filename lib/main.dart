@@ -2077,7 +2077,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     if (user == null) return const SizedBox.shrink();
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _activeRoomsStream,
+      stream: _myCreatedRoomCardStream,
       builder: (context, snapshot) {
         if (snapshot.hasError || !snapshot.hasData) {
           return const SizedBox.shrink();
@@ -2244,18 +2244,18 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     );
   }
 
-late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
-    (() async* {
-      final roomsQuery = FirebaseFirestore.instance.collection('rooms');
-      try {
-        yield await roomsQuery.get(
-          GetOptions(source: Source.serverAndCache),
-        );
-      } catch (error) {
-        debugPrint('Initial room fetch failed: $error');
-      }
-      yield* roomsQuery.snapshots(includeMetadataChanges: true);
-    })().asBroadcastStream();
+// Keep a separate Firestore stream for each room-list widget.
+// A shared asBroadcastStream() does not replay its last snapshot to a
+// StreamBuilder that subscribes later (for example after switching tabs),
+// which can leave the page stuck on its loading message indefinitely.
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _myCreatedRoomCardStream =
+    FirebaseFirestore.instance.collection('rooms').snapshots(includeMetadataChanges: true);
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _myRoomSavedListStream =
+    FirebaseFirestore.instance.collection('rooms').snapshots(includeMetadataChanges: true);
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _myRoomOwnerCheckStream =
+    FirebaseFirestore.instance.collection('rooms').snapshots(includeMetadataChanges: true);
+late final Stream<QuerySnapshot<Map<String, dynamic>>> _allRoomCardsStream =
+    FirebaseFirestore.instance.collection('rooms').snapshots(includeMetadataChanges: true);
 
 
   
@@ -2465,7 +2465,7 @@ Widget buildUserSearchResult() {
       );
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _activeRoomsStream,
+      stream: _myRoomSavedListStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Padding(
@@ -2632,7 +2632,7 @@ Widget buildUserSearchResult() {
       children: [
         // Show the Create Room banner until this user has created a room.
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _activeRoomsStream,
+          stream: _myRoomOwnerCheckStream,
           builder: (context, snapshot) {
             final currentUid = FirebaseAuth.instance.currentUser?.uid;
             if (snapshot.hasData &&
@@ -2811,7 +2811,7 @@ Widget buildUserSearchResult() {
 
   Widget buildRoomCards() {
   return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    stream: _activeRoomsStream,
+    stream: _allRoomCardsStream,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return Expanded(
