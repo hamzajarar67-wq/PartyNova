@@ -1148,18 +1148,29 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   }
 
   Future<void> _loadRoomLists() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final followed = await _loadLocalRoomIds(user.uid, 'followed_rooms');
-    final joined = await _loadLocalRoomIds(user.uid, 'joined_rooms');
-    final recent = await _loadLocalRoomIds(user.uid, 'recent_rooms');
-    if (!mounted) return;
-    setState(() {
-      _followedRoomIds..clear()..addAll(followed);
-      _joinedRoomIds..clear()..addAll(joined);
-      _recentRoomIds..clear()..addAll(recent);
-      _roomListsLoaded = true;
-    });
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        if (mounted) setState(() => _roomListsLoaded = true);
+        return;
+      }
+      final results = await Future.wait<Set<String>>([
+        _loadLocalRoomIds(user.uid, 'followed_rooms'),
+        _loadLocalRoomIds(user.uid, 'joined_rooms'),
+        _loadLocalRoomIds(user.uid, 'recent_rooms'),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _followedRoomIds..clear()..addAll(results[0]);
+        _joinedRoomIds..clear()..addAll(results[1]);
+        _recentRoomIds..clear()..addAll(results[2]);
+        _roomListsLoaded = true;
+      });
+    } catch (error) {
+      debugPrint('Room list preferences could not be loaded: $error');
+      if (!mounted) return;
+      setState(() => _roomListsLoaded = true);
+    }
   }
 
   Future<void> _updateLocalRoomList(String listName, Set<String> values) async {
@@ -1249,12 +1260,34 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   String? _activeRoomDocumentId;
   bool _roomMinimized = false;
 
+  Future<void> _recordRoomAsRecent(String roomDocumentId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || roomDocumentId.isEmpty) return;
+
+    if (!_roomListsLoaded) {
+      await _loadRoomLists();
+    }
+    if (!mounted) return;
+
+    setState(() {
+      _recentRoomIds.remove(roomDocumentId);
+      _recentRoomIds.add(roomDocumentId);
+    });
+
+    try {
+      await _updateLocalRoomList('recent_rooms', _recentRoomIds);
+    } catch (error) {
+      debugPrint('Could not save recently opened room: $error');
+    }
+  }
+
   void _openRoom({
     required String roomName,
     required String roomUid,
     required String roomPhotoBase64,
     required String roomDocumentId,
   }) {
+    unawaited(_recordRoomAsRecent(roomDocumentId));
     setState(() {
       _activeRoomName = roomName;
       _activeRoomUid = roomUid;
@@ -2044,16 +2077,17 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     if (user == null) return const SizedBox.shrink();
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: FirebaseFirestore.instance
-          .collection('rooms')
-          .where('ownerUid', isEqualTo: user.uid)
-          .snapshots(),
+      stream: _activeRoomsStream,
       builder: (context, snapshot) {
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (snapshot.hasError || !snapshot.hasData) {
           return const SizedBox.shrink();
         }
 
-        final ownedRooms = snapshot.data!.docs.toList()
+        final ownedRooms = snapshot.data!.docs.where((doc) {
+          final data = doc.data();
+          return (data['ownerUid'] ?? '').toString() == user.uid ||
+              (data['leaderUid'] ?? '').toString() == user.uid;
+        }).toList()
           ..sort((a, b) {
             final aDate = a.data()['createdAt'];
             final bDate = b.data()['createdAt'];
@@ -2062,6 +2096,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
             }
             return 0;
           });
+        if (ownedRooms.isEmpty) return const SizedBox.shrink();
         final room = ownedRooms.first;
         final data = room.data();
         final roomName = (data['roomName'] ?? '').toString();
@@ -2210,9 +2245,17 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   }
 
 late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
-    FirebaseFirestore.instance
-        .collection('rooms')
-        .snapshots();
+    (() async* {
+      final roomsQuery = FirebaseFirestore.instance.collection('rooms');
+      try {
+        yield await roomsQuery.get(
+          GetOptions(source: Source.serverAndCache),
+        );
+      } catch (error) {
+        debugPrint('Initial room fetch failed: $error');
+      }
+      yield* roomsQuery.snapshots(includeMetadataChanges: true);
+    })().asBroadcastStream();
 
 
   
@@ -2406,8 +2449,13 @@ Widget buildUserSearchResult() {
   Widget _buildMyRoomSavedList() {
     if (!_roomListsLoaded) {
       return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+        padding: EdgeInsets.all(18),
+        child: Center(
+          child: Text(
+            'Preparing your room lists...',
+            style: TextStyle(color: Colors.white70),
+          ),
+        ),
       );
     }
     if (_selectedMyRoomFilter == 3) {
@@ -2427,8 +2475,13 @@ Widget buildUserSearchResult() {
         }
         if (!snapshot.hasData) {
           return const Padding(
-            padding: EdgeInsets.all(24),
-            child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+            padding: EdgeInsets.all(20),
+            child: Center(
+              child: Text(
+                'Your rooms are not available yet.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
           );
         }
         final ids = _selectedMyRoomFilter == 0
@@ -2579,16 +2632,39 @@ Widget buildUserSearchResult() {
       children: [
         // Show the Create Room banner until this user has created a room.
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseAuth.instance.currentUser == null
-              ? null
-              : FirebaseFirestore.instance
-                  .collection('rooms')
-                  .where('ownerUid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
-                  .limit(1)
-                  .snapshots(),
+          stream: _activeRoomsStream,
           builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
+            final currentUid = FirebaseAuth.instance.currentUser?.uid;
+            if (snapshot.hasData &&
+                currentUid != null &&
+                snapshot.data!.docs.any((doc) {
+                  final data = doc.data();
+                  return (data['ownerUid'] ?? '').toString() == currentUid ||
+                      (data['leaderUid'] ?? '').toString() == currentUid;
+                })) {
               return _buildMyCreatedRoomCard();
+            }
+            if (snapshot.hasError) {
+              return const SizedBox(
+                height: 190,
+                child: Center(
+                  child: Text(
+                    'Could not load your room right now.',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const SizedBox(
+                height: 190,
+                child: Center(
+                  child: Text(
+                    'Loading your room...',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+              );
             }
             return Padding(
               padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
@@ -2751,7 +2827,10 @@ Widget buildUserSearchResult() {
         if (!snapshot.hasData) {
           return const Expanded(
             child: Center(
-              child: CircularProgressIndicator(color: Color(0xFFFFD700)),
+              child: Text(
+                'Loading rooms...',
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
           );
         }
@@ -12678,27 +12757,55 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (!mounted) return;
     try {
       if (answer == true) {
-        await invitationRef.update({
-          'status': 'accepted',
-          'respondedAt': FieldValue.serverTimestamp(),
-        });
         final user = FirebaseAuth.instance.currentUser;
         if (user == null) return;
-        final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+        final firestore = FirebaseFirestore.instance;
+        final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
+        final micSeatsRef = roomRef.collection('micSeats');
+        final profileSnapshot =
+            await firestore.collection('users').doc(user.uid).get();
         final profile = profileSnapshot.data() ?? <String, dynamic>{};
-        final seatRef = FirebaseFirestore.instance
-            .collection('rooms').doc(widget.roomDocumentId)
-            .collection('micSeats').doc('$seatNumber');
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final seatRef = micSeatsRef.doc('$seatNumber');
+        final existingSeats = await micSeatsRef
+            .where('firebaseUid', isEqualTo: user.uid)
+            .get();
+        final oldSeatRefs = existingSeats.docs
+            .where((doc) => doc.id != '$seatNumber')
+            .map((doc) => doc.reference)
+            .toList();
+
+        await firestore.runTransaction((transaction) async {
           final currentSeat = await transaction.get(seatRef);
-          if (currentSeat.exists) throw StateError('This mic seat is no longer available.');
+          final oldSeatSnapshots =
+              <DocumentSnapshot<Map<String, dynamic>>>[];
+          for (final oldSeatRef in oldSeatRefs) {
+            oldSeatSnapshots.add(await transaction.get(oldSeatRef));
+          }
+          if (currentSeat.exists &&
+              (currentSeat.data()?['firebaseUid'] ?? '').toString() !=
+                  user.uid) {
+            throw StateError('This mic seat is no longer available.');
+          }
+          for (final oldSeatSnapshot in oldSeatSnapshots) {
+            if (oldSeatSnapshot.exists &&
+                (oldSeatSnapshot.data()?['firebaseUid'] ?? '').toString() ==
+                    user.uid) {
+              transaction.delete(oldSeatSnapshot.reference);
+            }
+          }
           transaction.set(seatRef, {
             'seatNumber': seatNumber,
             'firebaseUid': user.uid,
-            'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+            'name': (profile['name'] ?? user.displayName ?? 'PartyNova User')
+                .toString(),
             'photoBase64': (profile['photoBase64'] ?? '').toString(),
             'joinedAt': FieldValue.serverTimestamp(),
           });
+        });
+
+        await invitationRef.update({
+          'status': 'accepted',
+          'respondedAt': FieldValue.serverTimestamp(),
         });
       } else {
         await invitationRef.update({
@@ -13011,69 +13118,311 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Future<void> _handleMicSeatTap(int number, Map<String, dynamic>? occupant) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+
+    final firestore = FirebaseFirestore.instance;
+    final roomRef = firestore.collection('rooms').doc(widget.roomDocumentId);
     final seatRef = roomRef.collection('micSeats').doc('$number');
+
+    // Tapping your own occupied mic keeps the original Leave Mic action.
     if (occupant != null) {
       if ((occupant['firebaseUid'] ?? '').toString() != user.uid) return;
+
       final leave = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
           backgroundColor: panelBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-          title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(17),
+            side: const BorderSide(color: pink, width: 1.6),
+          ),
+          title: const Text(
+            'MIC SEAT',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+          ),
+          content: const Text(
+            'Do you want to leave this mic?',
+            style: TextStyle(color: Colors.white70),
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-            TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: pink, width: 1.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      child: const Text('LEAVE MIC'),
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: pink, width: 1.4),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: const Text('CANCEL'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       );
-      if (leave == true) await seatRef.delete();
+
+      if (leave == true) {
+        await seatRef.delete();
+      }
       return;
     }
-    final roomSnapshot = await roomRef.get();
-    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-    final rawLevel = roomData['roomLevel'] ?? roomData['level'] ?? roomData['levelNumber'] ?? 1;
-    final roomLevel = rawLevel is num ? rawLevel.toInt() : int.tryParse(rawLevel.toString()) ?? 1;
-    if (roomLevel > 7) {
-      final join = await showDialog<bool>(
+
+    try {
+      final roomSnapshot = await roomRef.get();
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final rawLevel = roomData['roomLevel'] ??
+          roomData['level'] ??
+          roomData['levelNumber'] ??
+          1;
+      final roomLevel = rawLevel is num
+          ? rawLevel.toInt()
+          : int.tryParse(rawLevel.toString()) ?? 1;
+
+      if (roomLevel > 7) {
+        final join = await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: panelBlue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(17),
+              side: const BorderSide(color: pink, width: 1.6),
+            ),
+            title: const Text(
+              'JOIN ROOM',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+            ),
+            content: const Text(
+              'Join this room before taking a mic seat?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: pink, width: 1.4),
+                        ),
+                        onPressed: () => Navigator.pop(dialogContext, true),
+                        child: const Text('JOIN ROOM'),
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: pink, width: 1.4),
+                        ),
+                        onPressed: () => Navigator.pop(dialogContext, false),
+                        child: const Text('CANCEL'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+        if (join != true) return;
+
+        final memberBefore =
+            await roomRef.collection('members').doc(user.uid).get();
+        if (!memberBefore.exists) {
+          await _joinRoom(requireFollow: false);
+        }
+        final memberAfter =
+            await roomRef.collection('members').doc(user.uid).get();
+        if (!memberAfter.exists) return;
+      }
+
+      final profileSnapshot =
+          await firestore.collection('users').doc(user.uid).get();
+      final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      final userName =
+          (profile['name'] ?? user.displayName ?? 'PartyNova User').toString();
+      final photoBase64 = (profile['photoBase64'] ?? '').toString();
+      final photoImage = getCachedProfilePhotoImage(photoBase64);
+
+      // Find this user's current seat. The user can move directly from it
+      // to the newly selected empty seat without first leaving the room mic.
+      final currentSeatsSnapshot = await roomRef
+          .collection('micSeats')
+          .where('firebaseUid', isEqualTo: user.uid)
+          .get();
+      final oldSeatRefs = currentSeatsSnapshot.docs
+          .where((doc) => doc.id != '$number')
+          .map((doc) => doc.reference)
+          .toList();
+
+      final takeMic = await showDialog<bool>(
         context: context,
-        barrierDismissible: false,
+        barrierDismissible: true,
         builder: (dialogContext) => AlertDialog(
           backgroundColor: panelBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17), side: const BorderSide(color: pink, width: 1.6)),
-          title: const Text('JOIN ROOM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('Join this room before taking a mic seat?', style: TextStyle(color: Colors.white70)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: pink, width: 1.7),
+          ),
+          title: const Text(
+            'TAKE THE MIC',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 31,
+                backgroundColor: Colors.black,
+                backgroundImage: photoImage,
+                child: photoImage == null
+                    ? const Icon(Icons.person, color: Colors.white, size: 32)
+                    : null,
+              ),
+              const SizedBox(height: 9),
+              Text(
+                userName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                oldSeatRefs.isEmpty
+                    ? 'Take Mic ${number}?'
+                    : 'Move to Mic $number?',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
+            ],
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Join')),
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: pink, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      child: const Text(
+                        'TAKE MIC',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 9),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: pink, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: const Text(
+                        'CANCEL',
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       );
-      if (join != true) return;
-      final memberBefore = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberBefore.exists) {
-        await _joinRoom(requireFollow: false);
-      }
-      final memberAfter = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberAfter.exists) return;
-    }
-    try {
-      final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      final profile = profileSnapshot.data() ?? <String, dynamic>{};
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final seatSnapshot = await transaction.get(seatRef);
-        if (seatSnapshot.exists) throw StateError('This mic seat is already taken.');
+
+      if (takeMic != true) return;
+
+      await firestore.runTransaction((transaction) async {
+        final targetSnapshot = await transaction.get(seatRef);
+        final oldSeatSnapshots = <DocumentSnapshot<Map<String, dynamic>>>[];
+        for (final oldSeatRef in oldSeatRefs) {
+          oldSeatSnapshots.add(await transaction.get(oldSeatRef));
+        }
+
+        if (targetSnapshot.exists) {
+          throw StateError('This mic seat is already taken.');
+        }
+
+        for (final oldSeatSnapshot in oldSeatSnapshots) {
+          if (oldSeatSnapshot.exists &&
+              (oldSeatSnapshot.data()?['firebaseUid'] ?? '').toString() ==
+                  user.uid) {
+            transaction.delete(oldSeatSnapshot.reference);
+          }
+        }
+
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
-          'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
-          'photoBase64': (profile['photoBase64'] ?? '').toString(),
+          'name': userName,
+          'photoBase64': photoBase64,
           'joinedAt': FieldValue.serverTimestamp(),
         });
       });
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not take mic: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not take mic: $error')),
+        );
+      }
     }
   }
 
@@ -13150,8 +13499,23 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       stream: seatsStream,
       builder: (context, snapshot) {
         final seats = <String, Map<String, dynamic>>{};
-        for (final doc in snapshot.data?.docs ?? []) {
-          seats[doc.id] = doc.data();
+        final visibleUsers = <String>{};
+        final seatDocs = (snapshot.data?.docs ?? []).toList()
+          ..sort((a, b) {
+            final aNumber = int.tryParse(a.id) ?? 9999;
+            final bNumber = int.tryParse(b.id) ?? 9999;
+            return aNumber.compareTo(bNumber);
+          });
+        for (final doc in seatDocs) {
+          // Only numbered seat documents are rendered. If legacy data has
+          // duplicate seats for one Firebase UID, show that user once.
+          if (int.tryParse(doc.id) == null) continue;
+          final seatData = doc.data();
+          final firebaseUid = (seatData['firebaseUid'] ?? '').toString();
+          if (firebaseUid.isNotEmpty && !visibleUsers.add(firebaseUid)) {
+            continue;
+          }
+          seats[doc.id] = seatData;
         }
         return Padding(
           padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
