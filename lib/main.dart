@@ -2579,25 +2579,7 @@ Widget buildUserSearchResult() {
                           const SizedBox(height: 3),
                           Text('UID: $uid', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF39766A), fontSize: 10)),
                           const SizedBox(height: 7),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: followed ? null : () => _followRoomLocally(doc.id),
-                                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB02D72), padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
-                                  child: Text(followed ? 'Following' : 'Follow', maxLines: 1, style: const TextStyle(fontSize: 10)),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: joined ? null : () => _joinRoomFromCard({'docId': doc.id}),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2477D4), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
-                                  child: Text(joined ? 'Joined' : 'Join', maxLines: 1, style: const TextStyle(fontSize: 10)),
-                                ),
-                              ),
-                            ],
-                          ),
+                          const Text('Open room to Follow & Join', style: TextStyle(color: Color(0xFF39766A), fontSize: 10, fontWeight: FontWeight.w700)),
                         ],
                       ),
                     ),
@@ -3026,53 +3008,7 @@ Widget buildUserSearchResult() {
                               ),
                             ],
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: _followedRoomIds.contains(room['docId'].toString())
-                                        ? null
-                                        : () => _followRoomLocally(room['docId'].toString()),
-                                    icon: Icon(
-                                      _followedRoomIds.contains(room['docId'].toString())
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      size: 15,
-                                    ),
-                                    label: Text(
-                                      _followedRoomIds.contains(room['docId'].toString())
-                                          ? 'Following'
-                                          : 'Follow',
-                                      maxLines: 1,
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: const Color(0xFFB02D72),
-                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: !_followedRoomIds.contains(room['docId'].toString()) ||
-                                            _joinedRoomIds.contains(room['docId'].toString())
-                                        ? null
-                                        : () => _joinRoomFromCard(room),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF2477D4),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                    child: Text(
-                                      _joinedRoomIds.contains(room['docId'].toString()) ? 'Joined' : 'Join',
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                            const Text('Open room to Follow & Join', style: TextStyle(color: Color(0xFF39766A), fontSize: 11, fontWeight: FontWeight.w700)),
                           ],
                         ),
                       ),
@@ -10519,31 +10455,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   // Only the app Owner/Admin and this room's Owner/Leader can manage members.
   // Deputy Leader controls stay unavailable until the future room-upgrade feature.
+  // Room management is controlled only by this room's own Leader,
+  // Deputy Leader, or Seat Incharge. App-wide Owner/Admin status alone
+  // never grants control inside somebody else's room.
   Future<bool> _canManageRoomMembers() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return false;
-
-    final signedInRole = partyNovaRoleForEmail(user.email);
-    if (signedInRole == 'owner' || signedInRole == 'admin') return true;
-
-    try {
-      final roomSnapshot = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(widget.roomDocumentId)
-          .get();
-      if (!roomSnapshot.exists) return false;
-
-      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-      final ownerUid = (roomData['ownerUid'] ?? '').toString();
-      final leaderUid = (roomData['leaderUid'] ?? '').toString();
-      final effectiveOwnerUid = ownerUid.isNotEmpty ? ownerUid : leaderUid;
-      final effectiveLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-
-      return user.uid == effectiveOwnerUid || user.uid == effectiveLeaderUid;
-    } catch (error) {
-      debugPrint('Check room member-management permission failed: $error');
-      return false;
-    }
+    final role = await _currentRoomOptionsRole();
+    return role == 'leader' || role == 'deputy' || role == 'incharge';
   }
 
   Future<void> _showLeaderPermissionScreen() async {
@@ -12417,6 +12334,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Timer? _presenceHeartbeat;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _micInvitationSubscription;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _kickSubscription;
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _banSubscription;
   String? _lastHandledMicInvitationId;
   bool _micInvitationDialogOpen = false;
   bool _roomEntryBlockedByKick = false;
@@ -12615,6 +12533,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         return;
       }
       _listenForRoomKick();
+      _listenForRoomBan();
       if (widget.autoJoinOnOpen) await _joinRoom();
     });
   }
@@ -12664,6 +12583,32 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       debugPrint('Kick status check failed: $error');
       return false;
     }
+  }
+
+  void _listenForRoomBan() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final ref = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
+        .collection('blockedMembers').doc(user.uid);
+    _banSubscription = ref.snapshots().listen((snapshot) async {
+      if (!snapshot.exists || !mounted || _kickDialogOpen) return;
+      _kickDialogOpen = true;
+      _presenceHeartbeat?.cancel();
+      await _leaveRoomPresence();
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Colors.redAccent, width: 1.5)),
+          title: const Text('YOU ARE BANNED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: const Text('You cannot message, join or take a mic in this room until the Room Leader, Deputy Leader or Seat Incharge unbans you.', style: TextStyle(color: Colors.white70)),
+          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: Colors.redAccent)))],
+        ),
+      );
+      if (mounted && Navigator.of(context).canPop()) Navigator.of(context).pop();
+    }, onError: (error) => debugPrint('Room ban listener failed: $error'));
   }
 
   void _listenForRoomKick() {
@@ -12756,6 +12701,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       if (answer == true) {
         final user = FirebaseAuth.instance.currentUser;
         if (user == null) return;
+        final activeBan = await FirebaseFirestore.instance.collection('rooms')
+            .doc(widget.roomDocumentId).collection('blockedMembers').doc(user.uid).get();
+        if (activeBan.exists) {
+          await invitationRef.update({'status': 'declined', 'respondedAt': FieldValue.serverTimestamp()});
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You are banned from this room.')));
+          return;
+        }
         final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         final profile = profileSnapshot.data() ?? <String, dynamic>{};
         final seatsCollection = FirebaseFirestore.instance
@@ -12811,6 +12763,25 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (user == null) return;
     final kicked = await _showKickRestrictionIfActive();
     if (kicked || !mounted) return;
+    try {
+      final ban = await FirebaseFirestore.instance
+          .collection('rooms').doc(widget.roomDocumentId)
+          .collection('blockedMembers').doc(user.uid).get();
+      if (ban.exists) {
+        if (mounted) {
+          await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
+            backgroundColor: panelBlue,
+            title: const Text('ROOM BAN ACTIVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+            content: const Text('You are banned from this room. Only the Room Leader, Deputy Leader or Seat Incharge can unban you.', style: TextStyle(color: Colors.white70)),
+            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
+          ));
+        }
+        return;
+      }
+    } catch (error) {
+      debugPrint('Room ban check failed: $error');
+      return;
+    }
     final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
     if (requireFollow && !followedRoomIds.contains(widget.roomDocumentId)) {
       if (mounted) {
@@ -13075,6 +13046,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     _presenceHeartbeat?.cancel();
     _micInvitationSubscription?.cancel();
     _kickSubscription?.cancel();
+    _banSubscription?.cancel();
     unawaited(_leaveRoomPresence());
     _messageController.dispose();
     _messageFocusNode.dispose();
@@ -13106,9 +13078,42 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (user == null) return;
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
     final seatRef = roomRef.collection('micSeats').doc('$number');
+    final banCheck = await roomRef.collection('blockedMembers').doc(user.uid).get();
+    if (banCheck.exists) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You are banned from this room and cannot take the mic.')),
+      );
+      return;
+    }
 
-    // A different user's occupied mic cannot be taken.
+    // Room staff can manage an occupied mic; ordinary members cannot.
     if (occupant != null && (occupant['firebaseUid'] ?? '').toString() != user.uid) {
+      final role = await _currentRoomOptionsRole();
+      if (!mounted || !['leader', 'deputy', 'incharge'].contains(role)) return;
+      final targetUid = (occupant['firebaseUid'] ?? '').toString();
+      final targetName = (occupant['name'] ?? 'Member').toString();
+      final action = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: const Color(0xFF171017),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: gold, width: 1.4)),
+          title: Text(targetName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            _memberActionButton(label: 'LEAVE THE MIC', color: gold, onTap: () => Navigator.pop(dialogContext, 'Leave the Mic')),
+            const SizedBox(height: 7),
+            _memberActionButton(label: 'KICK ROOM', color: Colors.orangeAccent, onTap: () => Navigator.pop(dialogContext, 'Kick Room')),
+            const SizedBox(height: 7),
+            _memberActionButton(label: 'BAN', color: Colors.redAccent, onTap: () => Navigator.pop(dialogContext, 'Ban')),
+          ]),
+        ),
+      );
+      if (action == 'Leave the Mic') {
+        await seatRef.delete();
+      } else if (action == 'Kick Room') {
+        await _kickOnlineUser(targetUid, targetName, role);
+      } else if (action == 'Ban') {
+        await _banOnlineUser(targetUid, targetName);
+      }
       return;
     }
 
@@ -13717,10 +13722,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   }
 
   Future<void> _banOnlineUser(String targetUid, String targetName) async {
+    final actorRole = await _currentRoomOptionsRole();
+    if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
     final confirm = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
       title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.white)),
-      content: Text('Ban $targetName from sending messages in this room?', style: const TextStyle(color: Colors.white70)),
+      content: Text('Permanently ban $targetName from this room? They cannot message, join or take a mic until room staff unban them.', style: const TextStyle(color: Colors.white70)),
       actions: [
         TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
         TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Ban', style: TextStyle(color: Colors.redAccent))),
@@ -13735,18 +13742,22 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         'targetUid': targetUid, 'targetName': targetName,
         'actorUid': user.uid, 'actorName': user.displayName ?? 'Room Staff',
         'createdAt': FieldValue.serverTimestamp(),
+        'banned': true,
       });
       await _writeRoomActionRecord(action: 'Ban', targetUid: targetUid, targetName: targetName);
       await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get().then((q) async {
         for (final doc in q.docs) { await doc.reference.delete(); }
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$targetName is banned from room messages.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$targetName is banned from this room until staff unban them.')));
     } catch (error) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ban failed: $error')));
     }
   }
 
   Future<void> _kickOnlineUser(String targetUid, String targetName, String actorRole) async {
+    final verifiedRole = await _currentRoomOptionsRole();
+    if (!['leader', 'deputy', 'incharge'].contains(verifiedRole)) return;
+    actorRole = verifiedRole;
     final isLeader = actorRole == 'leader';
     final selectedDuration = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
