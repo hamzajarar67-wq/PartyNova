@@ -12501,6 +12501,30 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     }
   }
 
+  // A room visit starts with the user in the online list, not on a mic.
+  // Remove only this Firebase account's previous mic-seat records so a stale
+  // seat from an earlier visit cannot make the user appear seated on entry.
+  Future<void> _clearMyMicSeatsOnRoomEntry() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    try {
+      final seats = await FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId)
+          .collection('micSeats')
+          .where('firebaseUid', isEqualTo: user.uid)
+          .get();
+      if (seats.docs.isEmpty) return;
+      final batch = FirebaseFirestore.instance.batch();
+      for (final seat in seats.docs) {
+        batch.delete(seat.reference);
+      }
+      await batch.commit();
+    } catch (error) {
+      debugPrint('Previous mic-seat cleanup failed: $error');
+    }
+  }
+
   Future<void> _startRoomPresence() async {
     final user = FirebaseAuth.instance.currentUser;
     final presenceRef = _myRoomPresenceRef;
@@ -12577,8 +12601,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     _listenForMicInvitation();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      // Start presence immediately while the kick check runs, so online avatars
-      // can appear without waiting for the separate restriction lookup.
+      // Clear any stale seat from a previous visit before showing this user
+      // as online. They must explicitly take a mic (or accept an invitation).
+      await _clearMyMicSeatsOnRoomEntry();
+      if (!mounted) return;
+      // Start presence while the kick check runs, so the online avatar appears
+      // without waiting for the separate restriction lookup.
       unawaited(_startRoomPresence());
       final kicked = await _showKickRestrictionIfActive();
       if (!mounted) return;
