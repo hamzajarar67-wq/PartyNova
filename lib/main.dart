@@ -18,6 +18,27 @@ import 'dart:io';
 // Keep multiple profile photos cached at the same time. A single-photo cache
 // caused different users' avatars to replace one another during list rebuilds.
 const int _maxCachedProfilePhotos = 64;
+
+// Keep the latest room and presence snapshots in memory so returning to a
+// screen can render the last known data immediately while Firestore refreshes.
+QuerySnapshot<Map<String, dynamic>>? _cachedActiveRoomsSnapshot;
+final Map<String, QuerySnapshot<Map<String, dynamic>>> _cachedRoomPresenceSnapshots = {};
+final Map<String, Stream<QuerySnapshot<Map<String, dynamic>>>> _roomPresenceStreams = {};
+
+Stream<QuerySnapshot<Map<String, dynamic>>> _roomPresenceStream(String roomId) {
+  return _roomPresenceStreams.putIfAbsent(roomId, () {
+    return FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('presence')
+        .snapshots(includeMetadataChanges: true)
+        .map((snapshot) {
+      _cachedRoomPresenceSnapshots[roomId] = snapshot;
+      return snapshot;
+    });
+  });
+}
+
 final Map<String, Uint8List> _profilePhotoBytesCache = {};
 final Map<String, MemoryImage> _profilePhotoImageCache = {};
 
@@ -2253,7 +2274,12 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   }
 
 late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
-    FirebaseFirestore.instance.collection('rooms').snapshots(includeMetadataChanges: true);
+    FirebaseFirestore.instance.collection('rooms')
+        .snapshots(includeMetadataChanges: true)
+        .map((snapshot) {
+          _cachedActiveRoomsSnapshot = snapshot;
+          return snapshot;
+        });
 
 
   
@@ -2290,7 +2316,7 @@ Widget buildUserSearchResult() {
         return const Padding(
           padding: EdgeInsets.all(16),
           child: Center(
-            child: CircularProgressIndicator(),
+            child: SizedBox.shrink(),
           ),
         );
       }
@@ -2454,13 +2480,14 @@ Widget buildUserSearchResult() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _activeRoomsStream,
       builder: (context, snapshot) {
-        if (snapshot.hasError) {
+        final roomSnapshot = snapshot.data ?? _cachedActiveRoomsSnapshot;
+        if (snapshot.hasError && roomSnapshot == null) {
           return const Padding(
             padding: EdgeInsets.all(20),
             child: Text('Could not load your room list.', style: TextStyle(color: Colors.white70)),
           );
         }
-        if (!snapshot.hasData) {
+        if (roomSnapshot == null) {
           return const SizedBox.shrink();
         }
         final ids = _selectedMyRoomFilter == 0
@@ -2468,7 +2495,7 @@ Widget buildUserSearchResult() {
             : _selectedMyRoomFilter == 1
                 ? _joinedRoomIds
                 : _followedRoomIds;
-        final docs = snapshot.data!.docs.where((doc) => ids.contains(doc.id)).toList();
+        final docs = roomSnapshot.docs.where((doc) => ids.contains(doc.id)).toList();
         docs.sort((a, b) {
           final aRecent = _recentRoomIds.toList().indexOf(a.id);
           final bRecent = _recentRoomIds.toList().indexOf(b.id);
@@ -2772,7 +2799,8 @@ Widget buildUserSearchResult() {
   return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
     stream: _activeRoomsStream,
     builder: (context, snapshot) {
-      if (snapshot.hasError) {
+      final roomSnapshot = snapshot.data ?? _cachedActiveRoomsSnapshot;
+      if (snapshot.hasError && roomSnapshot == null) {
         return Expanded(
           child: Center(
             child: Text(
@@ -2783,12 +2811,12 @@ Widget buildUserSearchResult() {
         );
       }
 
-        if (!snapshot.hasData) {
+        if (roomSnapshot == null) {
           return const Expanded(child: SizedBox.shrink());
         }
 
         final searchQuery = _roomSearchQuery.trim().toLowerCase();
-        final allRooms = snapshot.data!.docs.map((doc) {
+        final allRooms = roomSnapshot.docs.map((doc) {
           final data = doc.data();
           return <String, dynamic>{
             'docId': doc.id,
@@ -2933,13 +2961,11 @@ Widget buildUserSearchResult() {
                               top: 9,
                               right: 8,
                               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                                stream: FirebaseFirestore.instance
-                                    .collection('rooms')
-                                    .doc(room['docId'].toString())
-                                    .collection('presence')
-                                    .snapshots(),
+                                stream: _roomPresenceStream(room['docId'].toString()),
                                 builder: (context, presenceSnapshot) {
-                                  final inRoom = (presenceSnapshot.data?.docs.isNotEmpty ?? false);
+                                  final presenceData = presenceSnapshot.data ??
+                                      _cachedRoomPresenceSnapshots[room['docId'].toString()];
+                                  final inRoom = (presenceData?.docs.isNotEmpty ?? false);
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                     decoration: BoxDecoration(
@@ -3178,9 +3204,7 @@ Widget _buildProfileTab(User? user) {
 
       if (!snapshot.hasData) {
         return const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFFFFD780),
-          ),
+          child: SizedBox.shrink(),
         );
       }
 
@@ -3914,10 +3938,7 @@ TextField(
         ? const SizedBox(
             width: 22,
             height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Colors.white,
-            ),
+            child: SizedBox.shrink(),
           )
         : const Text(
             'Save Changes',
@@ -10990,7 +11011,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.white70)));
                       }
                       if (!snapshot.hasData) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: SizedBox.shrink());
                       }
                       if (snapshot.data!.docs.isEmpty) {
                         return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.white60)));
@@ -11113,7 +11134,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.white70)));
                         }
                         if (!snapshot.hasData) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(child: SizedBox.shrink());
                         }
                         final action = tabs[selectedTab];
                         final records = snapshot.data!.docs.where((doc) {
@@ -11297,7 +11318,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                     stream: membersRef.snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                      if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
                       final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
                       final docs = snapshot.data!.docs.where((doc) {
                         final d = doc.data();
@@ -13748,10 +13769,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         .collection('presence');
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: presenceRef.snapshots(),
+      stream: _roomPresenceStream(widget.roomDocumentId),
       builder: (context, snapshot) {
         final now = DateTime.now();
-        final onlineDocs = (snapshot.data?.docs ??
+        final presenceData = snapshot.data ?? _cachedRoomPresenceSnapshots[widget.roomDocumentId];
+        final onlineDocs = (presenceData?.docs ??
                 <QueryDocumentSnapshot<Map<String, dynamic>>>[])
             .where((doc) {
           final lastSeen = doc.data()['lastSeenAt'];
@@ -14220,7 +14242,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         stream: FirebaseFirestore.instance.collection('publicProfiles').limit(100).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
+          if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
           final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
           if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
           return ListView.builder(
@@ -14712,7 +14734,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: presenceRef.snapshots(),
+        stream: _roomPresenceStream(roomDocumentId),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -14722,16 +14744,13 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
               ),
             );
           }
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFFFD700),
-              ),
-            );
+          final presenceData = snapshot.data ?? _cachedRoomPresenceSnapshots[roomDocumentId];
+          if (presenceData == null) {
+            return const Center(child: Text('No users are online right now.', style: TextStyle(color: Colors.white70)));
           }
 
           final now = DateTime.now();
-          final onlineDocs = snapshot.data!.docs.where((doc) {
+          final onlineDocs = presenceData.docs.where((doc) {
             final lastSeen = doc.data()['lastSeenAt'];
             if (lastSeen is! Timestamp) return false;
             return now.difference(lastSeen.toDate()) <=
@@ -15171,7 +15190,7 @@ Widget _buildSearchResult() {
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(
-          child: CircularProgressIndicator(color: gold),
+          child: SizedBox.shrink(),
         );
       }
 
@@ -15227,7 +15246,7 @@ Widget _buildSearchResult() {
         builder: (context, requestSnapshot) {
           if (requestSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: CircularProgressIndicator(color: gold),
+              child: SizedBox.shrink(),
             );
           }
 
@@ -15892,7 +15911,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
       stream: _incomingPendingStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
           return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
@@ -16009,9 +16028,7 @@ class _FriendsListSection extends StatelessWidget {
 
         if (!outgoing.hasData) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFFFF1688),
-            ),
+            child: SizedBox.shrink(),
           );
         }
 
@@ -16030,9 +16047,7 @@ class _FriendsListSection extends StatelessWidget {
 
             if (!incoming.hasData) {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: Color(0xFFFF1688),
-                ),
+                child: SizedBox.shrink(),
               );
             }
 
@@ -16688,9 +16703,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
 
           if (!snapshot.hasData) {
             return const Center(
-              child: CircularProgressIndicator(
-                color: _gold,
-              ),
+              child: SizedBox.shrink(),
             );
           }
 
@@ -17736,7 +17749,7 @@ class _MessagesListSection extends StatelessWidget {
 
         if (!outgoing.hasData) {
           return const Center(
-            child: CircularProgressIndicator(color: _chatGold),
+            child: SizedBox.shrink(),
           );
         }
 
@@ -17755,7 +17768,7 @@ class _MessagesListSection extends StatelessWidget {
 
             if (!incoming.hasData) {
               return const Center(
-                child: CircularProgressIndicator(color: _chatGold),
+                child: SizedBox.shrink(),
               );
             }
 
