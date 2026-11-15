@@ -10459,8 +10459,32 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
   // Deputy Leader, or Seat Incharge. App-wide Owner/Admin status alone
   // never grants control inside somebody else's room.
   Future<bool> _canManageRoomMembers() async {
-    final role = await _currentRoomOptionsRole();
-    return role == 'leader' || role == 'deputy' || role == 'incharge';
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    try {
+      final roomRef = FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return false;
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final leaderUid = (roomData['leaderUid'] ?? '').toString().trim();
+      final ownerUid = (roomData['ownerUid'] ?? '').toString().trim();
+      final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+      if (user.uid == actualLeaderUid || user.uid == ownerUid) return true;
+
+      final memberSnapshot = await roomRef.collection('members').doc(user.uid).get();
+      if (!memberSnapshot.exists) return false;
+      final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+      final memberRole = (memberData['role'] ?? '').toString().trim().toLowerCase();
+      return memberRole == 'deputy leader' ||
+          memberRole == 'seat incharge' ||
+          memberRole == 'in-charge' ||
+          memberRole == 'incharge';
+    } catch (error) {
+      debugPrint('Could not resolve room member-management role: $error');
+      return false;
+    }
   }
 
   Future<void> _showLeaderPermissionScreen() async {
@@ -12318,6 +12342,30 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   static const Color gold = Color(0xFFFFD700);
   static const Color pink = Color(0xFFFF4FA3);
   static const Color panelBlue = Color(0xFF24101F);
+
+  Widget _memberActionButton({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        backgroundColor: panelBlue,
+        foregroundColor: color,
+        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 7),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: color, width: 1),
+        ),
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
+      ),
+    );
+  }
 
   final TextEditingController _messageController =
       TextEditingController();
