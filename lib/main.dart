@@ -18,27 +18,6 @@ import 'dart:io';
 // Keep multiple profile photos cached at the same time. A single-photo cache
 // caused different users' avatars to replace one another during list rebuilds.
 const int _maxCachedProfilePhotos = 64;
-
-// Keep the latest room and presence snapshots in memory so returning to a
-// screen can render the last known data immediately while Firestore refreshes.
-QuerySnapshot<Map<String, dynamic>>? _cachedActiveRoomsSnapshot;
-final Map<String, QuerySnapshot<Map<String, dynamic>>> _cachedRoomPresenceSnapshots = {};
-final Map<String, Stream<QuerySnapshot<Map<String, dynamic>>>> _roomPresenceStreams = {};
-
-Stream<QuerySnapshot<Map<String, dynamic>>> _roomPresenceStream(String roomId) {
-  return _roomPresenceStreams.putIfAbsent(roomId, () {
-    return FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(roomId)
-        .collection('presence')
-        .snapshots(includeMetadataChanges: true)
-        .map((snapshot) {
-      _cachedRoomPresenceSnapshots[roomId] = snapshot;
-      return snapshot;
-    });
-  });
-}
-
 final Map<String, Uint8List> _profilePhotoBytesCache = {};
 final Map<String, MemoryImage> _profilePhotoImageCache = {};
 
@@ -1161,7 +1140,6 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
   final Set<String> _joinedRoomIds = <String>{};
   final Set<String> _recentRoomIds = <String>{};
   bool _roomListsLoaded = false;
-  Future<void>? _roomListsLoadFuture;
 
   @override
   void initState() {
@@ -1169,59 +1147,19 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
     _loadRoomLists();
   }
 
-  Future<void> _loadRoomLists() {
-    return _roomListsLoadFuture ??= _loadRoomListsInternal();
-  }
-
-  Future<void> _loadRoomListsInternal() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      if (mounted) setState(() => _roomListsLoaded = true);
-      return;
-    }
-    try {
-      final results = await Future.wait<Set<String>>([
-        _loadLocalRoomIds(user.uid, 'followed_rooms'),
-        _loadLocalRoomIds(user.uid, 'joined_rooms'),
-        _loadLocalRoomIds(user.uid, 'recent_rooms'),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _followedRoomIds..clear()..addAll(results[0]);
-        _joinedRoomIds..clear()..addAll(results[1]);
-        _recentRoomIds..clear()..addAll(results[2]);
-        _roomListsLoaded = true;
-      });
-    } catch (error) {
-      debugPrint('Room list preferences load failed: $error');
-      if (mounted) setState(() => _roomListsLoaded = true);
-    }
-  }
-
-  Future<void> _recordRecentRoom(String roomId) async {
-    if (roomId.isEmpty) return;
+  Future<void> _loadRoomLists() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    if (!_roomListsLoaded) await _loadRoomLists();
+    final followed = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+    final joined = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+    final recent = await _loadLocalRoomIds(user.uid, 'recent_rooms');
     if (!mounted) return;
     setState(() {
-      _recentRoomIds.remove(roomId);
-      _recentRoomIds.add(roomId);
-      while (_recentRoomIds.length > 50) {
-        _recentRoomIds.remove(_recentRoomIds.first);
-      }
+      _followedRoomIds..clear()..addAll(followed);
+      _joinedRoomIds..clear()..addAll(joined);
+      _recentRoomIds..clear()..addAll(recent);
+      _roomListsLoaded = true;
     });
-    await _updateLocalRoomList('recent_rooms', _recentRoomIds);
-  }
-
-  Future<void> _recordJoinedRoom(String roomId) async {
-    if (roomId.isEmpty) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    if (!_roomListsLoaded) await _loadRoomLists();
-    if (!mounted) return;
-    setState(() => _joinedRoomIds.add(roomId));
-    await _updateLocalRoomList('joined_rooms', _joinedRoomIds);
   }
 
   Future<void> _updateLocalRoomList(String listName, Set<String> values) async {
@@ -1324,7 +1262,6 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
       _activeRoomDocumentId = roomDocumentId;
       _roomMinimized = false;
     });
-    unawaited(_recordRecentRoom(roomDocumentId));
   }
 
   void _keepRoomMini() {
@@ -2086,7 +2023,6 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       final selectedRoomPhoto =
           (selectedRoomData['roomPhotoBase64'] ?? ownerPhotoBase64).toString();
 
-      await _recordJoinedRoom(selectedRoomRef!.id);
       if (!mounted) return;
       _openRoom(
         roomName: selectedRoomName,
@@ -2111,7 +2047,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       stream: FirebaseFirestore.instance
           .collection('rooms')
           .where('ownerUid', isEqualTo: user.uid)
-          .snapshots(includeMetadataChanges: true),
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError || !snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
@@ -2274,12 +2210,9 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
   }
 
 late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
-    FirebaseFirestore.instance.collection('rooms')
-        .snapshots(includeMetadataChanges: true)
-        .map((snapshot) {
-          _cachedActiveRoomsSnapshot = snapshot;
-          return snapshot;
-        });
+    FirebaseFirestore.instance
+        .collection('rooms')
+        .snapshots();
 
 
   
@@ -2316,7 +2249,7 @@ Widget buildUserSearchResult() {
         return const Padding(
           padding: EdgeInsets.all(16),
           child: Center(
-            child: SizedBox.shrink(),
+            child: CircularProgressIndicator(),
           ),
         );
       }
@@ -2471,6 +2404,12 @@ Widget buildUserSearchResult() {
   }
 
   Widget _buildMyRoomSavedList() {
+    if (!_roomListsLoaded) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+      );
+    }
     if (_selectedMyRoomFilter == 3) {
       return const Padding(
         padding: EdgeInsets.all(24),
@@ -2480,22 +2419,24 @@ Widget buildUserSearchResult() {
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: _activeRoomsStream,
       builder: (context, snapshot) {
-        final roomSnapshot = snapshot.data ?? _cachedActiveRoomsSnapshot;
-        if (snapshot.hasError && roomSnapshot == null) {
+        if (snapshot.hasError) {
           return const Padding(
             padding: EdgeInsets.all(20),
             child: Text('Could not load your room list.', style: TextStyle(color: Colors.white70)),
           );
         }
-        if (roomSnapshot == null) {
-          return const SizedBox.shrink();
+        if (!snapshot.hasData) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3))),
+          );
         }
         final ids = _selectedMyRoomFilter == 0
             ? _recentRoomIds
             : _selectedMyRoomFilter == 1
                 ? _joinedRoomIds
                 : _followedRoomIds;
-        final docs = roomSnapshot.docs.where((doc) => ids.contains(doc.id)).toList();
+        final docs = snapshot.data!.docs.where((doc) => ids.contains(doc.id)).toList();
         docs.sort((a, b) {
           final aRecent = _recentRoomIds.toList().indexOf(a.id);
           final bRecent = _recentRoomIds.toList().indexOf(b.id);
@@ -2579,7 +2520,25 @@ Widget buildUserSearchResult() {
                           const SizedBox(height: 3),
                           Text('UID: $uid', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF39766A), fontSize: 10)),
                           const SizedBox(height: 7),
-                          const Text('Open room to Follow & Join', style: TextStyle(color: Color(0xFF39766A), fontSize: 10, fontWeight: FontWeight.w700)),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: followed ? null : () => _followRoomLocally(doc.id),
+                                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB02D72), padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
+                                  child: Text(followed ? 'Following' : 'Follow', maxLines: 1, style: const TextStyle(fontSize: 10)),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: joined ? null : () => _joinRoomFromCard({'docId': doc.id}),
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2477D4), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
+                                  child: Text(joined ? 'Joined' : 'Join', maxLines: 1, style: const TextStyle(fontSize: 10)),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -2630,9 +2589,6 @@ Widget buildUserSearchResult() {
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
               return _buildMyCreatedRoomCard();
-            }
-            if (!snapshot.hasData && !snapshot.hasError) {
-              return const SizedBox.shrink();
             }
             return Padding(
               padding: const EdgeInsets.fromLTRB(14, 22, 14, 20),
@@ -2781,8 +2737,7 @@ Widget buildUserSearchResult() {
   return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
     stream: _activeRoomsStream,
     builder: (context, snapshot) {
-      final roomSnapshot = snapshot.data ?? _cachedActiveRoomsSnapshot;
-      if (snapshot.hasError && roomSnapshot == null) {
+      if (snapshot.hasError) {
         return Expanded(
           child: Center(
             child: Text(
@@ -2793,12 +2748,16 @@ Widget buildUserSearchResult() {
         );
       }
 
-        if (roomSnapshot == null) {
-          return const Expanded(child: SizedBox.shrink());
+        if (!snapshot.hasData) {
+          return const Expanded(
+            child: Center(
+              child: CircularProgressIndicator(color: Color(0xFFFFD700)),
+            ),
+          );
         }
 
         final searchQuery = _roomSearchQuery.trim().toLowerCase();
-        final allRooms = roomSnapshot.docs.map((doc) {
+        final allRooms = snapshot.data!.docs.map((doc) {
           final data = doc.data();
           return <String, dynamic>{
             'docId': doc.id,
@@ -2943,11 +2902,13 @@ Widget buildUserSearchResult() {
                               top: 9,
                               right: 8,
                               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                                stream: _roomPresenceStream(room['docId'].toString()),
+                                stream: FirebaseFirestore.instance
+                                    .collection('rooms')
+                                    .doc(room['docId'].toString())
+                                    .collection('presence')
+                                    .snapshots(),
                                 builder: (context, presenceSnapshot) {
-                                  final presenceData = presenceSnapshot.data ??
-                                      _cachedRoomPresenceSnapshots[room['docId'].toString()];
-                                  final inRoom = (presenceData?.docs.isNotEmpty ?? false);
+                                  final inRoom = (presenceSnapshot.data?.docs.isNotEmpty ?? false);
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                     decoration: BoxDecoration(
@@ -3008,7 +2969,53 @@ Widget buildUserSearchResult() {
                               ),
                             ],
                             const SizedBox(height: 8),
-                            const Text('Open room to Follow & Join', style: TextStyle(color: Color(0xFF39766A), fontSize: 11, fontWeight: FontWeight.w700)),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _followedRoomIds.contains(room['docId'].toString())
+                                        ? null
+                                        : () => _followRoomLocally(room['docId'].toString()),
+                                    icon: Icon(
+                                      _followedRoomIds.contains(room['docId'].toString())
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      size: 15,
+                                    ),
+                                    label: Text(
+                                      _followedRoomIds.contains(room['docId'].toString())
+                                          ? 'Following'
+                                          : 'Follow',
+                                      maxLines: 1,
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: const Color(0xFFB02D72),
+                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: ElevatedButton(
+                                    onPressed: !_followedRoomIds.contains(room['docId'].toString()) ||
+                                            _joinedRoomIds.contains(room['docId'].toString())
+                                        ? null
+                                        : () => _joinRoomFromCard(room),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF2477D4),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    child: Text(
+                                      _joinedRoomIds.contains(room['docId'].toString()) ? 'Joined' : 'Join',
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -3140,7 +3147,9 @@ Widget _buildProfileTab(User? user) {
 
       if (!snapshot.hasData) {
         return const Center(
-          child: SizedBox.shrink(),
+          child: CircularProgressIndicator(
+            color: Color(0xFFFFD780),
+          ),
         );
       }
 
@@ -3874,7 +3883,10 @@ TextField(
         ? const SizedBox(
             width: 22,
             height: 22,
-            child: SizedBox.shrink(),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: Colors.white,
+            ),
           )
         : const Text(
             'Save Changes',
@@ -10455,36 +10467,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
   // Only the app Owner/Admin and this room's Owner/Leader can manage members.
   // Deputy Leader controls stay unavailable until the future room-upgrade feature.
-  // Room management is controlled only by this room's own Leader,
-  // Deputy Leader, or Seat Incharge. App-wide Owner/Admin status alone
-  // never grants control inside somebody else's room.
   Future<bool> _canManageRoomMembers() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return false;
-    try {
-      final roomRef = FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(widget.roomDocumentId);
-      final roomSnapshot = await roomRef.get();
-      if (!roomSnapshot.exists) return false;
-      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-      final leaderUid = (roomData['leaderUid'] ?? '').toString().trim();
-      final ownerUid = (roomData['ownerUid'] ?? '').toString().trim();
-      final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
-      if (user.uid == actualLeaderUid || user.uid == ownerUid) return true;
-
-      final memberSnapshot = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberSnapshot.exists) return false;
-      final memberData = memberSnapshot.data() ?? <String, dynamic>{};
-      final memberRole = (memberData['role'] ?? '').toString().trim().toLowerCase();
-      return memberRole == 'deputy leader' ||
-          memberRole == 'seat incharge' ||
-          memberRole == 'in-charge' ||
-          memberRole == 'incharge';
-    } catch (error) {
-      debugPrint('Could not resolve room member-management role: $error');
-      return false;
-    }
+    final role = await _currentRoomOptionsRole();
+    return role == 'leader' || role == 'deputy' || role == 'incharge';
   }
 
   Future<void> _showLeaderPermissionScreen() async {
@@ -10952,7 +10937,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.white70)));
                       }
                       if (!snapshot.hasData) {
-                        return const Center(child: SizedBox.shrink());
+                        return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.data!.docs.isEmpty) {
                         return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.white60)));
@@ -11075,7 +11060,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.white70)));
                         }
                         if (!snapshot.hasData) {
-                          return const Center(child: SizedBox.shrink());
+                          return const Center(child: CircularProgressIndicator());
                         }
                         final action = tabs[selectedTab];
                         final records = snapshot.data!.docs.where((doc) {
@@ -11259,7 +11244,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                     stream: membersRef.snapshots(),
                     builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
+                      if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
                       final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
                       final docs = snapshot.data!.docs.where((doc) {
                         final d = doc.data();
@@ -11631,7 +11616,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.white70)));
             }
             if (!snapshot.hasData) {
-              return const SizedBox.shrink();
+              return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: pink)));
             }
             final currentUserUid = FirebaseAuth.instance.currentUser?.uid ?? '';
             final query = _memberSearchQuery;
@@ -11742,12 +11727,22 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   ),
                   child: Row(
                     children: [
-                      CircleAvatar(
-                        radius: 23,
-                        backgroundColor: bg,
-                        backgroundImage: getCachedProfilePhotoImage(
-                          (publicData['photoBase64'] ?? data['photoBase64'] ?? '').toString(),
-                        ),
+                      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                        stream: FirebaseFirestore.instance
+                            .collection('publicProfiles')
+                            .doc(memberFirebaseUid)
+                            .snapshots(),
+                        builder: (context, profileSnapshot) {
+                          final latestPhoto = (publicData['photoBase64'] ?? profileSnapshot.data?.data()?['photoBase64'] ??
+                                  data['photoBase64'] ??
+                                  '')
+                              .toString();
+                          return CircleAvatar(
+                            radius: 23,
+                            backgroundColor: bg,
+                            backgroundImage: getCachedProfilePhotoImage(latestPhoto),
+                          );
+                        },
                       ),
                       const SizedBox(width: 11),
                       Expanded(
@@ -12343,30 +12338,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   static const Color pink = Color(0xFFFF4FA3);
   static const Color panelBlue = Color(0xFF24101F);
 
-  Widget _memberActionButton({
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        backgroundColor: panelBlue,
-        foregroundColor: color,
-        padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 7),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: color, width: 1),
-        ),
-      ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11),
-      ),
-    );
-  }
-
   final TextEditingController _messageController =
       TextEditingController();
 
@@ -12382,7 +12353,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Timer? _presenceHeartbeat;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _micInvitationSubscription;
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _kickSubscription;
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _banSubscription;
   String? _lastHandledMicInvitationId;
   bool _micInvitationDialogOpen = false;
   bool _roomEntryBlockedByKick = false;
@@ -12467,30 +12437,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     }
   }
 
-  // A room visit starts with the user in the online list, not on a mic.
-  // Remove only this Firebase account's previous mic-seat records so a stale
-  // seat from an earlier visit cannot make the user appear seated on entry.
-  Future<void> _clearMyMicSeatsOnRoomEntry() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    try {
-      final seats = await FirebaseFirestore.instance
-          .collection('rooms')
-          .doc(widget.roomDocumentId)
-          .collection('micSeats')
-          .where('firebaseUid', isEqualTo: user.uid)
-          .get();
-      if (seats.docs.isEmpty) return;
-      final batch = FirebaseFirestore.instance.batch();
-      for (final seat in seats.docs) {
-        batch.delete(seat.reference);
-      }
-      await batch.commit();
-    } catch (error) {
-      debugPrint('Previous mic-seat cleanup failed: $error');
-    }
-  }
-
   Future<void> _startRoomPresence() async {
     final user = FirebaseAuth.instance.currentUser;
     final presenceRef = _myRoomPresenceRef;
@@ -12567,22 +12513,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     _listenForMicInvitation();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      // Clear any stale seat from a previous visit before showing this user
-      // as online. They must explicitly take a mic (or accept an invitation).
-      await _clearMyMicSeatsOnRoomEntry();
-      if (!mounted) return;
-      // Start presence while the kick check runs, so the online avatar appears
-      // without waiting for the separate restriction lookup.
-      unawaited(_startRoomPresence());
       final kicked = await _showKickRestrictionIfActive();
-      if (!mounted) return;
-      if (kicked) {
-        await _leaveRoomPresence();
-        return;
-      }
+      if (!mounted || kicked) return;
       _listenForRoomKick();
-      _listenForRoomBan();
       if (widget.autoJoinOnOpen) await _joinRoom();
+      if (mounted) await _startRoomPresence();
     });
   }
 
@@ -12631,32 +12566,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       debugPrint('Kick status check failed: $error');
       return false;
     }
-  }
-
-  void _listenForRoomBan() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final ref = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
-        .collection('blockedMembers').doc(user.uid);
-    _banSubscription = ref.snapshots().listen((snapshot) async {
-      if (!snapshot.exists || !mounted || _kickDialogOpen) return;
-      _kickDialogOpen = true;
-      _presenceHeartbeat?.cancel();
-      await _leaveRoomPresence();
-      if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: panelBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Colors.redAccent, width: 1.5)),
-          title: const Text('YOU ARE BANNED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('You cannot message, join or take a mic in this room until the Room Leader, Deputy Leader or Seat Incharge unbans you.', style: TextStyle(color: Colors.white70)),
-          actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: Colors.redAccent)))],
-        ),
-      );
-      if (mounted && Navigator.of(context).canPop()) Navigator.of(context).pop();
-    }, onError: (error) => debugPrint('Room ban listener failed: $error'));
   }
 
   void _listenForRoomKick() {
@@ -12747,40 +12656,20 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (!mounted) return;
     try {
       if (answer == true) {
+        await invitationRef.update({
+          'status': 'accepted',
+          'respondedAt': FieldValue.serverTimestamp(),
+        });
         final user = FirebaseAuth.instance.currentUser;
         if (user == null) return;
-        final activeBan = await FirebaseFirestore.instance.collection('rooms')
-            .doc(widget.roomDocumentId).collection('blockedMembers').doc(user.uid).get();
-        if (activeBan.exists) {
-          await invitationRef.update({'status': 'declined', 'respondedAt': FieldValue.serverTimestamp()});
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You are banned from this room.')));
-          return;
-        }
         final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
         final profile = profileSnapshot.data() ?? <String, dynamic>{};
-        final seatsCollection = FirebaseFirestore.instance
+        final seatRef = FirebaseFirestore.instance
             .collection('rooms').doc(widget.roomDocumentId)
-            .collection('micSeats');
-        final seatRef = seatsCollection.doc('$seatNumber');
-        final existingSeats = await seatsCollection
-            .where('firebaseUid', isEqualTo: user.uid).get();
-        final oldSeatRefs = existingSeats.docs
-            .where((doc) => doc.id != '$seatNumber' && int.tryParse(doc.id) != null)
-            .map((doc) => doc.reference)
-            .toList();
+            .collection('micSeats').doc('$seatNumber');
         await FirebaseFirestore.instance.runTransaction((transaction) async {
           final currentSeat = await transaction.get(seatRef);
-          if (currentSeat.exists &&
-              (currentSeat.data()?['firebaseUid'] ?? '').toString() != user.uid) {
-            throw StateError('This mic seat is no longer available.');
-          }
-          final oldSnapshots = <DocumentSnapshot<Map<String, dynamic>>>[];
-          for (final oldRef in oldSeatRefs) {
-            oldSnapshots.add(await transaction.get(oldRef));
-          }
-          for (var i = 0; i < oldSeatRefs.length; i++) {
-            if (oldSnapshots[i].exists) transaction.delete(oldSeatRefs[i]);
-          }
+          if (currentSeat.exists) throw StateError('This mic seat is no longer available.');
           transaction.set(seatRef, {
             'seatNumber': seatNumber,
             'firebaseUid': user.uid,
@@ -12788,10 +12677,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             'photoBase64': (profile['photoBase64'] ?? '').toString(),
             'joinedAt': FieldValue.serverTimestamp(),
           });
-        });
-        await invitationRef.update({
-          'status': 'accepted',
-          'respondedAt': FieldValue.serverTimestamp(),
         });
       } else {
         await invitationRef.update({
@@ -12811,25 +12696,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (user == null) return;
     final kicked = await _showKickRestrictionIfActive();
     if (kicked || !mounted) return;
-    try {
-      final ban = await FirebaseFirestore.instance
-          .collection('rooms').doc(widget.roomDocumentId)
-          .collection('blockedMembers').doc(user.uid).get();
-      if (ban.exists) {
-        if (mounted) {
-          await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
-            backgroundColor: panelBlue,
-            title: const Text('ROOM BAN ACTIVE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-            content: const Text('You are banned from this room. Only the Room Leader, Deputy Leader or Seat Incharge can unban you.', style: TextStyle(color: Colors.white70)),
-            actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK'))],
-          ));
-        }
-        return;
-      }
-    } catch (error) {
-      debugPrint('Room ban check failed: $error');
-      return;
-    }
     final followedRoomIds = await _loadLocalRoomIds(user.uid, 'followed_rooms');
     if (requireFollow && !followedRoomIds.contains(widget.roomDocumentId)) {
       if (mounted) {
@@ -13094,7 +12960,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     _presenceHeartbeat?.cancel();
     _micInvitationSubscription?.cancel();
     _kickSubscription?.cancel();
-    _banSubscription?.cancel();
     unawaited(_leaveRoomPresence());
     _messageController.dispose();
     _messageFocusNode.dispose();
@@ -13126,91 +12991,27 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (user == null) return;
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
     final seatRef = roomRef.collection('micSeats').doc('$number');
-    final banCheck = await roomRef.collection('blockedMembers').doc(user.uid).get();
-    if (banCheck.exists) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You are banned from this room and cannot take the mic.')),
-      );
-      return;
-    }
+    final banSnap = await roomRef.collection('blockedMembers').doc(user.uid).get();
+    if (banSnap.exists) return;
 
-    // Room staff can manage an occupied mic; ordinary members cannot.
-    if (occupant != null && (occupant['firebaseUid'] ?? '').toString() != user.uid) {
-      final role = await _currentRoomOptionsRole();
-      if (!mounted || !['leader', 'deputy', 'incharge'].contains(role)) return;
-      final targetUid = (occupant['firebaseUid'] ?? '').toString();
-      final targetName = (occupant['name'] ?? 'Member').toString();
-      final action = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: const Color(0xFF171017),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: gold, width: 1.4)),
-          title: Text(targetName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            _memberActionButton(label: 'LEAVE THE MIC', color: gold, onTap: () => Navigator.pop(dialogContext, 'Leave the Mic')),
-            const SizedBox(height: 7),
-            _memberActionButton(label: 'KICK ROOM', color: Colors.orangeAccent, onTap: () => Navigator.pop(dialogContext, 'Kick Room')),
-            const SizedBox(height: 7),
-            _memberActionButton(label: 'BAN', color: Colors.redAccent, onTap: () => Navigator.pop(dialogContext, 'Ban')),
-          ]),
-        ),
-      );
-      if (action == 'Leave the Mic') {
-        await seatRef.delete();
-      } else if (action == 'Kick Room') {
-        await _kickOnlineUser(targetUid, targetName, role);
-      } else if (action == 'Ban') {
-        await _banOnlineUser(targetUid, targetName);
-      }
-      return;
-    }
-
-    // Tapping your current seat offers a normal leave action.
     if (occupant != null) {
+      if ((occupant['firebaseUid'] ?? '').toString() != user.uid) return;
       final leave = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          backgroundColor: const Color(0xFF171017),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-            side: const BorderSide(color: pink, width: 1.5),
-          ),
+          backgroundColor: panelBlue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
           title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Do you want to leave this mic?', style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.black,
-                    side: const BorderSide(color: pink),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  onPressed: () => Navigator.pop(dialogContext, false),
-                  child: const Text('CANCEL'),
-                ),
-              ),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white),
-                  onPressed: () => Navigator.pop(dialogContext, true),
-                  child: const Text('LEAVE MIC'),
-                ),
-              ),
-            ],
-          ),
+          content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+            TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
+          ],
         ),
       );
       if (leave == true) await seatRef.delete();
       return;
     }
-
-    // Keep the existing room-level join restriction before presenting the mic action.
     final roomSnapshot = await roomRef.get();
     final roomData = roomSnapshot.data() ?? <String, dynamic>{};
     final rawLevel = roomData['roomLevel'] ?? roomData['level'] ?? roomData['levelNumber'] ?? 1;
@@ -13232,84 +13033,18 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       );
       if (join != true) return;
       final memberBefore = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberBefore.exists) await _joinRoom(requireFollow: false);
+      if (!memberBefore.exists) {
+        await _joinRoom(requireFollow: false);
+      }
       final memberAfter = await roomRef.collection('members').doc(user.uid).get();
       if (!memberAfter.exists) return;
     }
-
-    // This same popup is shown whether the user is online or already seated on another mic.
-    final takeMic = await showDialog<bool>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF171017),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: pink, width: 1.5),
-        ),
-        title: const Text('MIC SEAT', textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Take Mic ${number}?',
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 18),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: pink, width: 1.3),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('TAKE MIC', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.black,
-                  side: const BorderSide(color: pink, width: 1.3),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('CANCEL', style: TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (takeMic != true || !mounted) return;
-
     try {
       final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
-      final existingSeats = await roomRef.collection('micSeats')
-          .where('firebaseUid', isEqualTo: user.uid).get();
-      final oldSeatRefs = existingSeats.docs
-          .where((doc) => doc.id != '$number' && int.tryParse(doc.id) != null)
-          .map((doc) => doc.reference)
-          .toList();
-
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final targetSnapshot = await transaction.get(seatRef);
-        if (targetSnapshot.exists) throw StateError('This mic seat is already taken.');
-        final oldSnapshots = <DocumentSnapshot<Map<String, dynamic>>>[];
-        for (final oldRef in oldSeatRefs) {
-          oldSnapshots.add(await transaction.get(oldRef));
-        }
-        for (var i = 0; i < oldSeatRefs.length; i++) {
-          if (oldSnapshots[i].exists) transaction.delete(oldSeatRefs[i]);
-        }
+        final seatSnapshot = await transaction.get(seatRef);
+        if (seatSnapshot.exists) throw StateError('This mic seat is already taken.');
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
@@ -13319,9 +13054,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         });
       });
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not take mic: $error')),
-      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not take mic: $error')));
     }
   }
 
@@ -13393,18 +13126,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     final rows = _micRowsForCount(count);
     final seatsStream = FirebaseFirestore.instance
         .collection('rooms').doc(widget.roomDocumentId)
-        .collection('micSeats').snapshots(includeMetadataChanges: true);
+        .collection('micSeats').snapshots();
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: seatsStream,
       builder: (context, snapshot) {
         final seats = <String, Map<String, dynamic>>{};
-        final displayedUids = <String>{};
         for (final doc in snapshot.data?.docs ?? []) {
-          final data = doc.data();
-          final uid = (data['firebaseUid'] ?? '').toString();
-          if (int.tryParse(doc.id) == null) continue;
-          if (uid.isNotEmpty && !displayedUids.add(uid)) continue;
-          seats[doc.id] = data;
+          seats[doc.id] = doc.data();
         }
         return Padding(
           padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
@@ -13772,41 +13500,47 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Future<void> _banOnlineUser(String targetUid, String targetName) async {
     final actorRole = await _currentRoomOptionsRole();
     if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
-    final confirm = await showDialog<bool>(context: context, builder: (dialogContext) => AlertDialog(
-      backgroundColor: panelBlue,
-      title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.white)),
-      content: Text('Permanently ban $targetName from this room? They cannot message, join or take a mic until room staff unban them.', style: const TextStyle(color: Colors.white70)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel')),
-        TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Ban', style: TextStyle(color: Colors.redAccent))),
-      ],
-    ));
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final roomSnap = await roomRef.get();
+    final room = roomSnap.data() ?? <String, dynamic>{};
+    if ((room['leaderUid'] ?? '').toString() == targetUid) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panelBlue,
+        title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.white)),
+        content: Text('Ban $targetName in this room? The member will remain visible but cannot message or take the mic.', style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('BAN')),
+        ],
+      ),
+    );
     if (confirm != true) return;
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    try {
-      final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
-      await roomRef.collection('blockedMembers').doc(targetUid).set({
-        'targetUid': targetUid, 'targetName': targetName,
-        'actorUid': user.uid, 'actorName': user.displayName ?? 'Room Staff',
-        'createdAt': FieldValue.serverTimestamp(),
-        'banned': true,
-      });
-      await _writeRoomActionRecord(action: 'Ban', targetUid: targetUid, targetName: targetName);
-      await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get().then((q) async {
-        for (final doc in q.docs) { await doc.reference.delete(); }
-      });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$targetName is banned from this room until staff unban them.')));
-    } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ban failed: $error')));
-    }
+    await roomRef.collection('blockedMembers').doc(targetUid).set({
+      'uid': targetUid,
+      'name': targetName,
+      'bannedByUid': FirebaseAuth.instance.currentUser?.uid,
+      'bannedByRole': actorRole,
+      'bannedAt': FieldValue.serverTimestamp(),
+      'active': true,
+    });
+    await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get().then((q) async {
+      for (final d in q.docs) { await d.reference.delete(); }
+    });
+  }
+
+  Future<void> _unbanOnlineUser(String targetUid) async {
+    final role = await _currentRoomOptionsRole();
+    if (!['leader', 'deputy', 'incharge'].contains(role)) return;
+    await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
+        .collection('blockedMembers').doc(targetUid).delete();
   }
 
   Future<void> _kickOnlineUser(String targetUid, String targetName, String actorRole) async {
-    final verifiedRole = await _currentRoomOptionsRole();
-    if (!['leader', 'deputy', 'incharge'].contains(verifiedRole)) return;
-    actorRole = verifiedRole;
     final isLeader = actorRole == 'leader';
+    if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
     final selectedDuration = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
       title: const Text('KICK MEMBER?', style: TextStyle(color: Colors.white)),
@@ -13856,11 +13590,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         .collection('presence');
 
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _roomPresenceStream(widget.roomDocumentId),
+      stream: presenceRef.snapshots(),
       builder: (context, snapshot) {
         final now = DateTime.now();
-        final presenceData = snapshot.data ?? _cachedRoomPresenceSnapshots[widget.roomDocumentId];
-        final onlineDocs = (presenceData?.docs ??
+        final onlineDocs = (snapshot.data?.docs ??
                 <QueryDocumentSnapshot<Map<String, dynamic>>>[])
             .where((doc) {
           final lastSeen = doc.data()['lastSeenAt'];
@@ -14329,7 +14062,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         stream: FirebaseFirestore.instance.collection('publicProfiles').limit(100).snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
-          if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
           final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
           if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
           return ListView.builder(
@@ -14821,7 +14554,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
         ),
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _roomPresenceStream(roomDocumentId),
+        stream: presenceRef.snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -14831,13 +14564,16 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
               ),
             );
           }
-          final presenceData = snapshot.data ?? _cachedRoomPresenceSnapshots[roomDocumentId];
-          if (presenceData == null) {
-            return const Center(child: Text('No users are online right now.', style: TextStyle(color: Colors.white70)));
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFFFFD700),
+              ),
+            );
           }
 
           final now = DateTime.now();
-          final onlineDocs = presenceData.docs.where((doc) {
+          final onlineDocs = snapshot.data!.docs.where((doc) {
             final lastSeen = doc.data()['lastSeenAt'];
             if (lastSeen is! Timestamp) return false;
             return now.difference(lastSeen.toDate()) <=
@@ -15277,7 +15013,7 @@ Widget _buildSearchResult() {
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(
-          child: SizedBox.shrink(),
+          child: CircularProgressIndicator(color: gold),
         );
       }
 
@@ -15333,7 +15069,7 @@ Widget _buildSearchResult() {
         builder: (context, requestSnapshot) {
           if (requestSnapshot.connectionState == ConnectionState.waiting) {
             return const Center(
-              child: SizedBox.shrink(),
+              child: CircularProgressIndicator(color: gold),
             );
           }
 
@@ -15998,7 +15734,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
       stream: _incomingPendingStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
-        if (!snapshot.hasData) return const Center(child: SizedBox.shrink());
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
           return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
@@ -16115,7 +15851,9 @@ class _FriendsListSection extends StatelessWidget {
 
         if (!outgoing.hasData) {
           return const Center(
-            child: SizedBox.shrink(),
+            child: CircularProgressIndicator(
+              color: Color(0xFFFF1688),
+            ),
           );
         }
 
@@ -16134,7 +15872,9 @@ class _FriendsListSection extends StatelessWidget {
 
             if (!incoming.hasData) {
               return const Center(
-                child: SizedBox.shrink(),
+                child: CircularProgressIndicator(
+                  color: Color(0xFFFF1688),
+                ),
               );
             }
 
@@ -16790,7 +16530,9 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
 
           if (!snapshot.hasData) {
             return const Center(
-              child: SizedBox.shrink(),
+              child: CircularProgressIndicator(
+                color: _gold,
+              ),
             );
           }
 
@@ -17836,7 +17578,7 @@ class _MessagesListSection extends StatelessWidget {
 
         if (!outgoing.hasData) {
           return const Center(
-            child: SizedBox.shrink(),
+            child: CircularProgressIndicator(color: _chatGold),
           );
         }
 
@@ -17855,7 +17597,7 @@ class _MessagesListSection extends StatelessWidget {
 
             if (!incoming.hasData) {
               return const Center(
-                child: SizedBox.shrink(),
+                child: CircularProgressIndicator(color: _chatGold),
               );
             }
 
