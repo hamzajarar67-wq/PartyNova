@@ -12972,7 +12972,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             ],
           ),
         );
-        if (leave == true) await seatRef.delete();
+        if (leave == true) {
+          await seatRef.delete();
+          await roomRef.collection('micSeatUsers').doc(user.uid).delete().catchError((_) {});
+        }
       } else {
         await _showMicUserProfile(occupant);
       }
@@ -13004,13 +13007,17 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     try {
       final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
+      final userSeatLockRef = roomRef.collection('micSeatUsers').doc(user.uid);
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         final targetSeat = await transaction.get(seatRef);
+        final userSeatLock = await transaction.get(userSeatLockRef);
         if (targetSeat.exists) throw StateError('This mic seat is already taken.');
-        final allSeats = await transaction.get(roomRef.collection('micSeats'));
-        if (allSeats.docs.any((doc) => (doc.data()['firebaseUid'] ?? '').toString() == user.uid)) {
-          throw StateError('You are already sitting on another mic.');
-        }
+        if (userSeatLock.exists) throw StateError('You are already sitting on another mic.');
+        transaction.set(userSeatLockRef, {
+          'firebaseUid': user.uid,
+          'seatNumber': number,
+          'joinedAt': FieldValue.serverTimestamp(),
+        });
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
