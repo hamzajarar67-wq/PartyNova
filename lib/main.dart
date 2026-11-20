@@ -11082,7 +11082,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                               final confirm = await showDialog<bool>(
                                                 context: context,
                                                 builder: (ctx) => AlertDialog(
-                                                  backgroundColor: panelBlue,
+                                                  backgroundColor: panel,
                                                   title: const Text('UN-KICK MEMBER?', style: TextStyle(color: Colors.white)),
                                                   content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.white70)),
                                                   actions: [
