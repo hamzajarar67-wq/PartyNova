@@ -10964,8 +10964,22 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  Widget _roomRecordAvatar(String uid, double size) {
+    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panelBlue, child: Icon(Icons.person, color: Colors.white54, size: size * .55));
+    return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      future: FirebaseFirestore.instance.collection('publicProfiles').doc(uid).get(),
+      builder: (context, snapshot) {
+        final photo = (snapshot.data?.data()?['photoBase64'] ?? '').toString();
+        return CircleAvatar(radius: size / 2, backgroundColor: panelBlue,
+          backgroundImage: photo.isNotEmpty ? getCachedProfilePhotoImage(photo) : null,
+          child: photo.isEmpty ? Icon(Icons.person, color: Colors.white54, size: size * .55) : null);
+      },
+    );
+  }
+
+
   Future<void> _showRoomRecordScreen() async {
-    const tabs = ['Ban', 'Unban', 'Remove', 'Kick'];
+    const tabs = ['Ban', 'Unban', 'Remove', 'Kick', 'Unkick'];
     int selectedTab = 0;
     await showDialog<void>(
       context: context,
@@ -11048,16 +11062,26 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               margin: const EdgeInsets.only(bottom: 8),
                               padding: const EdgeInsets.all(11),
                               decoration: BoxDecoration(
-                                border: Border.all(color: gold.withOpacity(.55)),
+                                border: Border.all(color: action == 'Kick' ? pink.withOpacity(.75) : gold.withOpacity(.55)),
+                                color: action == 'Kick' ? const Color(0xFF281126) : null,
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('${item['targetName'] ?? 'Member'}',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-                                  Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                  Row(children: [
+                                    _roomRecordAvatar((item['targetUid'] ?? '').toString(), 42),
+                                    const SizedBox(width: 9),
+                                    Expanded(child: Text('${item['targetName'] ?? 'Member'}',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+                                  ]),
+                                  const SizedBox(height: 6),
+                                  Row(children: [
+                                    _roomRecordAvatar((item['actorUid'] ?? '').toString(), 28),
+                                    const SizedBox(width: 6),
+                                    Expanded(child: Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
+                                      style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                                  ]),
                                   Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
                                   if (action == 'Kick')
                                     StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -11075,8 +11099,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                         if (!active) return const SizedBox.shrink();
                                         return Align(
                                           alignment: Alignment.centerRight,
-                                          child: TextButton(
-                                            onPressed: () async {
+                                          child: FutureBuilder<String>(
+                                            future: _currentRoomOptionsRole(),
+                                            builder: (context, leaderRoleSnapshot) => TextButton(
+                                            onPressed: leaderRoleSnapshot.data != 'leader' ? null : () async {
                                               final targetUid = (item['targetUid'] ?? '').toString();
                                               if (targetUid.isEmpty) return;
                                               final confirm = await showDialog<bool>(
@@ -11097,7 +11123,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                     .collection('rooms').doc(widget.roomDocumentId)
                                                     .collection('kickedMembers').doc(targetUid).delete();
                                                 await _writeRoomActionRecord(
-                                                  action: 'Unban',
+                                                  action: 'Unkick',
                                                   targetUid: targetUid,
                                                   targetName: (item['targetName'] ?? 'Member').toString(),
                                                 );
@@ -11106,7 +11132,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Un-kick failed: $error')));
                                               }
                                             },
-                                            child: const Text('UN-KICK', style: TextStyle(color: Color(0xFF36D477), fontWeight: FontWeight.w900)),
+                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.white30, fontWeight: FontWeight.w900)),
+                                            ),
                                           ),
                                         );
                                       },
@@ -13026,7 +13053,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         );
         if (leave == true) {
           await seatRef.delete();
-          await roomRef.collection('micSeatUsers').doc(user.uid).delete().catchError((_) {});
         }
       } else {
         await _showMicUserProfile(occupant);
@@ -13059,17 +13085,45 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     try {
       final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
-      final userSeatLockRef = roomRef.collection('micSeatUsers').doc(user.uid);
+
+      // Detect a hidden/stale seat record (the seat can look empty because
+      // its occupant is offline, while the Firestore micSeats document remains).
+      final existingSeat = await seatRef.get();
+      if (existingSeat.exists) {
+        final oldUid = (existingSeat.data()?['firebaseUid'] ?? '').toString();
+        final oldPresence = oldUid.isEmpty
+            ? null
+            : await roomRef.collection('presence').doc(oldUid).get();
+        final lastSeen = oldPresence?.data()?['lastSeenAt'];
+        final isOnline = lastSeen is Timestamp &&
+            DateTime.now().difference(lastSeen.toDate()) <= const Duration(minutes: 2);
+        if (isOnline) throw StateError('This mic seat is occupied by an online user.');
+
+        final roomSnapshot = await roomRef.get();
+        final myMember = await roomRef.collection('members').doc(user.uid).get();
+        final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+        final isLeader = roomData['leaderUid'] == user.uid ||
+            ((roomData['leaderUid'] == null || roomData['leaderUid'] == '') && roomData['ownerUid'] == user.uid);
+        final myRole = (myMember.data()?['role'] ?? '').toString();
+        final canClearStaleSeat = isLeader ||
+            myRole == 'Deputy Leader' || myRole == 'Seat Incharge' || oldUid == user.uid;
+        if (!canClearStaleSeat) {
+          throw StateError('This mic has an old seat record. Room Leader must clear it first.');
+        }
+        await seatRef.delete();
+      }
+
+      // Prevent a user from taking a second mic (best-effort client check).
+      final otherSeats = await roomRef.collection('micSeats')
+          .where('firebaseUid', isEqualTo: user.uid).get();
+      if (otherSeats.docs.any((doc) => doc.id != '$number')) {
+        throw StateError('You are already sitting on another mic.');
+      }
+
+
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         final targetSeat = await transaction.get(seatRef);
-        final userSeatLock = await transaction.get(userSeatLockRef);
         if (targetSeat.exists) throw StateError('This mic seat is already taken.');
-        if (userSeatLock.exists) throw StateError('You are already sitting on another mic.');
-        transaction.set(userSeatLockRef, {
-          'firebaseUid': user.uid,
-          'seatNumber': number,
-          'joinedAt': FieldValue.serverTimestamp(),
-        });
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
