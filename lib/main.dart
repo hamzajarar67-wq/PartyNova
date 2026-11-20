@@ -11059,6 +11059,58 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                   Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
                                       style: const TextStyle(color: Colors.white70, fontSize: 12)),
                                   Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                  if (action == 'Kick')
+                                    StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('rooms')
+                                          .doc(widget.roomDocumentId)
+                                          .collection('kickedMembers')
+                                          .doc((item['targetUid'] ?? '').toString())
+                                          .snapshots(),
+                                      builder: (context, kickSnapshot) {
+                                        final kickData = kickSnapshot.data?.data();
+                                        final expiresAt = kickData?['expiresAt'];
+                                        final active = kickSnapshot.data?.exists == true &&
+                                            !(expiresAt is Timestamp && !expiresAt.toDate().isAfter(DateTime.now()));
+                                        if (!active) return const SizedBox.shrink();
+                                        return Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton(
+                                            onPressed: () async {
+                                              final targetUid = (item['targetUid'] ?? '').toString();
+                                              if (targetUid.isEmpty) return;
+                                              final confirm = await showDialog<bool>(
+                                                context: context,
+                                                builder: (ctx) => AlertDialog(
+                                                  backgroundColor: panelBlue,
+                                                  title: const Text('UN-KICK MEMBER?', style: TextStyle(color: Colors.white)),
+                                                  content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.white70)),
+                                                  actions: [
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL', style: TextStyle(color: Colors.white70))),
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('UN-KICK', style: TextStyle(color: Color(0xFF36D477)))),
+                                                  ],
+                                                ),
+                                              );
+                                              if (confirm != true) return;
+                                              try {
+                                                await FirebaseFirestore.instance
+                                                    .collection('rooms').doc(widget.roomDocumentId)
+                                                    .collection('kickedMembers').doc(targetUid).delete();
+                                                await _writeRoomActionRecord(
+                                                  action: 'Unban',
+                                                  targetUid: targetUid,
+                                                  targetName: (item['targetName'] ?? 'Member').toString(),
+                                                );
+                                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member can enter the room again.')));
+                                              } catch (error) {
+                                                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Un-kick failed: $error')));
+                                              }
+                                            },
+                                            child: const Text('UN-KICK', style: TextStyle(color: Color(0xFF36D477), fontWeight: FontWeight.w900)),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                 ],
                               ),
                             );
@@ -12512,7 +12564,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           title: const Text('ROOM ACCESS RESTRICTED',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
           content: const Text(
-            'You have been kicked from this room. You can enter again after the kick period ends.',
+            'You have been kicked from this room. You cannot enter until the Room Leader removes your kick from Room Record.',
             style: TextStyle(color: Colors.white70),
           ),
           actions: [
@@ -12551,7 +12603,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           backgroundColor: panelBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: pink, width: 1.5)),
           title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('You have been kicked from this room and cannot stay here during the kick period.', style: TextStyle(color: Colors.white70)),
+          content: const Text('You have been kicked from this room. You must leave now and cannot return until the kick is removed in Room Record.', style: TextStyle(color: Colors.white70)),
           actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
         ),
       );
