@@ -10465,10 +10465,47 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     }
   }
 
-  // Only the app Owner/Admin and this room's Owner/Leader can manage members.
-  // Deputy Leader controls stay unavailable until the future room-upgrade feature.
+  // Resolve authority from this room only. App-wide Owner/Admin status does
+  // not grant moderation rights in another room.
+  Future<String> _roomDetailsActorRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'notMember';
+
+    try {
+      final roomRef = FirebaseFirestore.instance
+          .collection('rooms')
+          .doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return 'notMember';
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+
+      final leaderUid = (roomData['leaderUid'] ?? '').toString().trim();
+      final ownerUid = (roomData['ownerUid'] ?? '').toString().trim();
+      final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+      if (user.uid == actualLeaderUid || user.uid == ownerUid) return 'leader';
+
+      final memberSnapshot =
+          await roomRef.collection('members').doc(user.uid).get();
+      if (!memberSnapshot.exists) return 'notMember';
+      final memberData = memberSnapshot.data() ?? <String, dynamic>{};
+      final memberRole =
+          (memberData['role'] ?? '').toString().trim().toLowerCase();
+
+      if (memberRole == 'deputy leader') return 'deputy';
+      if (memberRole == 'seat incharge' ||
+          memberRole == 'in-charge' ||
+          memberRole == 'incharge') {
+        return 'incharge';
+      }
+      return 'member';
+    } catch (error) {
+      debugPrint('Could not resolve room details actor role: $error');
+      return 'notMember';
+    }
+  }
+
   Future<bool> _canManageRoomMembers() async {
-    final role = await _currentRoomOptionsRole();
+    final role = await _roomDetailsActorRole();
     return role == 'leader' || role == 'deputy' || role == 'incharge';
   }
 
