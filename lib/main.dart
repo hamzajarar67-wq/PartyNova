@@ -2497,15 +2497,6 @@ Widget buildUserSearchResult() {
                               color: Color(0xFF392047),
                               child: Icon(Icons.groups_rounded, size: 52, color: Color(0xFFFFB9DD)),
                             ),
-                          Positioned(
-                            right: 7,
-                            top: 7,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                              decoration: BoxDecoration(color: Colors.black.withOpacity(0.62), borderRadius: BorderRadius.circular(20)),
-                              child: Text('${data['memberCount'] ?? 0} members', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -2517,28 +2508,10 @@ Widget buildUserSearchResult() {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF174B40), fontSize: 14, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 3),
-                          Text('UID: $uid', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF39766A), fontSize: 10)),
-                          const SizedBox(height: 7),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: followed ? null : () => _followRoomLocally(doc.id),
-                                  style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFB02D72), padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
-                                  child: Text(followed ? 'Following' : 'Follow', maxLines: 1, style: const TextStyle(fontSize: 10)),
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: joined ? null : () => _joinRoomFromCard({'docId': doc.id}),
-                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2477D4), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 3), visualDensity: VisualDensity.compact),
-                                  child: Text(joined ? 'Joined' : 'Join', maxLines: 1, style: const TextStyle(fontSize: 10)),
-                                ),
-                              ),
-                            ],
-                          ),
+                          if ((data['roomDescription'] ?? '').toString().trim().isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text((data['roomDescription'] ?? '').toString().trim().split(RegExp(r'\r?\n')).first, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF39766A), fontSize: 11)),
+                          ],
                         ],
                       ),
                     ),
@@ -2969,53 +2942,6 @@ Widget buildUserSearchResult() {
                               ),
                             ],
                             const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: _followedRoomIds.contains(room['docId'].toString())
-                                        ? null
-                                        : () => _followRoomLocally(room['docId'].toString()),
-                                    icon: Icon(
-                                      _followedRoomIds.contains(room['docId'].toString())
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                      size: 15,
-                                    ),
-                                    label: Text(
-                                      _followedRoomIds.contains(room['docId'].toString())
-                                          ? 'Following'
-                                          : 'Follow',
-                                      maxLines: 1,
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: const Color(0xFFB02D72),
-                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Expanded(
-                                  child: ElevatedButton(
-                                    onPressed: !_followedRoomIds.contains(room['docId'].toString()) ||
-                                            _joinedRoomIds.contains(room['docId'].toString())
-                                        ? null
-                                        : () => _joinRoomFromCard(room),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF2477D4),
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                    child: Text(
-                                      _joinedRoomIds.contains(room['docId'].toString()) ? 'Joined' : 'Join',
-                                      maxLines: 1,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ),
                       ),
@@ -13028,64 +12954,68 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (user == null) return;
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
     final seatRef = roomRef.collection('micSeats').doc('$number');
-    final banSnap = await roomRef.collection('blockedMembers').doc(user.uid).get();
-    if (banSnap.exists) return;
+    if ((await roomRef.collection('blockedMembers').doc(user.uid).get()).exists) return;
 
     if (occupant != null) {
-      if ((occupant['firebaseUid'] ?? '').toString() != user.uid) return;
-      final leave = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: panelBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-          title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-            TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
-          ],
-        ),
-      );
-      if (leave == true) await seatRef.delete();
+      if ((occupant['firebaseUid'] ?? '').toString() == user.uid) {
+        // Keep the existing Leave Mic popup unchanged.
+        final leave = await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            backgroundColor: panelBlue,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
+            title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+            content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+              TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
+            ],
+          ),
+        );
+        if (leave == true) await seatRef.delete();
+      } else {
+        await _showMicUserProfile(occupant);
+      }
       return;
     }
-    final roomSnapshot = await roomRef.get();
-    final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-    final rawLevel = roomData['roomLevel'] ?? roomData['level'] ?? roomData['levelNumber'] ?? 1;
-    final roomLevel = rawLevel is num ? rawLevel.toInt() : int.tryParse(rawLevel.toString()) ?? 1;
-    if (roomLevel > 7) {
-      final join = await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => AlertDialog(
-          backgroundColor: panelBlue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(17), side: const BorderSide(color: pink, width: 1.6)),
-          title: const Text('JOIN ROOM', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('Join this room before taking a mic seat?', style: TextStyle(color: Colors.white70)),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-            ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Join')),
-          ],
-        ),
-      );
-      if (join != true) return;
-      final memberBefore = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberBefore.exists) {
-        await _joinRoom(requireFollow: false);
-      }
-      final memberAfter = await roomRef.collection('members').doc(user.uid).get();
-      if (!memberAfter.exists) return;
+
+    // Reject users who already occupy any mic in this room.
+    final alreadySeated = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: user.uid).get();
+    if (alreadySeated.docs.isNotEmpty) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You are already sitting on a mic.')));
+      return;
     }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: panelBlue,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
+        title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+        content: const Text('Take Mic?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Take Mic')),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
     try {
       final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
       await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final seatSnapshot = await transaction.get(seatRef);
-        if (seatSnapshot.exists) throw StateError('This mic seat is already taken.');
+        final targetSeat = await transaction.get(seatRef);
+        if (targetSeat.exists) throw StateError('This mic seat is already taken.');
+        final allSeats = await transaction.get(roomRef.collection('micSeats'));
+        if (allSeats.docs.any((doc) => (doc.data()['firebaseUid'] ?? '').toString() == user.uid)) {
+          throw StateError('You are already sitting on another mic.');
+        }
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
           'name': (profile['name'] ?? user.displayName ?? 'PartyNova User').toString(),
+          'userId': (profile['userId'] ?? '').toString(),
           'photoBase64': (profile['photoBase64'] ?? '').toString(),
           'joinedAt': FieldValue.serverTimestamp(),
         });
@@ -13094,6 +13024,55 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not take mic: $error')));
     }
   }
+
+
+  Future<void> _showMicUserProfile(Map<String, dynamic> occupant) async {
+    final uid = (occupant['firebaseUid'] ?? '').toString();
+    final name = (occupant['name'] ?? 'PartyNova User').toString();
+    final photo = (occupant['photoBase64'] ?? '').toString();
+    var partyId = (occupant['userId'] ?? '').toString();
+    if (partyId.isEmpty && uid.isNotEmpty) {
+      try {
+        final profile = await FirebaseFirestore.instance.collection('publicProfiles').doc(uid).get();
+        partyId = (profile.data()?['userId'] ?? '').toString();
+      } catch (_) {}
+    }
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.52,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
+          decoration: BoxDecoration(color: panelBlue, borderRadius: const BorderRadius.vertical(top: Radius.circular(22)), border: Border.all(color: pink, width: 1.3)),
+          child: Column(children: [
+            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(5))),
+            const SizedBox(height: 18),
+            CircleAvatar(radius: 54, backgroundColor: const Color(0xFF171017), backgroundImage: getCachedProfilePhotoImage(photo), child: getCachedProfilePhotoImage(photo) == null ? const Icon(Icons.person_rounded, size: 56, color: Colors.white70) : null),
+            const SizedBox(height: 12),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 19)),
+            const SizedBox(height: 5),
+            Text('UID: $partyId', style: const TextStyle(color: gold, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 20),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              _micProfileAction(Icons.person_add_alt_1_rounded, 'Add Friend'),
+              _micProfileAction(Icons.card_giftcard_rounded, 'Gift'),
+              _micProfileAction(Icons.volume_off_rounded, 'Mute'),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _micProfileAction(IconData icon, String label) => Column(mainAxisSize: MainAxisSize.min, children: [
+    Container(width: 48, height: 48, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: pink), color: Colors.black26), child: Icon(icon, color: gold)),
+    const SizedBox(height: 6),
+    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)),
+  ]);
 
   Widget _buildSeat(int number, Map<String, dynamic>? occupant) {
     final currentUser = FirebaseAuth.instance.currentUser;
@@ -13161,24 +13140,39 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
   Widget _buildRoomSeatLayout(int count) {
     final rows = _micRowsForCount(count);
-    final seatsStream = FirebaseFirestore.instance
-        .collection('rooms').doc(widget.roomDocumentId)
-        .collection('micSeats').snapshots();
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final seatsStream = roomRef.collection('micSeats').snapshots();
+    final presenceStream = roomRef.collection('presence').snapshots();
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: seatsStream,
-      builder: (context, snapshot) {
-        final seats = <String, Map<String, dynamic>>{};
-        for (final doc in snapshot.data?.docs ?? []) {
-          seats[doc.id] = doc.data();
+      stream: presenceStream,
+      builder: (context, presenceSnapshot) {
+        final now = DateTime.now();
+        final onlineUids = <String>{};
+        for (final presenceDoc in presenceSnapshot.data?.docs ?? []) {
+          final lastSeen = presenceDoc.data()['lastSeenAt'];
+          if (lastSeen is Timestamp && now.difference(lastSeen.toDate()) <= const Duration(minutes: 2)) {
+            onlineUids.add(presenceDoc.id);
+          }
         }
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            for (var index = 0; index < rows.length; index++) ...[
-              if (index > 0) const SizedBox(height: 13),
-              _buildSeatPatternRow(rows[index], seats),
-            ],
-          ]),
+        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: seatsStream,
+          builder: (context, seatSnapshot) {
+            final seats = <String, Map<String, dynamic>>{};
+            for (final doc in seatSnapshot.data?.docs ?? []) {
+              final seatData = doc.data();
+              final seatedUid = (seatData['firebaseUid'] ?? '').toString();
+              if (onlineUids.contains(seatedUid)) seats[doc.id] = seatData;
+            }
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(5, 8, 5, 0),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                for (var index = 0; index < rows.length; index++) ...[
+                  if (index > 0) const SizedBox(height: 13),
+                  _buildSeatPatternRow(rows[index], seats),
+                ],
+              ]),
+            );
+          },
         );
       },
     );
