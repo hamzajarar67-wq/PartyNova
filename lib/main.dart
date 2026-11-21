@@ -10964,13 +10964,38 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     );
   }
 
+  Future<String> _currentRoomOptionsRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'notMember';
+    try {
+      final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+      final roomSnapshot = await roomRef.get();
+      if (!roomSnapshot.exists) return 'notMember';
+      final roomData = roomSnapshot.data() ?? <String, dynamic>{};
+      final leaderUid = (roomData['leaderUid'] ?? '').toString().trim();
+      final ownerUid = (roomData['ownerUid'] ?? '').toString().trim();
+      final actualLeaderUid = leaderUid.isNotEmpty ? leaderUid : ownerUid;
+      if (user.uid == actualLeaderUid || user.uid == ownerUid) return 'leader';
+      final memberSnapshot = await roomRef.collection('members').doc(user.uid).get();
+      if (!memberSnapshot.exists) return 'notMember';
+      final memberRole = (memberSnapshot.data()?['role'] ?? '').toString().trim().toLowerCase();
+      if (memberRole == 'deputy leader') return 'deputy';
+      if (memberRole == 'seat incharge' || memberRole == 'in-charge' || memberRole == 'incharge') return 'incharge';
+      return 'member';
+    } catch (error) {
+      debugPrint('Could not resolve room record role: $error');
+      return 'notMember';
+    }
+  }
+
+
   Widget _roomRecordAvatar(String uid, double size) {
-    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panelBlue, child: Icon(Icons.person, color: Colors.white54, size: size * .55));
+    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panel, child: Icon(Icons.person, color: Colors.white54, size: size * .55));
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       future: FirebaseFirestore.instance.collection('publicProfiles').doc(uid).get(),
       builder: (context, snapshot) {
         final photo = (snapshot.data?.data()?['photoBase64'] ?? '').toString();
-        return CircleAvatar(radius: size / 2, backgroundColor: panelBlue,
+        return CircleAvatar(radius: size / 2, backgroundColor: panel,
           backgroundImage: photo.isNotEmpty ? getCachedProfilePhotoImage(photo) : null,
           child: photo.isEmpty ? Icon(Icons.person, color: Colors.white54, size: size * .55) : null);
       },
