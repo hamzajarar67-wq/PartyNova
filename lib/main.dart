@@ -10670,10 +10670,29 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           .doc(widget.roomDocumentId)
           .collection('roomRecords');
 
+  Future<void> _removeMicFromUser(String targetUid, String targetName, String actorRole) async {
+    if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    try {
+      final seats = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get();
+      if (seats.docs.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This user is not on a mic.')));
+        return;
+      }
+      for (final seat in seats.docs) { await seat.reference.delete(); }
+      await _writeRoomActionRecord(action: 'Remove Mic', targetUid: targetUid, targetName: targetName);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mic removed from $targetName.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remove Mic failed: $error')));
+    }
+  }
+
+
   Future<void> _writeRoomActionRecord({
     required String action,
     required String targetUid,
     required String targetName,
+    String targetUserId = '',
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -10681,6 +10700,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       'action': action,
       'targetUid': targetUid,
       'targetName': targetName,
+      'targetUserId': targetUserId,
       'actorUid': user.uid,
       'actorName': user.displayName ?? 'Room Staff',
       'createdAt': FieldValue.serverTimestamp(),
@@ -11004,7 +11024,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
 
   Future<void> _showRoomRecordScreen() async {
-    const tabs = ['Ban', 'Unban', 'Remove', 'Kick', 'Unkick'];
+    const tabs = ['Ban', 'Unban', 'Remove', 'Kick', 'Unkick', 'Remove Mic'];
     int selectedTab = 0;
     await showDialog<void>(
       context: context,
@@ -11102,11 +11122,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                   ]),
                                   const SizedBox(height: 6),
                                   Row(children: [
-                                    _roomRecordAvatar((item['actorUid'] ?? '').toString(), 28),
                                     const SizedBox(width: 6),
                                     Expanded(child: Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
                                       style: const TextStyle(color: Colors.white70, fontSize: 12))),
                                   ]),
+                                  if ((item['targetUserId'] ?? '').toString().isNotEmpty)
+                                    Text('UID: ${item['targetUserId']}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                                   Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
                                   if (action == 'Kick')
                                     StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -13124,18 +13145,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             DateTime.now().difference(lastSeen.toDate()) <= const Duration(minutes: 2);
         if (isOnline) throw StateError('This mic seat is occupied by an online user.');
 
-        final roomSnapshot = await roomRef.get();
-        final myMember = await roomRef.collection('members').doc(user.uid).get();
-        final roomData = roomSnapshot.data() ?? <String, dynamic>{};
-        final isLeader = roomData['leaderUid'] == user.uid ||
-            ((roomData['leaderUid'] == null || roomData['leaderUid'] == '') && roomData['ownerUid'] == user.uid);
-        final myRole = (myMember.data()?['role'] ?? '').toString();
-        final canClearStaleSeat = isLeader ||
-            myRole == 'Deputy Leader' || myRole == 'Seat Incharge' || oldUid == user.uid;
-        if (!canClearStaleSeat) {
-          throw StateError('This mic has an old seat record. Room Leader must clear it first.');
-        }
-        await seatRef.delete();
+        // If a seat has no active presence, it is a stale seat record. Any
+        // joining user may clear that specific offline record, but never an active seat.
+        await FirebaseFirestore.instance.runTransaction((transaction) async {
+          final currentSeat = await transaction.get(seatRef);
+          final currentUid = (currentSeat.data()?['firebaseUid'] ?? '').toString();
+          if (currentSeat.exists && currentUid == oldUid) transaction.delete(seatRef);
+        });
       }
 
       // Prevent a user from taking a second mic (best-effort client check).
@@ -13570,6 +13586,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             ('Take the Mic', Icons.mic_rounded, Colors.white),
             ('Kick', Icons.sports_kabaddi_rounded, Colors.white),
             ('Ban', Icons.block_rounded, Colors.redAccent),
+            ('Remove Mic', Icons.mic_off_rounded, pink),
             ('Profile', Icons.person_rounded, Colors.white),
           ])
             Container(
@@ -13595,6 +13612,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       await _banOnlineUser(targetUid, targetName);
     } else if (choice == 'Kick') {
       await _kickOnlineUser(targetUid, targetName, role);
+    } else if (choice == 'Remove Mic') {
+      await _removeMicFromUser(targetUid, targetName, role);
     }
   }
 
@@ -13695,6 +13714,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       'bannedAt': FieldValue.serverTimestamp(),
       'active': true,
     });
+    final banProfile = await FirebaseFirestore.instance.collection('publicProfiles').doc(targetUid).get();
+    await _writeRoomActionRecord(action: 'Ban', targetUid: targetUid, targetName: targetName, targetUserId: (banProfile.data()?['userId'] ?? '').toString());
     await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get().then((q) async {
       for (final d in q.docs) { await d.reference.delete(); }
     });
@@ -13703,8 +13724,13 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Future<void> _unbanOnlineUser(String targetUid) async {
     final role = await _currentRoomOptionsRole();
     if (!['leader', 'deputy', 'incharge'].contains(role)) return;
-    await FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId)
-        .collection('blockedMembers').doc(targetUid).delete();
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    final blocked = await roomRef.collection('blockedMembers').doc(targetUid).get();
+    if (!blocked.exists) return;
+    final targetName = (blocked.data()?['name'] ?? 'Member').toString();
+    await roomRef.collection('blockedMembers').doc(targetUid).delete();
+    final banProfile = await FirebaseFirestore.instance.collection('publicProfiles').doc(targetUid).get();
+    await _writeRoomActionRecord(action: 'Unban', targetUid: targetUid, targetName: targetName, targetUserId: (banProfile.data()?['userId'] ?? '').toString());
   }
 
   Future<void> _kickOnlineUser(String targetUid, String targetName, String actorRole) async {
@@ -13742,7 +13768,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'expiresAt': Timestamp.fromDate(DateTime.now().add(duration)),
       });
-      await _writeRoomActionRecord(action: 'Kick', targetUid: targetUid, targetName: targetName);
+      final targetProfile = await FirebaseFirestore.instance.collection('publicProfiles').doc(targetUid).get();
+      await _writeRoomActionRecord(action: 'Kick', targetUid: targetUid, targetName: targetName, targetUserId: (targetProfile.data()?['userId'] ?? '').toString());
       await roomRef.collection('presence').doc(targetUid).delete().catchError((_) {});
       final seats = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get();
       for (final doc in seats.docs) { await doc.reference.delete(); }
