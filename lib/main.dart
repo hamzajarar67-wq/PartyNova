@@ -13660,10 +13660,29 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     }
   }
 
+  Future<void> _removeMicFromUser(String targetUid, String targetName, String actorRole) async {
+    if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
+    final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
+    try {
+      final seats = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: targetUid).get();
+      if (seats.docs.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('This user is not on a mic.')));
+        return;
+      }
+      for (final seat in seats.docs) { await seat.reference.delete(); }
+      await _writeRoomActionRecord(action: 'Remove Mic', targetUid: targetUid, targetName: targetName);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Mic removed from $targetName.')));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Remove Mic failed: $error')));
+    }
+  }
+
+
   Future<void> _writeRoomActionRecord({
     required String action,
     required String targetUid,
     required String targetName,
+    String targetUserId = '',
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -13675,6 +13694,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       'action': action,
       'targetUid': targetUid,
       'targetName': targetName,
+      'targetUserId': targetUserId,
       'actorUid': user.uid,
       'actorName': user.displayName ?? 'Room Staff',
       'createdAt': FieldValue.serverTimestamp(),
