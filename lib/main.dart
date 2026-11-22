@@ -1149,17 +1149,25 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
   Future<void> _loadRoomLists() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-    final followed = await _loadLocalRoomIds(user.uid, 'followed_rooms');
-    final joined = await _loadLocalRoomIds(user.uid, 'joined_rooms');
-    final recent = await _loadLocalRoomIds(user.uid, 'recent_rooms');
-    if (!mounted) return;
-    setState(() {
-      _followedRoomIds..clear()..addAll(followed);
-      _joinedRoomIds..clear()..addAll(joined);
-      _recentRoomIds..clear()..addAll(recent);
-      _roomListsLoaded = true;
-    });
+    if (user == null) {
+      if (mounted) setState(() => _roomListsLoaded = true);
+      return;
+    }
+    try {
+      final followed = await _loadLocalRoomIds(user.uid, 'followed_rooms');
+      final joined = await _loadLocalRoomIds(user.uid, 'joined_rooms');
+      final recent = await _loadLocalRoomIds(user.uid, 'recent_rooms');
+      if (!mounted) return;
+      setState(() {
+        _followedRoomIds..clear()..addAll(followed);
+        _joinedRoomIds..clear()..addAll(joined);
+        _recentRoomIds..clear()..addAll(recent);
+        _roomListsLoaded = true;
+      });
+    } catch (error) {
+      debugPrint('Loading room lists failed: $error');
+      if (mounted) setState(() => _roomListsLoaded = true);
+    }
   }
 
   Future<void> _updateLocalRoomList(String listName, Set<String> values) async {
@@ -2209,10 +2217,11 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
     );
   }
 
-late final Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
-    FirebaseFirestore.instance
-        .collection('rooms')
-        .snapshots();
+Stream<QuerySnapshot<Map<String, dynamic>>> _createActiveRoomsStream() =>
+    FirebaseFirestore.instance.collection('rooms').snapshots();
+
+late Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
+    _createActiveRoomsStream();
 
 
   
@@ -2363,6 +2372,9 @@ Widget buildUserSearchResult() {
                 onTap: () {
                   setState(() {
                     _selectedRoomFilter = index;
+                    // Recreate the Firestore stream when switching room filters,
+                    // so returning from My Room/Create Room resubscribes cleanly.
+                    _activeRoomsStream = _createActiveRoomsStream();
                   });
                 },
                 child: AnimatedContainer(
@@ -2640,6 +2652,7 @@ Widget buildUserSearchResult() {
                     onTap: () {
                       setState(() {
                         _selectedMyRoomFilter = index;
+                        _activeRoomsStream = _createActiveRoomsStream();
                       });
                     },
                     child: AnimatedContainer(
