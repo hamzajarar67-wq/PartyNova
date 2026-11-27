@@ -116,14 +116,10 @@ const Map<String, String> partyNovaReservedIds = {
   'hamzajarar67@gmail.com': '111112',
 };
 
-const Color partyPink = Color(0xFFFF1688);
-const Color partyBlack = Color(0xFF080A12);
-const Color partyGold = Color(0xFFFFD700);
-const Color partyWhite = Color(0xFF17121D);
-// Opacity variants used by the UI.
-const Color partyWhite12 = Color(0x1FFFFFFF);
-const Color partyWhite26 = Color(0x42FFFFFF);
-const Color partyWhite87 = Color(0xDDFFFFFF);
+const Color partyPink = Color(0xFFFFC629);
+const Color partyBlack = Color(0xFFF4F5F7);
+const Color partyGold = Color(0xFFFFC629);
+const Color partyWhite = Color(0xFF171717);
 
 String partyNovaRoleForEmail(String? email) {
   final normalizedEmail = email?.trim().toLowerCase();
@@ -168,7 +164,7 @@ BoxDecoration partyNightDecoration() {
       colors: [
         Color(0xFF7A174A),
         Color(0xFF321024),
-        Color(0xFF080A12),
+        Color(0xFFF4F5F7),
       ],
       stops: [0.0, 0.48, 1.0],
     ),
@@ -619,7 +615,7 @@ class PartyButton extends StatelessWidget {
             color: const Color(0xFFFFC7E2),
             width: 1.2,
           ),
-          color: outlined ? const Color(0xFF17121D) : null,
+          color: outlined ? const Color(0xFFFFFFFF) : null,
           boxShadow: [
             BoxShadow(
               color: partyPink.withValues(alpha: 0.18),
@@ -709,7 +705,7 @@ class _PartyTextFieldState extends State<PartyTextField> {
               )
             : null,
         filled: true,
-        fillColor: const Color(0xFF17121D),
+        fillColor: const Color(0xFFF7F7F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: Color(0xFF654052)),
@@ -1342,12 +1338,12 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
         Scaffold(
       backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF17121D),
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         title: Text(
           _titles[_selectedIndex],
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1379,7 +1375,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF080A12),
+          color: Color(0xFFF4F5F7),
           border: Border(
             top: BorderSide(color: Color(0xFF3B2448)),
           ),
@@ -1420,7 +1416,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                             icons[index],
                             color: selected
                                 ? const Color(0xFFFFD700)
-                                : Colors.white54,
+                                : Colors.black45,
                           ),
                         const SizedBox(height: 4),
                         if (index == 4)
@@ -1433,7 +1429,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                               fontSize: 10,
                               color: selected
                                   ? const Color(0xFFFFD700)
-                                  : Colors.white54,
+                                  : Colors.black45,
                             ),
                           ),
                       ],
@@ -1508,7 +1504,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                 SizedBox(height: 8),
                 Text(
                   'Connect, play and enjoy together.',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: Colors.black54),
                 ),
               ],
             ),
@@ -1545,20 +1541,20 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
 Widget _buildGamesTab() {
   const gold = Color(0xFFFFD700);
-  const panel = Color(0xFF17121D);
+  const panel = Color(0xFFFFFFFF);
 
     final games = [
     {
       'title': 'ONE VS ONE',
       'subtitle': 'BATTLE',
       'image': 'assets/games/1792928262794.jpg',
-      'colors': [Color(0xFFFFD700), partyWhite],
+      'colors': [Color(0xFFFFD700), Colors.black],
     },
     {
       'title': 'PRIVATE',
       'subtitle': 'MATCH',
       'image': 'assets/games/51a253a0f1625ec50129f8e42b47d04f.jpg',
-      'colors': [partyWhite, Color(0xFFFFD700)],
+      'colors': [Colors.black, Color(0xFFFFD700)],
     },
     {
       'title': 'TEAM',
@@ -1594,7 +1590,7 @@ Widget _buildGamesTab() {
           'Choose Your Battle',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white70,
+            color: Colors.black54,
             fontSize: 14,
           ),
         ),
@@ -1770,7 +1766,7 @@ Widget _socialDesignSection({
         Text(
           title,
           style: const TextStyle(
-            color: const Color(0xFF17121D),
+            color: const Color(0xFFF4F5F7),
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -1780,7 +1776,7 @@ Widget _socialDesignSection({
           width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: partyWhite,
+            color: Colors.black,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
@@ -1791,7 +1787,7 @@ Widget _socialDesignSection({
                 child: Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFF080A12),
+                    color: Color(0xFFF4F5F7),
                     fontSize: 15,
                   ),
                 ),
@@ -1822,7 +1818,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         Text(
           title,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -1830,7 +1826,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         const SizedBox(height: 8),
         const Text(
           'Coming soon',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: Colors.black45),
         ),
       ],
     ),
@@ -1852,7 +1848,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       barrierDismissible: false,
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: const Color(0xFF17121D),
+          backgroundColor: const Color(0xFFFFFFFF),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
             side: const BorderSide(color: Color(0xFFFFD780), width: 1.5),
@@ -1883,14 +1879,14 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   textAlign: TextAlign.center,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(
-                    color: partyWhite,
+                    color: Colors.black,
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Type your room name',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    counterStyle: TextStyle(color: Colors.white54),
+                    hintStyle: TextStyle(color: Colors.black45),
+                    counterStyle: TextStyle(color: Colors.black45),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -1903,7 +1899,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                       child: TextButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         child: const Text('CANCEL',
-                            style: TextStyle(color: Colors.white70)),
+                            style: TextStyle(color: Colors.black54)),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1911,7 +1907,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFF1688),
-                          foregroundColor: partyWhite,
+                          foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2204,7 +2200,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                                 }
                                 return const Icon(
                                   Icons.groups_rounded,
-                                  color: partyWhite,
+                                  color: Colors.black,
                                   size: 48,
                                 );
                               },
@@ -2227,7 +2223,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     ),
                     child: const Icon(
                       Icons.star_rounded,
-                      color: partyWhite,
+                      color: Colors.black,
                       size: 22,
                     ),
                   ),
@@ -2251,7 +2247,7 @@ late Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
   Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
   const pink = Color(0xFFFF4FA3);
-  const panel = Color(0xFF17121D);
+  const panel = Color(0xFFFFFFFF);
   const purple = Color(0xFF392047);
 
   const filters = ['All Room', 'Popular Room', 'My Room'];
@@ -2291,7 +2287,7 @@ Widget buildUserSearchResult() {
           padding: EdgeInsets.all(12),
           child: Text(
             'User search failed. Please try again.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -2301,7 +2297,7 @@ Widget buildUserSearchResult() {
           padding: EdgeInsets.all(12),
           child: Text(
             'No user found with this UID.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -2331,7 +2327,7 @@ Widget buildUserSearchResult() {
               child: photoBytes == null
                   ? const Icon(
                       Icons.person_rounded,
-                      color: partyWhite,
+                      color: Colors.black,
                       size: 30,
                     )
                   : null,
@@ -2346,7 +2342,7 @@ Widget buildUserSearchResult() {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2422,7 +2418,7 @@ Widget buildUserSearchResult() {
                     child: Text(
                       filters[index],
                       style: TextStyle(
-                        color: selected ? pink : Colors.white70,
+                        color: selected ? pink : Colors.black54,
                         fontSize: 13,
                         fontWeight:
                             selected ? FontWeight.bold : FontWeight.w500,
@@ -2448,7 +2444,7 @@ Widget buildUserSearchResult() {
     if (_selectedMyRoomFilter == 3) {
       return const Padding(
         padding: EdgeInsets.all(24),
-        child: Center(child: Text('Friends rooms will appear here.', style: TextStyle(color: Colors.white70))),
+        child: Center(child: Text('Friends rooms will appear here.', style: TextStyle(color: Colors.black54))),
       );
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -2457,7 +2453,7 @@ Widget buildUserSearchResult() {
         if (snapshot.hasError) {
           return const Padding(
             padding: EdgeInsets.all(20),
-            child: Text('Could not load your room list.', style: TextStyle(color: Colors.white70)),
+            child: Text('Could not load your room list.', style: TextStyle(color: Colors.black54)),
           );
         }
         if (!snapshot.hasData) {
@@ -2485,7 +2481,7 @@ Widget buildUserSearchResult() {
                   : 'You are not following any room yet.';
           return Padding(
             padding: const EdgeInsets.all(24),
-            child: Center(child: Text(label, style: const TextStyle(color: Colors.white70))),
+            child: Center(child: Text(label, style: const TextStyle(color: Colors.black54))),
           );
         }
         return GridView.builder(
@@ -2516,7 +2512,7 @@ Widget buildUserSearchResult() {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0FFF7),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: partyWhite, width: 2),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2610,7 +2606,7 @@ Widget buildUserSearchResult() {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF54244F), Color(0xFF17121D), Color(0xFF392047)],
+                      colors: [Color(0xFF54244F), Color(0xFFFFFFFF), Color(0xFF392047)],
                     ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: gold, width: 1.5),
@@ -2623,7 +2619,7 @@ Widget buildUserSearchResult() {
                       Text(
                         'CREATE ROOM',
                         style: TextStyle(
-                          color: partyWhite,
+                          color: Colors.black,
                           fontSize: 19,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.5,
@@ -2703,7 +2699,7 @@ Widget buildUserSearchResult() {
                         children: [
                           Icon(
                             icons[index],
-                            color: selected ? pink : Colors.white70,
+                            color: selected ? pink : Colors.black54,
                             size: 20,
                           ),
                           const SizedBox(height: 5),
@@ -2714,7 +2710,7 @@ Widget buildUserSearchResult() {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color:
-                                    selected ? pink : Colors.white70,
+                                    selected ? pink : Colors.black54,
                                 fontSize: 10,
                                 fontWeight: selected
                                     ? FontWeight.bold
@@ -2751,7 +2747,7 @@ Widget buildUserSearchResult() {
           child: Center(
             child: Text(
               'Unable to load rooms: ${snapshot.error}',
-              style: const TextStyle(color: Colors.white70),
+              style: const TextStyle(color: Colors.black54),
             ),
           ),
         );
@@ -2827,7 +2823,7 @@ Widget buildUserSearchResult() {
         if (rooms.isEmpty) {
           return const Expanded(
             child: Center(
-              child: Text('No rooms found', style: TextStyle(color: Colors.white70)),
+              child: Text('No rooms found', style: TextStyle(color: Colors.black54)),
             ),
           );
         }
@@ -2866,7 +2862,7 @@ Widget buildUserSearchResult() {
                   decoration: BoxDecoration(
                     color: const Color(0xFFE0FFF7),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: partyWhite, width: 2),
+                    border: Border.all(color: Colors.black, width: 2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2921,7 +2917,7 @@ Widget buildUserSearchResult() {
                                   return Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                     decoration: BoxDecoration(
-                                      color: partyWhite.withOpacity(0.58),
+                                      color: Colors.black.withOpacity(0.58),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
@@ -2931,7 +2927,7 @@ Widget buildUserSearchResult() {
                                         const SizedBox(width: 4),
                                         Text(
                                           inRoom ? '1' : '0',
-                                          style: const TextStyle(color: partyWhite, fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ),
@@ -2948,7 +2944,7 @@ Widget buildUserSearchResult() {
                         decoration: const BoxDecoration(
                           color: Color(0xFFE0FFF7),
                           border: Border(
-                            top: BorderSide(color: partyWhite, width: 2),
+                            top: BorderSide(color: Colors.black, width: 2),
                           ),
                         ),
                         child: Column(
@@ -3024,14 +3020,14 @@ Widget buildUserSearchResult() {
           );
         },
         style: const TextStyle(
-          color: partyWhite,
+          color: Colors.black,
           fontSize: 14,
         ),
         cursorColor: pink,
         decoration: const InputDecoration(
           hintText: 'Search UID and Room',
           hintStyle: TextStyle(
-            color: Colors.white70,
+            color: Colors.black54,
             fontSize: 14,
           ),
           prefixIcon: Icon(
@@ -3087,7 +3083,7 @@ Widget _buildProfileTab(User? user) {
     return const Center(
       child: Text(
         'Please log in again.',
-        style: TextStyle(color: partyWhite),
+        style: TextStyle(color: Colors.black),
       ),
     );
   }
@@ -3102,7 +3098,7 @@ Widget _buildProfileTab(User? user) {
         return const Center(
           child: Text(
             'Could not load your profile.',
-            style: TextStyle(color: partyWhite),
+            style: TextStyle(color: Colors.black),
           ),
         );
       }
@@ -3140,7 +3136,7 @@ Widget _buildProfileTab(User? user) {
       final isOwnerOrAdmin = role == 'owner' || role == 'admin';
 
       return Container(
-        color: const Color(0xFF17121D),
+        color: const Color(0xFFF4F5F7),
         width: double.infinity,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -3185,7 +3181,7 @@ Widget _buildProfileTab(User? user) {
                       children: [
                         Icon(
                           Icons.edit_rounded,
-                          color: partyWhite,
+                          color: Colors.black,
                           size: 18,
                         ),
                         SizedBox(width: 7),
@@ -3265,7 +3261,7 @@ Widget _buildProfileTab(User? user) {
             child: Icon(
               Icons.person_rounded,
               size: 64,
-              color: partyWhite,
+              color: Colors.black,
             ),
           );
         }
@@ -3284,7 +3280,7 @@ Widget _buildProfileTab(User? user) {
                 child: Icon(
                   Icons.person_rounded,
                   size: 64,
-                  color: partyWhite,
+                  color: Colors.black,
                 ),
               );
             },
@@ -3314,7 +3310,7 @@ const SizedBox(height: 14),
                 name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: partyWhite,
+                  color: Colors.black,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -3351,7 +3347,7 @@ if (bio.trim().isNotEmpty) ...[
     bio,
     textAlign: TextAlign.center,
     style: const TextStyle(
-      color: Colors.white70,
+      color: Colors.black54,
       fontSize: 18,
       fontWeight: FontWeight.w500,
     ),
@@ -3371,11 +3367,13 @@ const SizedBox(height: 10),
                     if (dateOfBirth.isNotEmpty) ...[
                       const Icon(Icons.cake_rounded, color: Color(0xFFFFD780), size: 18),
                       const SizedBox(width: 5),
-                      Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.white70)),
+                      Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.black54)),
                       const SizedBox(width: 12),
                     ],
                     if (gender.isNotEmpty) ...[
-                      Icon(gender.toLowerCase() == 'male' ? Icons.male_rounded : gender.toLowerCase() == 'female' ? Icons.female_rounded : Icons.person_outline_rounded, color: gender.toLowerCase() == 'male' ? const Color(0xFF368BFF) : gender.toLowerCase() == 'female' ? const Color(0xFFFF4FA3) : const Color(0xFFB7B7C4), size: 22),
+                      const Icon(Icons.person_outline_rounded, color: Color(0xFFFFD780), size: 18),
+                      const SizedBox(width: 5),
+                      Text(gender, style: const TextStyle(color: Colors.black54)),
                       const SizedBox(width: 12),
                     ],
                     if (countryCode.isNotEmpty)
@@ -3471,7 +3469,7 @@ Widget _profileStatCard({
         Text(
           value,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontSize: 19,
             fontWeight: FontWeight.bold,
           ),
@@ -3587,7 +3585,7 @@ Future<void> _pickDP() async {
         AndroidUiSettings(
           toolbarTitle: 'Adjust Profile Photo',
           toolbarColor: const Color(0xFF7028A0),
-          toolbarWidgetColor: partyWhite,
+          toolbarWidgetColor: Colors.black,
           activeControlsWidgetColor: const Color(0xFFFF1688),
           lockAspectRatio: true,
           aspectRatioPresets: [
@@ -3799,15 +3797,15 @@ Future<void> _saveProfile() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: partyBlack,
+      backgroundColor: const Color(0xFFF4F5F7),
       appBar: AppBar(
-        backgroundColor: partyBlack,
-        foregroundColor: partyWhite,
+        backgroundColor: const Color(0xFFF4F5F7),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Edit Profile',
           style: TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -3847,7 +3845,7 @@ Future<void> _saveProfile() async {
             return const Icon(
               Icons.person_rounded,
               size: 58,
-              color: partyWhite,
+              color: Colors.black,
             );
           },
         ),
@@ -3855,7 +3853,7 @@ Future<void> _saveProfile() async {
     : const Icon(
         Icons.person_rounded,
         size: 58,
-        color: partyWhite,
+        color: Colors.black,
       ),
               ),
             ),
@@ -3867,7 +3865,7 @@ Future<void> _saveProfile() async {
                 widget.name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: partyWhite,
+                  color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -3892,7 +3890,7 @@ _inputLabel('Change Name'),
 TextField(
   controller: _nameController,
   maxLength: 20,
-  style: const TextStyle(color: partyWhite),
+  style: const TextStyle(color: Colors.black),
   decoration: _inputDecoration(
     hint: 'Enter your name',
     icon: Icons.person_outline_rounded,
@@ -3907,7 +3905,7 @@ TextField(
               controller: _bioController,
               maxLength: 50,
               maxLines: 2,
-              style: const TextStyle(color: partyWhite),
+              style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration(
                 hint: 'Write something about yourself',
                 icon: Icons.edit_note_rounded,
@@ -3931,11 +3929,11 @@ TextField(
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 14),
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF654052)), borderRadius: BorderRadius.circular(14), color: const Color(0xFF17121D)),
+                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF654052)), borderRadius: BorderRadius.circular(14), color: const Color(0xFFF7F7F8)),
                 child: Row(children: [
                   const Icon(Icons.cake_rounded, color: partyGold),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(_dateOfBirth.isEmpty ? 'Select date of birth' : partyNovaFormatDate(_dateOfBirth), style: const TextStyle(color: partyWhite))),
+                  Expanded(child: Text(_dateOfBirth.isEmpty ? 'Select date of birth' : partyNovaFormatDate(_dateOfBirth), style: const TextStyle(color: Colors.black))),
                   const Icon(Icons.calendar_month_rounded, color: partyGold),
                 ]),
               ),
@@ -3955,259 +3953,259 @@ TextField(
             _inputLabel('Country (flag shown on profile)'),
             DropdownButtonFormField<String>(
               value: _countryCode.isEmpty ? null : _countryCode,
-              dropdownColor: const Color(0xFF17121D),
-              style: const TextStyle(color: partyWhite),
+              dropdownColor: const Color(0xFFFFFFFF),
+              style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration(hint: 'Select country', icon: Icons.flag_rounded),
               items: [
-                DropdownMenuItem<String>(value: 'AF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Afghanistan') ])),
-                DropdownMenuItem<String>(value: 'AL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Albania') ])),
-                DropdownMenuItem<String>(value: 'DZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Algeria') ])),
-                DropdownMenuItem<String>(value: 'AS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('American Samoa') ])),
-                DropdownMenuItem<String>(value: 'AD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Andorra') ])),
-                DropdownMenuItem<String>(value: 'AO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Angola') ])),
-                DropdownMenuItem<String>(value: 'AI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Anguilla') ])),
-                DropdownMenuItem<String>(value: 'AQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Antarctica') ])),
-                DropdownMenuItem<String>(value: 'AG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Antigua and Barbuda') ])),
-                DropdownMenuItem<String>(value: 'AR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Argentina') ])),
-                DropdownMenuItem<String>(value: 'AM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Armenia') ])),
-                DropdownMenuItem<String>(value: 'AW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Aruba') ])),
-                DropdownMenuItem<String>(value: 'AU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Australia') ])),
-                DropdownMenuItem<String>(value: 'AT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Austria') ])),
-                DropdownMenuItem<String>(value: 'AZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Azerbaijan') ])),
-                DropdownMenuItem<String>(value: 'BS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bahamas') ])),
-                DropdownMenuItem<String>(value: 'BH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bahrain') ])),
-                DropdownMenuItem<String>(value: 'BD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bangladesh') ])),
-                DropdownMenuItem<String>(value: 'BB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Barbados') ])),
-                DropdownMenuItem<String>(value: 'BY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Belarus') ])),
-                DropdownMenuItem<String>(value: 'BE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Belgium') ])),
-                DropdownMenuItem<String>(value: 'BZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Belize') ])),
-                DropdownMenuItem<String>(value: 'BJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Benin') ])),
-                DropdownMenuItem<String>(value: 'BM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bermuda') ])),
-                DropdownMenuItem<String>(value: 'BT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bhutan') ])),
-                DropdownMenuItem<String>(value: 'BO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bolivia, Plurinational State of') ])),
-                DropdownMenuItem<String>(value: 'BQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bonaire, Sint Eustatius and Saba') ])),
-                DropdownMenuItem<String>(value: 'BA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bosnia and Herzegovina') ])),
-                DropdownMenuItem<String>(value: 'BW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Botswana') ])),
-                DropdownMenuItem<String>(value: 'BV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bouvet Island') ])),
-                DropdownMenuItem<String>(value: 'BR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Brazil') ])),
-                DropdownMenuItem<String>(value: 'IO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('British Indian Ocean Territory') ])),
-                DropdownMenuItem<String>(value: 'BN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Brunei Darussalam') ])),
-                DropdownMenuItem<String>(value: 'BG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Bulgaria') ])),
-                DropdownMenuItem<String>(value: 'BF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Burkina Faso') ])),
-                DropdownMenuItem<String>(value: 'BI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Burundi') ])),
-                DropdownMenuItem<String>(value: 'CV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cabo Verde') ])),
-                DropdownMenuItem<String>(value: 'KH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cambodia') ])),
-                DropdownMenuItem<String>(value: 'CM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cameroon') ])),
-                DropdownMenuItem<String>(value: 'CA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Canada') ])),
-                DropdownMenuItem<String>(value: 'KY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cayman Islands') ])),
-                DropdownMenuItem<String>(value: 'CF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Central African Republic') ])),
-                DropdownMenuItem<String>(value: 'TD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Chad') ])),
-                DropdownMenuItem<String>(value: 'CL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Chile') ])),
-                DropdownMenuItem<String>(value: 'CN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('China') ])),
-                DropdownMenuItem<String>(value: 'CX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Christmas Island') ])),
-                DropdownMenuItem<String>(value: 'CC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cocos (Keeling) Islands') ])),
-                DropdownMenuItem<String>(value: 'CO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Colombia') ])),
-                DropdownMenuItem<String>(value: 'KM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Comoros') ])),
-                DropdownMenuItem<String>(value: 'CG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Congo') ])),
-                DropdownMenuItem<String>(value: 'CD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Congo, The Democratic Republic of the') ])),
-                DropdownMenuItem<String>(value: 'CK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cook Islands') ])),
-                DropdownMenuItem<String>(value: 'CR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Costa Rica') ])),
-                DropdownMenuItem<String>(value: 'HR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Croatia') ])),
-                DropdownMenuItem<String>(value: 'CU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cuba') ])),
-                DropdownMenuItem<String>(value: 'CW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Curaçao') ])),
-                DropdownMenuItem<String>(value: 'CY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cyprus') ])),
-                DropdownMenuItem<String>(value: 'CZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Czechia') ])),
-                DropdownMenuItem<String>(value: 'CI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Côte d'Ivoire") ])),
-                DropdownMenuItem<String>(value: 'DK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Denmark') ])),
-                DropdownMenuItem<String>(value: 'DJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Djibouti') ])),
-                DropdownMenuItem<String>(value: 'DM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Dominica') ])),
-                DropdownMenuItem<String>(value: 'DO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Dominican Republic') ])),
-                DropdownMenuItem<String>(value: 'EC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Ecuador') ])),
-                DropdownMenuItem<String>(value: 'EG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Egypt') ])),
-                DropdownMenuItem<String>(value: 'SV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('El Salvador') ])),
-                DropdownMenuItem<String>(value: 'GQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Equatorial Guinea') ])),
-                DropdownMenuItem<String>(value: 'ER', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ER'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Eritrea') ])),
-                DropdownMenuItem<String>(value: 'EE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Estonia') ])),
-                DropdownMenuItem<String>(value: 'SZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Eswatini') ])),
-                DropdownMenuItem<String>(value: 'ET', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ET'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Ethiopia') ])),
-                DropdownMenuItem<String>(value: 'FK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Falkland Islands (Malvinas)') ])),
-                DropdownMenuItem<String>(value: 'FO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Faroe Islands') ])),
-                DropdownMenuItem<String>(value: 'FJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Fiji') ])),
-                DropdownMenuItem<String>(value: 'FI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Finland') ])),
-                DropdownMenuItem<String>(value: 'FR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('France') ])),
-                DropdownMenuItem<String>(value: 'GF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('French Guiana') ])),
-                DropdownMenuItem<String>(value: 'PF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('French Polynesia') ])),
-                DropdownMenuItem<String>(value: 'TF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('French Southern Territories') ])),
-                DropdownMenuItem<String>(value: 'GA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Gabon') ])),
-                DropdownMenuItem<String>(value: 'GM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Gambia') ])),
-                DropdownMenuItem<String>(value: 'GE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Georgia') ])),
-                DropdownMenuItem<String>(value: 'DE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Germany') ])),
-                DropdownMenuItem<String>(value: 'GH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Ghana') ])),
-                DropdownMenuItem<String>(value: 'GI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Gibraltar') ])),
-                DropdownMenuItem<String>(value: 'GR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Greece') ])),
-                DropdownMenuItem<String>(value: 'GL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Greenland') ])),
-                DropdownMenuItem<String>(value: 'GD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Grenada') ])),
-                DropdownMenuItem<String>(value: 'GP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guadeloupe') ])),
-                DropdownMenuItem<String>(value: 'GU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guam') ])),
-                DropdownMenuItem<String>(value: 'GT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guatemala') ])),
-                DropdownMenuItem<String>(value: 'GG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guernsey') ])),
-                DropdownMenuItem<String>(value: 'GN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guinea') ])),
-                DropdownMenuItem<String>(value: 'GW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guinea-Bissau') ])),
-                DropdownMenuItem<String>(value: 'GY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Guyana') ])),
-                DropdownMenuItem<String>(value: 'HT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Haiti') ])),
-                DropdownMenuItem<String>(value: 'HM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Heard Island and McDonald Islands') ])),
-                DropdownMenuItem<String>(value: 'VA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Holy See (Vatican City State)') ])),
-                DropdownMenuItem<String>(value: 'HN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Honduras') ])),
-                DropdownMenuItem<String>(value: 'HK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Hong Kong') ])),
-                DropdownMenuItem<String>(value: 'HU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Hungary') ])),
-                DropdownMenuItem<String>(value: 'IS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Iceland') ])),
-                DropdownMenuItem<String>(value: 'IN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('India') ])),
-                DropdownMenuItem<String>(value: 'ID', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ID'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Indonesia') ])),
-                DropdownMenuItem<String>(value: 'IR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Iran, Islamic Republic of') ])),
-                DropdownMenuItem<String>(value: 'IQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Iraq') ])),
-                DropdownMenuItem<String>(value: 'IE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Ireland') ])),
-                DropdownMenuItem<String>(value: 'IM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Isle of Man') ])),
-                DropdownMenuItem<String>(value: 'IL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Israel') ])),
-                DropdownMenuItem<String>(value: 'IT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Italy') ])),
-                DropdownMenuItem<String>(value: 'JM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Jamaica') ])),
-                DropdownMenuItem<String>(value: 'JP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Japan') ])),
-                DropdownMenuItem<String>(value: 'JE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Jersey') ])),
-                DropdownMenuItem<String>(value: 'JO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Jordan') ])),
-                DropdownMenuItem<String>(value: 'KZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kazakhstan') ])),
-                DropdownMenuItem<String>(value: 'KE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kenya') ])),
-                DropdownMenuItem<String>(value: 'KI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kiribati') ])),
-                DropdownMenuItem<String>(value: 'KP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Korea, Democratic People's Republic of") ])),
-                DropdownMenuItem<String>(value: 'KR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Korea, Republic of') ])),
-                DropdownMenuItem<String>(value: 'KW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kuwait') ])),
-                DropdownMenuItem<String>(value: 'KG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kyrgyzstan') ])),
-                DropdownMenuItem<String>(value: 'LA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Lao People's Democratic Republic") ])),
-                DropdownMenuItem<String>(value: 'LV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Latvia') ])),
-                DropdownMenuItem<String>(value: 'LB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lebanon') ])),
-                DropdownMenuItem<String>(value: 'LS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lesotho') ])),
-                DropdownMenuItem<String>(value: 'LR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Liberia') ])),
-                DropdownMenuItem<String>(value: 'LY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Libya') ])),
-                DropdownMenuItem<String>(value: 'LI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Liechtenstein') ])),
-                DropdownMenuItem<String>(value: 'LT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lithuania') ])),
-                DropdownMenuItem<String>(value: 'LU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Luxembourg') ])),
-                DropdownMenuItem<String>(value: 'MO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Macao') ])),
-                DropdownMenuItem<String>(value: 'MG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Madagascar') ])),
-                DropdownMenuItem<String>(value: 'MW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Malawi') ])),
-                DropdownMenuItem<String>(value: 'MY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Malaysia') ])),
-                DropdownMenuItem<String>(value: 'MV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Maldives') ])),
-                DropdownMenuItem<String>(value: 'ML', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ML'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mali') ])),
-                DropdownMenuItem<String>(value: 'MT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Malta') ])),
-                DropdownMenuItem<String>(value: 'MH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Marshall Islands') ])),
-                DropdownMenuItem<String>(value: 'MQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Martinique') ])),
-                DropdownMenuItem<String>(value: 'MR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mauritania') ])),
-                DropdownMenuItem<String>(value: 'MU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mauritius') ])),
-                DropdownMenuItem<String>(value: 'YT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('YT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mayotte') ])),
-                DropdownMenuItem<String>(value: 'MX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mexico') ])),
-                DropdownMenuItem<String>(value: 'FM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Micronesia, Federated States of') ])),
-                DropdownMenuItem<String>(value: 'MD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Moldova, Republic of') ])),
-                DropdownMenuItem<String>(value: 'MC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Monaco') ])),
-                DropdownMenuItem<String>(value: 'MN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mongolia') ])),
-                DropdownMenuItem<String>(value: 'ME', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ME'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Montenegro') ])),
-                DropdownMenuItem<String>(value: 'MS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Montserrat') ])),
-                DropdownMenuItem<String>(value: 'MA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Morocco') ])),
-                DropdownMenuItem<String>(value: 'MZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Mozambique') ])),
-                DropdownMenuItem<String>(value: 'MM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Myanmar') ])),
-                DropdownMenuItem<String>(value: 'NA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Namibia') ])),
-                DropdownMenuItem<String>(value: 'NR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Nauru') ])),
-                DropdownMenuItem<String>(value: 'NP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Nepal') ])),
-                DropdownMenuItem<String>(value: 'NL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Netherlands') ])),
-                DropdownMenuItem<String>(value: 'NC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('New Caledonia') ])),
-                DropdownMenuItem<String>(value: 'NZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('New Zealand') ])),
-                DropdownMenuItem<String>(value: 'NI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Nicaragua') ])),
-                DropdownMenuItem<String>(value: 'NE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Niger') ])),
-                DropdownMenuItem<String>(value: 'NG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Nigeria') ])),
-                DropdownMenuItem<String>(value: 'NU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Niue') ])),
-                DropdownMenuItem<String>(value: 'NF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Norfolk Island') ])),
-                DropdownMenuItem<String>(value: 'MK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('North Macedonia') ])),
-                DropdownMenuItem<String>(value: 'MP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Northern Mariana Islands') ])),
-                DropdownMenuItem<String>(value: 'NO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Norway') ])),
-                DropdownMenuItem<String>(value: 'OM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('OM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Oman') ])),
-                DropdownMenuItem<String>(value: 'PK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Pakistan') ])),
-                DropdownMenuItem<String>(value: 'PW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Palau') ])),
-                DropdownMenuItem<String>(value: 'PS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Palestine, State of') ])),
-                DropdownMenuItem<String>(value: 'PA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Panama') ])),
-                DropdownMenuItem<String>(value: 'PG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Papua New Guinea') ])),
-                DropdownMenuItem<String>(value: 'PY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Paraguay') ])),
-                DropdownMenuItem<String>(value: 'PE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Peru') ])),
-                DropdownMenuItem<String>(value: 'PH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Philippines') ])),
-                DropdownMenuItem<String>(value: 'PN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Pitcairn') ])),
-                DropdownMenuItem<String>(value: 'PL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Poland') ])),
-                DropdownMenuItem<String>(value: 'PT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Portugal') ])),
-                DropdownMenuItem<String>(value: 'PR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Puerto Rico') ])),
-                DropdownMenuItem<String>(value: 'QA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('QA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Qatar') ])),
-                DropdownMenuItem<String>(value: 'RO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Romania') ])),
-                DropdownMenuItem<String>(value: 'RU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Russian Federation') ])),
-                DropdownMenuItem<String>(value: 'RW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Rwanda') ])),
-                DropdownMenuItem<String>(value: 'RE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Réunion') ])),
-                DropdownMenuItem<String>(value: 'BL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Barthélemy') ])),
-                DropdownMenuItem<String>(value: 'SH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Helena, Ascension and Tristan da Cunha') ])),
-                DropdownMenuItem<String>(value: 'KN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Kitts and Nevis') ])),
-                DropdownMenuItem<String>(value: 'LC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Lucia') ])),
-                DropdownMenuItem<String>(value: 'MF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Martin (French part)') ])),
-                DropdownMenuItem<String>(value: 'PM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Pierre and Miquelon') ])),
-                DropdownMenuItem<String>(value: 'VC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saint Vincent and the Grenadines') ])),
-                DropdownMenuItem<String>(value: 'WS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('WS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Samoa') ])),
-                DropdownMenuItem<String>(value: 'SM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('San Marino') ])),
-                DropdownMenuItem<String>(value: 'ST', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ST'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sao Tome and Principe') ])),
-                DropdownMenuItem<String>(value: 'SA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Saudi Arabia') ])),
-                DropdownMenuItem<String>(value: 'SN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Senegal') ])),
-                DropdownMenuItem<String>(value: 'RS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Serbia') ])),
-                DropdownMenuItem<String>(value: 'SC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Seychelles') ])),
-                DropdownMenuItem<String>(value: 'SL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sierra Leone') ])),
-                DropdownMenuItem<String>(value: 'SG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Singapore') ])),
-                DropdownMenuItem<String>(value: 'SX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sint Maarten (Dutch part)') ])),
-                DropdownMenuItem<String>(value: 'SK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Slovakia') ])),
-                DropdownMenuItem<String>(value: 'SI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Slovenia') ])),
-                DropdownMenuItem<String>(value: 'SB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Solomon Islands') ])),
-                DropdownMenuItem<String>(value: 'SO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Somalia') ])),
-                DropdownMenuItem<String>(value: 'ZA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('South Africa') ])),
-                DropdownMenuItem<String>(value: 'GS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('South Georgia and the South Sandwich Islands') ])),
-                DropdownMenuItem<String>(value: 'SS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('South Sudan') ])),
-                DropdownMenuItem<String>(value: 'ES', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ES'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Spain') ])),
-                DropdownMenuItem<String>(value: 'LK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sri Lanka') ])),
-                DropdownMenuItem<String>(value: 'SD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sudan') ])),
-                DropdownMenuItem<String>(value: 'SR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Suriname') ])),
-                DropdownMenuItem<String>(value: 'SJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Svalbard and Jan Mayen') ])),
-                DropdownMenuItem<String>(value: 'SE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Sweden') ])),
-                DropdownMenuItem<String>(value: 'CH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Switzerland') ])),
-                DropdownMenuItem<String>(value: 'SY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Syrian Arab Republic') ])),
-                DropdownMenuItem<String>(value: 'TW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Taiwan, Province of China') ])),
-                DropdownMenuItem<String>(value: 'TJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tajikistan') ])),
-                DropdownMenuItem<String>(value: 'TZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tanzania, United Republic of') ])),
-                DropdownMenuItem<String>(value: 'TH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Thailand') ])),
-                DropdownMenuItem<String>(value: 'TL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Timor-Leste') ])),
-                DropdownMenuItem<String>(value: 'TG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Togo') ])),
-                DropdownMenuItem<String>(value: 'TK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tokelau') ])),
-                DropdownMenuItem<String>(value: 'TO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tonga') ])),
-                DropdownMenuItem<String>(value: 'TT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Trinidad and Tobago') ])),
-                DropdownMenuItem<String>(value: 'TN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tunisia') ])),
-                DropdownMenuItem<String>(value: 'TM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Turkmenistan') ])),
-                DropdownMenuItem<String>(value: 'TC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Turks and Caicos Islands') ])),
-                DropdownMenuItem<String>(value: 'TV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Tuvalu') ])),
-                DropdownMenuItem<String>(value: 'TR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Türkiye') ])),
-                DropdownMenuItem<String>(value: 'UG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Uganda') ])),
-                DropdownMenuItem<String>(value: 'UA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Ukraine') ])),
-                DropdownMenuItem<String>(value: 'AE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('United Arab Emirates') ])),
-                DropdownMenuItem<String>(value: 'GB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('United Kingdom') ])),
-                DropdownMenuItem<String>(value: 'US', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('US'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('United States') ])),
-                DropdownMenuItem<String>(value: 'UM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('United States Minor Outlying Islands') ])),
-                DropdownMenuItem<String>(value: 'UY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Uruguay') ])),
-                DropdownMenuItem<String>(value: 'UZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Uzbekistan') ])),
-                DropdownMenuItem<String>(value: 'VU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Vanuatu') ])),
-                DropdownMenuItem<String>(value: 'VE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Venezuela, Bolivarian Republic of') ])),
-                DropdownMenuItem<String>(value: 'VN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Viet Nam') ])),
-                DropdownMenuItem<String>(value: 'VG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Virgin Islands, British') ])),
-                DropdownMenuItem<String>(value: 'VI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Virgin Islands, U.S.') ])),
-                DropdownMenuItem<String>(value: 'WF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('WF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Wallis and Futuna') ])),
-                DropdownMenuItem<String>(value: 'EH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Western Sahara') ])),
-                DropdownMenuItem<String>(value: 'YE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('YE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Yemen') ])),
-                DropdownMenuItem<String>(value: 'ZM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Zambia') ])),
-                DropdownMenuItem<String>(value: 'ZW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Zimbabwe') ])),
-                DropdownMenuItem<String>(value: 'AX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Åland Islands') ])),
+                DropdownMenuItem<String>(value: 'AF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Afghanistan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Albania', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Algeria', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('American Samoa', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Andorra', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Angola', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Anguilla', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Antarctica', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Antigua and Barbuda', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Argentina', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Armenia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Aruba', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Australia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Austria', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Azerbaijan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bahamas', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bahrain', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bangladesh', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Barbados', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Belarus', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Belgium', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Belize', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Benin', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bermuda', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bhutan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bolivia, Plurinational State of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bonaire, Sint Eustatius and Saba', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bosnia and Herzegovina', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Botswana', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bouvet Island', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Brazil', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('British Indian Ocean Territory', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Brunei Darussalam', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Bulgaria', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Burkina Faso', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Burundi', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cabo Verde', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cambodia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cameroon', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Canada', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cayman Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Central African Republic', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Chad', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Chile', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('China', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Christmas Island', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cocos (Keeling) Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Colombia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Comoros', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Congo', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Congo, The Democratic Republic of the', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cook Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Costa Rica', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Croatia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cuba', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Curaçao', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Cyprus', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Czechia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Côte d\'Ivoire', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Denmark', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Djibouti', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Dominica', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Dominican Republic', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'EC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Ecuador', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'EG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Egypt', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('El Salvador', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Equatorial Guinea', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ER', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ER'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Eritrea', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'EE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Estonia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Eswatini', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ET', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ET'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Ethiopia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Falkland Islands (Malvinas)', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Faroe Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Fiji', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Finland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('France', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('French Guiana', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('French Polynesia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('French Southern Territories', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Gabon', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Gambia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Georgia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'DE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Germany', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Ghana', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Gibraltar', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Greece', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Greenland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Grenada', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guadeloupe', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guam', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guatemala', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guernsey', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guinea', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guinea-Bissau', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Guyana', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Haiti', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Heard Island and McDonald Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Holy See (Vatican City State)', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Honduras', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Hong Kong', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'HU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('HU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Hungary', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Iceland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('India', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ID', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ID'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Indonesia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Iran, Islamic Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Iraq', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Ireland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Isle of Man', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Israel', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'IT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('IT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Italy', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'JM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Jamaica', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'JP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Japan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'JE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Jersey', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'JO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('JO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Jordan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Kazakhstan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Kenya', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Kiribati', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Korea, Democratic People\'s Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Korea, Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Kuwait', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Kyrgyzstan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Lao People\'s Democratic Republic', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Latvia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Lebanon', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Lesotho', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Liberia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Libya', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Liechtenstein', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Lithuania', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Luxembourg', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Macao', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Madagascar', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Malawi', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Malaysia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Maldives', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ML', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ML'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mali', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Malta', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Marshall Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MQ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MQ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Martinique', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mauritania', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mauritius', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'YT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('YT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mayotte', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mexico', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'FM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('FM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Micronesia, Federated States of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Moldova, Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Monaco', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mongolia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ME', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ME'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Montenegro', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Montserrat', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Morocco', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Mozambique', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Myanmar', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Namibia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Nauru', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Nepal', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Netherlands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('New Caledonia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('New Zealand', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Nicaragua', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Niger', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Nigeria', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Niue', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Norfolk Island', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('North Macedonia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Northern Mariana Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'NO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('NO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Norway', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'OM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('OM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Oman', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Pakistan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Palau', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Palestine, State of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Panama', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Papua New Guinea', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Paraguay', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Peru', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Philippines', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Pitcairn', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Poland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Portugal', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Puerto Rico', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'QA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('QA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Qatar', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'RO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Romania', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'RU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Russian Federation', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'RW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Rwanda', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'RE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Réunion', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'BL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('BL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Barthélemy', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Helena, Ascension and Tristan da Cunha', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'KN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Kitts and Nevis', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Lucia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'MF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('MF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Martin (French part)', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'PM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('PM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Pierre and Miquelon', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saint Vincent and the Grenadines', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'WS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('WS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Samoa', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('San Marino', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ST', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ST'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sao Tome and Principe', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Saudi Arabia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Senegal', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'RS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('RS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Serbia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Seychelles', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sierra Leone', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Singapore', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sint Maarten (Dutch part)', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Slovakia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Slovenia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Solomon Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Somalia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ZA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('South Africa', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('South Georgia and the South Sandwich Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('South Sudan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ES', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ES'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Spain', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'LK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sri Lanka', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SD', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SD'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sudan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Suriname', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Svalbard and Jan Mayen', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Sweden', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'CH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Switzerland', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'SY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('SY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Syrian Arab Republic', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Taiwan, Province of China', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tajikistan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tanzania, United Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Thailand', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TL', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TL'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Timor-Leste', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Togo', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tokelau', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TO', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TO'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tonga', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TT', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TT'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Trinidad and Tobago', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tunisia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Turkmenistan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TC', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TC'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Turks and Caicos Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Tuvalu', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'TR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('TR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Türkiye', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'UG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Uganda', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'UA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Ukraine', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('United Arab Emirates', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'GB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('GB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('United Kingdom', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'US', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('US'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('United States', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'UM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('United States Minor Outlying Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'UY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Uruguay', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'UZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('UZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Uzbekistan', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VU', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VU'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Vanuatu', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Venezuela, Bolivarian Republic of', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VN', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VN'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Viet Nam', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Virgin Islands, British', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'VI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('VI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Virgin Islands, U.S.', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'WF', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('WF'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Wallis and Futuna', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'EH', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('EH'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Western Sahara', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'YE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('YE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Yemen', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ZM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Zambia', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'ZW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('ZW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Zimbabwe', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
+                DropdownMenuItem<String>(value: 'AX', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('AX'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 10), Flexible(child: Text('Åland Islands', style: const TextStyle(color: Colors.black, fontSize: 14)))]),),
               ],
               onChanged: _saving ? null : (value) => setState(() => _countryCode = value ?? ''),
             ),
@@ -4219,7 +4217,7 @@ TextField(
     onPressed: _saving ? null : _saveProfile,
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFFFF1688),
-      foregroundColor: partyWhite,
+      foregroundColor: Colors.black,
       padding: const EdgeInsets.symmetric(vertical: 15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -4231,7 +4229,7 @@ TextField(
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: partyWhite,
+              color: Colors.black,
             ),
           )
         : const Text(
@@ -4405,7 +4403,7 @@ builder: (_) => FramesGalleryPage(
       child: Text(
         title,
         style: const TextStyle(
-          color: partyWhite,
+          color: Colors.black,
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -4419,9 +4417,9 @@ builder: (_) => FramesGalleryPage(
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: partyWhite),
+      hintStyle: const TextStyle(color: Colors.black),
 prefixIcon: Icon(icon, color: const Color(0xFFFFC629)),
-counterStyle: const TextStyle(color: partyWhite),
+counterStyle: const TextStyle(color: Colors.black),
       filled: true,
       fillColor: const Color(0xFFF0F1F3),
       enabledBorder: OutlineInputBorder(
@@ -4476,14 +4474,14 @@ counterStyle: const TextStyle(color: partyWhite),
         title: Text(
           title,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: const TextStyle(
-  color: partyWhite,
+  color: Colors.black,
   fontSize: 12,
           ),
         ),
@@ -4516,7 +4514,7 @@ _FramesGalleryPageState();
 class _FramesGalleryPageState extends State<FramesGalleryPage> {
 int _selectedFrame = 1;
 
-static const Color _background = Color(0xFF080A12);
+static const Color _background = Color(0xFFF4F5F7);
 static const Color _pink = Color(0xFFFFC629);
 static const Color _gold = Color(0xFFB8E2FF);
 static const Color _panel = Color(0xFF17121D);
@@ -4650,7 +4648,7 @@ final Widget avatar = photoImage == null
     ? Icon(
         Icons.person_rounded,
         size: size * 0.58,
-        color: partyWhite,
+        color: Colors.black,
       )
     : Image(
         image: photoImage,
@@ -4661,7 +4659,7 @@ final Widget avatar = photoImage == null
         errorBuilder: (_, __, ___) => Icon(
           Icons.person_rounded,
           size: size * 0.58,
-          color: partyWhite,
+          color: Colors.black,
         ),
       );  
 
@@ -4674,7 +4672,7 @@ return Container(
     gradient: SweepGradient(  
       colors: [  
         color,  
-        partyWhite,  
+        Colors.black,  
         color,  
         color.withValues(alpha: 0.45),  
         color,  
@@ -4743,7 +4741,7 @@ return InkWell(
           textAlign: TextAlign.center,  
           overflow: TextOverflow.ellipsis,  
           style: TextStyle(  
-            color: selected ? _gold : partyWhite,  
+            color: selected ? _gold : Colors.black,  
             fontSize: 10,  
             fontWeight: FontWeight.w600,  
           ),  
@@ -4792,7 +4790,7 @@ return Container(
             : widget.userName,  
         textAlign: TextAlign.center,  
         style: const TextStyle(  
-          color: partyWhite,  
+          color: Colors.black,  
           fontSize: 19,  
           fontWeight: FontWeight.bold,  
         ),  
@@ -4822,7 +4820,7 @@ return Container(
           'UI Preview Only',  
           textAlign: TextAlign.center,  
           style: TextStyle(  
-            color: Colors.white70,  
+            color: Colors.black54,  
             fontSize: 12,  
           ),  
         ),  
@@ -4839,12 +4837,12 @@ return Scaffold(
 backgroundColor: _background,
 appBar: AppBar(
 backgroundColor: _background,
-foregroundColor: partyWhite,
+foregroundColor: Colors.black,
 elevation: 0,
 title: const Text(
 'Frames Gallery',
 style: TextStyle(
-color: partyWhite,
+color: Colors.black,
 fontWeight: FontWeight.bold,
 ),
 ),
@@ -4884,7 +4882,7 @@ SizedBox(height: 6),
 Text(
 'Explore 100 profile frames.',
 style: TextStyle(
-color: Colors.white70,
+color: Colors.black54,
 fontSize: 13,
 ),
 ),
@@ -4912,7 +4910,7 @@ const SizedBox(height: 20),
             Text(  
               '${_frameNames.length} Frames',  
               style: const TextStyle(  
-                color: Colors.white70,  
+                color: Colors.black54,  
                 fontSize: 12,  
               ),  
             ),  
@@ -4963,7 +4961,7 @@ class ThemesGalleryPage extends StatefulWidget {
 class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
   int _selectedTheme = 1;
 
-  static const Color _background = Color(0xFF080A12);
+  static const Color _background = Color(0xFFF4F5F7);
   static const Color _pink = Color(0xFFFFC629);
   static const Color _gold = Color(0xFFB8E2FF);
   static const Color _panel = Color(0xFF17121D);
@@ -5202,7 +5200,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
       ),
       child: Icon(
         Icons.person_rounded,
-        color: partyWhite,
+        color: Colors.black,
         size: size * 0.62,
       ),
     );
@@ -5246,7 +5244,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   height: 75,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: partyWhite.withValues(
+                    color: Colors.black.withValues(
                       alpha: 0.09,
                     ),
                   ),
@@ -5261,7 +5259,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: partyWhite.withValues(
+                      color: Colors.black.withValues(
                         alpha: 0.13,
                       ),
                       width: 9,
@@ -5282,7 +5280,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: partyWhite.withValues(
+                          color: Colors.black.withValues(
                             alpha: 0.9,
                           ),
                           width: 2,
@@ -5299,7 +5297,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: partyWhite,
+                        color: Colors.black,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -5308,7 +5306,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                     Container(
                       width: double.infinity,
                       height: 1,
-                      color: partyWhite.withValues(
+                      color: Colors.black.withValues(
                         alpha: 0.45,
                       ),
                     ),
@@ -5319,7 +5317,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: partyWhite,
+                        color: Colors.black,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -5328,7 +5326,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                     if (selected)
                       const Icon(
                         Icons.check_circle_rounded,
-                        color: partyWhite,
+                        color: Colors.black,
                         size: 19,
                       )
                     else
@@ -5394,7 +5392,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       : widget.userName,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: partyWhite,
+                    color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -5404,7 +5402,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   _names[_selectedTheme - 1],
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: partyWhite,
+                    color: Colors.black,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -5417,7 +5415,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
             'Preview only — not applied to your profile.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white54,
+              color: Colors.black45,
               fontSize: 12,
             ),
           ),
@@ -5432,7 +5430,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
       backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: _background,
-        foregroundColor: partyWhite,
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Themes Gallery',
@@ -5481,7 +5479,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   Text(
                     '100 unique looks for your profile.',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 13,
                     ),
                   ),
@@ -5508,7 +5506,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                 Text(
                   '${_names.length} Themes',
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: Colors.black54,
                     fontSize: 12,
                   ),
                 ),
@@ -5836,7 +5834,7 @@ class _OrnamentsGalleryPageState
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isSelected ? gold : partyWhite,
+                color: isSelected ? gold : Colors.black,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -5943,7 +5941,7 @@ class _OrnamentsGalleryPageState
                             ? 'Your Profile'
                             : widget.userName,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 14,
                         ),
                       ),
@@ -6522,7 +6520,7 @@ class _PvipPageState extends State<PvipPage> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      color: partyWhite,
+                                      color: Colors.black,
                                       fontSize: 10.5,
                                       height: 1.15,
                                       fontWeight: FontWeight.w700,
@@ -6620,7 +6618,7 @@ class EntryGalleryPage extends StatefulWidget {
 }
 
 class _EntryGalleryPageState extends State<EntryGalleryPage> {
-  static const Color _background = Color(0xFF080A12);
+  static const Color _background = Color(0xFFF4F5F7);
   static const Color _card = Color(0xFF17121F);
   static const Color _gold = Color(0xFFFFC857);
   static const Color _purple = Color(0xFF8B5CF6);
@@ -6935,7 +6933,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                                 )
                               : const Icon(
                                   Icons.person_rounded,
-                                  color: Colors.white70,
+                                  color: Colors.black54,
                                   size: 62,
                                 ),
                         ),
@@ -6966,7 +6964,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: partyWhite,
+                        color: Colors.black,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -6985,7 +6983,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                     Text(
                       selected['description'] as String,
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Colors.black54,
                         fontSize: 13,
                       ),
                     ),
@@ -7009,7 +7007,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                   const Text(
                     'Choose Your Entry',
                     style: TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -7048,7 +7046,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                           color: _card,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isSelected ? color : partyWhite12,
+                            color: isSelected ? color : Colors.black12,
                             width: isSelected ? 2 : 1,
                           ),
                         ),
@@ -7081,7 +7079,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: isSelected ? color : partyWhite,
+                                  color: isSelected ? color : Colors.black,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                 ),
@@ -7163,7 +7161,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
       'name': 'Diamond Crown',
       'metal': const Color(0xFF8BEAFF),
       'dark': const Color(0xFF15547A),
-      'gem': const Color(0xFF17121D),
+      'gem': const Color(0xFFFFFFFF),
       'glow': const Color(0xFF55DFFF),
     },
     {
@@ -7283,7 +7281,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                       crown['name'] as String,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: partyWhite,
+                        color: Colors.black,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -7344,7 +7342,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                         child: Text(
                           'CROWN ${index + 1}',
                           style: TextStyle(
-                            color: active ? darkBlue : partyWhite,
+                            color: active ? darkBlue : Colors.black,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -7395,7 +7393,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                         child: const Icon(
                           Icons.person_rounded,
                           size: 42,
-                          color: Colors.white70,
+                          color: Colors.black54,
                         ),
                       ),
                     ),
@@ -7407,7 +7405,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Profile DP Frame',
                             style: TextStyle(
-                              color: partyWhite,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -7424,7 +7422,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Demo preview only',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Colors.black45,
                               fontSize: 11,
                             ),
                           ),
@@ -7479,7 +7477,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Room Mic Glow',
                             style: TextStyle(
-                              color: partyWhite,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -7496,7 +7494,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Room connection comes later',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Colors.black45,
                               fontSize: 11,
                             ),
                           ),
@@ -7551,7 +7549,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                   'UI DEMO • FEATURES WILL BE CONNECTED LATER',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: Colors.black38,
                     fontSize: 10,
                     letterSpacing: 0.7,
                   ),
@@ -7627,11 +7625,11 @@ class _CrownPainter extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          partyWhite.withOpacity(0.85),
+          Colors.black.withOpacity(0.85),
           metal,
           darkMetal,
           metal,
-          partyWhite.withOpacity(0.55),
+          Colors.black.withOpacity(0.55),
         ],
         stops: const [0, 0.22, 0.52, 0.78, 1],
       ).createShader(
@@ -7665,7 +7663,7 @@ class _CrownPainter extends CustomPainter {
     );
 
     final linePaint = Paint()
-      ..color = partyWhite.withOpacity(0.5)
+      ..color = Colors.black.withOpacity(0.5)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -7678,7 +7676,7 @@ class _CrownPainter extends CustomPainter {
     final gemPaint = Paint()
   ..shader = RadialGradient(
     colors: [
-      partyWhite,
+      Colors.black,
       gem,
       darkMetal,
     ],
@@ -7708,12 +7706,12 @@ class _CrownPainter extends CustomPainter {
       canvas.drawCircle(
         point.translate(-1, -1),
         1.4,
-        Paint()..color = partyWhite.withOpacity(0.85),
+        Paint()..color = Colors.black.withOpacity(0.85),
       );
     }
 
     final sparklePaint = Paint()
-      ..color = partyWhite.withOpacity(0.9)
+      ..color = Colors.black.withOpacity(0.9)
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
 
@@ -7782,7 +7780,7 @@ class _GameBadgeGalleryPageState
       'requirement': '300,000 Tokens',
       'icon': Icons.emoji_events_rounded,
       'colors': [
-        Color(0xFF17121D),
+        Color(0xFFFFFFFF),
         Color(0xFFB8C5D6),
         Color(0xFF536579),
       ],
@@ -7870,7 +7868,7 @@ class _GameBadgeGalleryPageState
       'requirement': 'Legendary Achievement',
       'icon': Icons.workspace_premium_rounded,
       'colors': [
-        Color(0xFF17121D),
+        Color(0xFFFFFFFF),
         Color(0xFFFFC857),
         Color(0xFF7139A8),
       ],
@@ -7950,7 +7948,7 @@ class _GameBadgeGalleryPageState
                     badge['name'] as String,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -7988,7 +7986,7 @@ class _GameBadgeGalleryPageState
                     'Select a badge below to preview it',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 11,
                     ),
                   ),
@@ -8020,7 +8018,7 @@ class _GameBadgeGalleryPageState
                   Text(
                     '10 BADGES',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -8108,7 +8106,7 @@ class _GameBadgeGalleryPageState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: partyWhite,
+                                  color: Colors.black,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -8227,7 +8225,7 @@ class _GameBadgeArtwork extends StatelessWidget {
                   spreadRadius: size * 0.01,
                 ),
                 BoxShadow(
-                  color: partyWhite.withValues(alpha: 0.35),
+                  color: Colors.black.withValues(alpha: 0.35),
                   blurRadius: size * 0.08,
                   offset: Offset(0, size * 0.04),
                 ),
@@ -8251,7 +8249,7 @@ class _GameBadgeArtwork extends StatelessWidget {
                 ],
               ),
               border: Border.all(
-                color: partyWhite.withValues(alpha: 0.8),
+                color: Colors.black.withValues(alpha: 0.8),
                 width: size * 0.012,
               ),
             ),
@@ -8263,7 +8261,7 @@ class _GameBadgeArtwork extends StatelessWidget {
             left: size * 0.15,
             child: Icon(
               Icons.auto_awesome,
-              color: partyWhite.withValues(alpha: 0.95),
+              color: Colors.black.withValues(alpha: 0.95),
               size: size * 0.12,
             ),
           ),
@@ -8274,7 +8272,7 @@ class _GameBadgeArtwork extends StatelessWidget {
             right: size * 0.15,
             child: Icon(
               Icons.auto_awesome,
-              color: partyWhite.withValues(alpha: 0.75),
+              color: Colors.black.withValues(alpha: 0.75),
               size: size * 0.09,
             ),
           ),
@@ -8283,10 +8281,10 @@ class _GameBadgeArtwork extends StatelessWidget {
           Icon(
             icon,
             size: size * 0.47,
-            color: partyWhite,
+            color: Colors.black,
             shadows: [
               Shadow(
-                color: partyWhite.withValues(alpha: 0.65),
+                color: Colors.black.withValues(alpha: 0.65),
                 blurRadius: size * 0.06,
                 offset: Offset(0, size * 0.025),
               ),
@@ -8403,7 +8401,7 @@ class _RoyalBadgeGalleryState
       Color(0xFF613515),
     ],
     [
-      Color(0xFF17121D),
+      Color(0xFFFFFFFF),
       Color(0xFFBFCBDA),
       Color(0xFF526477),
     ],
@@ -8428,7 +8426,7 @@ class _RoyalBadgeGalleryState
       Color(0xFF124E91),
     ],
     [
-      Color(0xFF17121D),
+      Color(0xFFFFFFFF),
       Color(0xFF73E8FF),
       Color(0xFF4536B5),
     ],
@@ -8438,12 +8436,12 @@ class _RoyalBadgeGalleryState
       Color(0xFF913F15),
     ],
     [
-      Color(0xFF17121D),
+      Color(0xFFFFFFFF),
       Color(0xFFFFD45A),
       Color(0xFF7A3FBD),
     ],
     [
-      Color(0xFF17121D),
+      Color(0xFFFFFFFF),
       Color(0xFFFFD45A),
       Color(0xFF9B42E8),
     ],
@@ -8550,7 +8548,7 @@ class _RoyalBadgeGalleryState
                     selectedName,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 21,
                       fontWeight: FontWeight.w900,
                     ),
@@ -8587,7 +8585,7 @@ class _RoyalBadgeGalleryState
                   const Text(
                     'Tap any badge below to preview',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 11,
                     ),
                   ),
@@ -8627,7 +8625,7 @@ class _RoyalBadgeGalleryState
                   const Text(
                     '10 BADGES',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -8727,7 +8725,7 @@ class _RoyalBadgeGalleryState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: partyWhite,
+                                  color: Colors.black,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -8772,7 +8770,7 @@ class _RoyalBadgeGalleryState
                                 style: TextStyle(
                                   color: selected
                                       ? gold
-                                      : Colors.white54,
+                                      : Colors.black45,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1,
@@ -8833,7 +8831,7 @@ class _RoyalBadgePainter extends CustomPainter {
     canvas.drawOval(
       bounds.shift(const Offset(0, 5)),
       Paint()
-        ..color = partyWhite.withValues(alpha: 0.5)
+        ..color = Colors.black.withValues(alpha: 0.5)
         ..maskFilter = const MaskFilter.blur(
           BlurStyle.normal,
           8,
@@ -8848,7 +8846,7 @@ class _RoyalBadgePainter extends CustomPainter {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF17121D),
+            Color(0xFFFFFFFF),
             Color(0xFFFFD76C),
             Color(0xFF9D570C),
             Color(0xFFFFF0B0),
@@ -8967,7 +8965,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const RadialGradient(
             colors: [
-              partyWhite,
+              Colors.black,
               Color(0xFF56E8FF),
               Color(0xFF1350A0),
             ],
@@ -8992,7 +8990,7 @@ class _RoyalBadgePainter extends CustomPainter {
           fontFamily: symbol.fontFamily,
           package: symbol.fontPackage,
           fontSize: 31,
-          color: partyWhite,
+          color: Colors.black,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -9091,7 +9089,7 @@ class _RoyalBadgePainter extends CustomPainter {
       canvas.drawCircle(
         point,
         1,
-        Paint()..color = partyWhite,
+        Paint()..color = Colors.black,
       );
     }
 
@@ -9109,7 +9107,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const LinearGradient(
             colors: [
-              partyWhite,
+              Colors.black,
               Color(0xFF65E7FF),
               Color(0xFF2254B7),
             ],
@@ -9139,7 +9137,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const LinearGradient(
             colors: [
-              partyWhite,
+              Colors.black,
               Color(0xFFFFD65A),
               Color(0xFFB56C00),
             ],
@@ -9234,7 +9232,7 @@ class _ProfileCountItem extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -9403,12 +9401,12 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF17121D),
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(
           'Settings',
-          style: TextStyle(color: partyWhite),
+          style: TextStyle(color: Colors.black),
         ),
-        iconTheme: const IconThemeData(color: partyWhite),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -9459,14 +9457,14 @@ class SettingsPage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF17121D),
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(
           'Delete Account?',
-          style: TextStyle(color: partyWhite),
+          style: TextStyle(color: Colors.black),
         ),
         content: const Text(
           'This permanently deletes your account. This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -9521,11 +9519,11 @@ class SettingsPage extends StatelessWidget {
         backgroundColor: const Color(0xFF1A1022),
         title: const Text(
           'Log Out?',
-          style: TextStyle(color: partyWhite),
+          style: TextStyle(color: Colors.black),
         ),
         content: const Text(
           'Are you sure you want to log out?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -9603,7 +9601,7 @@ class _GlossySettingsBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFFFC629), width: 1),
         boxShadow: [
-          BoxShadow(color: partyWhite.withValues(alpha: 0.16), blurRadius: 18, offset: const Offset(0, 7)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.16), blurRadius: 18, offset: const Offset(0, 7)),
         ],
       ),
       child: ListTile(
@@ -9624,17 +9622,17 @@ class _GlossySettingsBox extends StatelessWidget {
         title: Text(
           title,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.black54),
         ),
         trailing: const Icon(
           Icons.chevron_right_rounded,
-          color: Colors.white54,
+          color: Colors.black45,
         ),
       ),
     );
@@ -9886,7 +9884,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
         title: Text(
           editName ? 'Change Room Name' : 'Room Description',
-          style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w800),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -9897,12 +9895,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             maxLines: editName ? 1 : null,
             expands: !editName,
             textAlignVertical: TextAlignVertical.top,
-            style: const TextStyle(color: partyWhite, fontSize: 16),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
             cursorColor: gold,
             decoration: InputDecoration(
               hintText: editName ? 'Enter room name (max 30)' : 'Write room description (max 200 characters)',
-              hintStyle: const TextStyle(color: Colors.white54),
-              counterStyle: const TextStyle(color: Colors.white54),
+              hintStyle: const TextStyle(color: Colors.black45),
+              counterStyle: const TextStyle(color: Colors.black45),
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: pink, width: 1.2),
               ),
@@ -9915,7 +9913,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL', style: TextStyle(color: partyWhite87, fontWeight: FontWeight.w700)),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
@@ -9962,7 +9960,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           AndroidUiSettings(
             toolbarTitle: 'Adjust Room Photo',
             toolbarColor: const Color(0xFF7028A0),
-            toolbarWidgetColor: partyWhite,
+            toolbarWidgetColor: Colors.black,
             activeControlsWidgetColor: const Color(0xFFFFC629),
             lockAspectRatio: true,
             aspectRatioPresets: [CropAspectRatioPreset.square],
@@ -10038,7 +10036,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               title: const Text(
                 'Select Room Languages',
                 style: TextStyle(
-                  color: partyWhite,
+                  color: Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -10074,13 +10072,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             border: Border.all(
                               color: selected
                                   ? pink
-                                  : partyWhite.withValues(alpha: 0.15),
+                                  : Colors.black.withValues(alpha: 0.15),
                             ),
                           ),
                           child: Text(
                             language,
                             style: TextStyle(
-                              color: partyWhite,
+                              color: Colors.black,
                               fontSize: 13,
                               fontWeight: selected
                                   ? FontWeight.bold
@@ -10100,7 +10098,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   },
                   child: const Text(
                     'CANCEL',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: Colors.black54),
                   ),
                 ),
                 ElevatedButton(
@@ -10120,7 +10118,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: pink,
-                    foregroundColor: partyWhite,
+                    foregroundColor: Colors.black,
                   ),
                   child: const Text('SAVE'),
                 ),
@@ -10155,14 +10153,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             children: [
               Icon(
                 tabIcon,
-                color: selected ? pink : Colors.white70,
+                color: selected ? pink : Colors.black54,
                 size: 27,
               ),
               const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
-                  color: selected ? partyWhite : Colors.white70,
+                  color: selected ? Colors.black : Colors.black54,
                   fontSize: 14,
                   fontWeight: selected ? FontWeight.bold : FontWeight.w600,
                 ),
@@ -10212,7 +10210,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white70,
+              color: Colors.black54,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -10257,7 +10255,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             const Text(
               'Level 1',
               style: TextStyle(
-                color: partyWhite,
+                color: Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -10266,7 +10264,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Text(
               '0%',
               style: TextStyle(
-                color: partyWhite.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.7),
                 fontSize: 12,
               ),
             ),
@@ -10278,7 +10276,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           child: const LinearProgressIndicator(
             value: 0,
             minHeight: 7,
-            backgroundColor: partyWhite12,
+            backgroundColor: Colors.black12,
             valueColor: AlwaysStoppedAnimation<Color>(pink),
           ),
         ),
@@ -10311,7 +10309,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   child: Text(
                     'Room Languages',
                     style: TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
@@ -10328,7 +10326,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             if (_selectedLanguages.isEmpty)
               const Text(
                 'Select Room Languages',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                style: TextStyle(color: Colors.black54, fontSize: 13),
               )
             else
               Wrap(
@@ -10358,7 +10356,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     child: Text(
                       language,
                       style: const TextStyle(
-                        color: partyWhite,
+                        color: Colors.black,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
@@ -10419,7 +10417,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ? 'No room rules or description added yet.'
                 : _currentRoomDescription,
             textAlign: TextAlign.left,
-            style: const TextStyle(color: partyWhite, fontSize: 14, height: 1.5),
+            style: const TextStyle(color: Colors.black, fontSize: 14, height: 1.5),
           ),
         ],
       ),
@@ -10450,22 +10448,22 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panel,
-        title: const Text('Change Club Name', style: TextStyle(color: partyWhite)),
+        title: const Text('Change Club Name', style: TextStyle(color: Colors.black)),
         content: TextField(
           controller: controller,
           maxLength: 6,
           textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(color: partyWhite),
+          style: const TextStyle(color: Colors.black),
           decoration: const InputDecoration(
             hintText: 'Maximum 6 letters',
-            hintStyle: TextStyle(color: Colors.white54),
-            counterStyle: TextStyle(color: Colors.white54),
+            hintStyle: TextStyle(color: Colors.black45),
+            counterStyle: TextStyle(color: Colors.black45),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
@@ -10515,7 +10513,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Expanded(
               child: Column(
                 children: [
-                  const Text('Club Name', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const Text('Club Name', style: TextStyle(color: Colors.black54, fontSize: 12)),
                   const SizedBox(height: 7),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -10585,9 +10583,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ],
               ),
             ),
-            Container(width: 1, height: 54, color: partyWhite.withValues(alpha: 0.15)),
+            Container(width: 1, height: 54, color: Colors.black.withValues(alpha: 0.15)),
             _buildPoint('Club Point', widget.clubPoint, Icons.stars_rounded),
-            Container(width: 1, height: 54, color: partyWhite.withValues(alpha: 0.15)),
+            Container(width: 1, height: 54, color: Colors.black.withValues(alpha: 0.15)),
             _buildPoint('Member Point', widget.memberPoint, Icons.military_tech_rounded),
           ],
         );
@@ -10673,9 +10671,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF17121D),
-        title: const Text('Room options', style: TextStyle(color: partyWhite)),
-        content: const Text('Choose how you want to leave this room.', style: TextStyle(color: Colors.white70)),
+        backgroundColor: const Color(0xFFFFFFFF),
+        title: const Text('Room options', style: TextStyle(color: Colors.black)),
+        content: const Text('Choose how you want to leave this room.', style: TextStyle(color: Colors.black54)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, 'unjoin'), child: const Text('Unjoin')),
           TextButton(onPressed: () => Navigator.pop(dialogContext, 'both'), child: const Text('Unjoin and Unfollow')),
@@ -10751,7 +10749,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 onPressed: _unjoinRoomFromProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1769AA),
-                  foregroundColor: partyWhite,
+                  foregroundColor: Colors.black,
                   elevation: 8,
                   shadowColor: const Color(0xFF42A5F5),
                   shape: RoundedRectangleBorder(
@@ -10897,7 +10895,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
     await showDialog<void>(
       context: context,
-      barrierColor: partyWhite.withValues(alpha: 0.70),
+      barrierColor: Colors.black.withValues(alpha: 0.70),
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, refreshDialog) => Dialog(
           backgroundColor: Colors.transparent,
@@ -10921,7 +10919,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       child: Text(
                         'IN-CHARGE & DEPUTY PERMISSIONS',
                         style: TextStyle(
-                          color: partyWhite,
+                          color: Colors.black,
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
@@ -10929,7 +10927,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      icon: const Icon(Icons.close_rounded, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -10939,7 +10937,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     padding: EdgeInsets.only(bottom: 12),
                     child: Text(
                       'Green = ON     Red = OFF',
-                      style: TextStyle(color: Colors.white70, fontSize: 11),
+                      style: TextStyle(color: Colors.black54, fontSize: 11),
                     ),
                   ),
                 ),
@@ -10972,7 +10970,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: Text(
                                 label,
                                 style: const TextStyle(
-                                  color: partyWhite,
+                                  color: Colors.white,
                                   fontSize: 13,
                                   height: 1.3,
                                   fontWeight: FontWeight.w700,
@@ -11033,7 +11031,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                         child: Text(
                                           enabled ? 'ON' : 'OFF',
                                           style: const TextStyle(
-                                            color: partyWhite,
+                                            color: Colors.black,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w900,
                                           ),
@@ -11050,7 +11048,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                         width: 24,
                                         height: 24,
                                         decoration: const BoxDecoration(
-                                          color: partyWhite,
+                                          color: Colors.black,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -11069,7 +11067,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 const Text(
                   'Permission settings are saved automatically.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white54, fontSize: 10),
+                  style: TextStyle(color: Colors.black45, fontSize: 10),
                 ),
               ],
             ),
@@ -11146,7 +11144,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         backgroundColor: panel,
         title: const Text(
           'ROOM JOIN FEE',
-          style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -11154,16 +11152,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           children: [
             const Text(
               'Enter 0 for free entry, or enter 10 to 2000 diamonds.',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: Colors.black54, fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: feeController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: partyWhite),
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 labelText: 'Diamonds (0 or 10–2000)',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.black54),
                 prefixIcon: const Icon(Icons.diamond, color: gold),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: gold.withOpacity(.7)),
@@ -11178,10 +11176,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: partyWhite),
+            style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black),
             onPressed: () async {
               final fee = int.tryParse(feeController.text.trim());
               if (fee == null || (fee != 0 && (fee < 10 || fee > 2000))) {
@@ -11213,10 +11211,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panel,
-        title: const Text('REMOVE MEMBER?', style: TextStyle(color: partyWhite)),
+        title: const Text('REMOVE MEMBER?', style: TextStyle(color: Colors.black)),
         content: Text(
           'Remove $memberName from this room? The action will remain in Room Record for 7 days.',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -11280,11 +11278,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   children: [
                     const Expanded(
                       child: Text('BLOCKED MEMBERS',
-                          style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900, fontSize: 17)),
+                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 17)),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close, color: Colors.white70),
+                      icon: const Icon(Icons.close, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -11295,7 +11293,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFB32632),
-                        foregroundColor: partyWhite,
+                        foregroundColor: Colors.black,
                       ),
                       onPressed: () async {
                         final user = FirebaseAuth.instance.currentUser;
@@ -11333,13 +11331,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     stream: roomRef.collection('blockedMembers').snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
-                        return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.white70)));
+                        return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.black54)));
                       }
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.data!.docs.isEmpty) {
-                        return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.white70)));
+                        return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.black54)));
                       }
                       return ListView.builder(
                         itemCount: snapshot.data!.docs.length,
@@ -11360,9 +11358,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text((item['targetName'] ?? 'Member').toString(),
-                                          style: const TextStyle(color: partyWhite, fontWeight: FontWeight.bold)),
+                                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                                       Text('Blocked by: ${(item['actorName'] ?? 'Room Staff')}',
-                                          style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                          style: const TextStyle(color: Colors.black54, fontSize: 11)),
                                     ],
                                   ),
                                 ),
@@ -11426,14 +11424,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
 
   Widget _roomRecordAvatar(String uid, double size) {
-    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panel, child: Icon(Icons.person, color: Colors.white54, size: size * .55));
+    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panel, child: Icon(Icons.person, color: Colors.black45, size: size * .55));
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       future: FirebaseFirestore.instance.collection('publicProfiles').doc(uid).get(),
       builder: (context, snapshot) {
         final photo = (snapshot.data?.data()?['photoBase64'] ?? '').toString();
         return CircleAvatar(radius: size / 2, backgroundColor: panel,
           backgroundImage: photo.isNotEmpty ? getCachedProfilePhotoImage(photo) : null,
-          child: photo.isEmpty ? Icon(Icons.person, color: Colors.white54, size: size * .55) : null);
+          child: photo.isEmpty ? Icon(Icons.person, color: Colors.black45, size: size * .55) : null);
       },
     );
   }
@@ -11459,11 +11457,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     children: [
                       const Expanded(
                         child: Text('ROOM RECORD',
-                            style: TextStyle(color: partyWhite, fontSize: 18, fontWeight: FontWeight.w900)),
+                            style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(dialogContext),
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: const Icon(Icons.close, color: Colors.black54),
                       ),
                     ],
                   ),
@@ -11482,7 +11480,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               border: Border.all(color: gold.withOpacity(.7)),
                             ),
                             child: Text(tabs[index].toUpperCase(), textAlign: TextAlign.center,
-                                style: TextStyle(color: selectedTab == index ? partyWhite : partyWhite,
+                                style: TextStyle(color: selectedTab == index ? Colors.black : Colors.black,
                                     fontWeight: FontWeight.w900, fontSize: 10)),
                           ),
                         ),
@@ -11495,7 +11493,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       stream: _roomActionRecords.orderBy('createdAt', descending: true).snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.white70)));
+                          return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.black54)));
                         }
                         if (!snapshot.hasData) {
                           return const Center(child: CircularProgressIndicator());
@@ -11511,7 +11509,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           return true;
                         }).toList();
                         if (records.isEmpty) {
-                          return Center(child: Text('No $action records.', style: const TextStyle(color: Colors.white70)));
+                          return Center(child: Text('No $action records.', style: const TextStyle(color: Colors.black54)));
                         }
                         return ListView.builder(
                           itemCount: records.length,
@@ -11534,17 +11532,17 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                     _roomRecordAvatar((item['targetUid'] ?? '').toString(), 42),
                                     const SizedBox(width: 9),
                                     Expanded(child: Text('${item['targetName'] ?? 'Member'}',
-                                      style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w900))),
+                                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900))),
                                   ]),
                                   const SizedBox(height: 6),
                                   Row(children: [
                                     const SizedBox(width: 6),
                                     Expanded(child: Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                                      style: const TextStyle(color: Colors.black54, fontSize: 12))),
                                   ]),
                                   if ((item['targetUserId'] ?? '').toString().isNotEmpty)
-                                    Text('UID: ${item['targetUserId']}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                                  Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                    Text('UID: ${item['targetUserId']}', style: const TextStyle(color: Colors.black45, fontSize: 11)),
+                                  Text(dateText, style: const TextStyle(color: Colors.black38, fontSize: 10)),
                                   if (action == 'Kick')
                                     StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                                       stream: FirebaseFirestore.instance
@@ -11571,10 +11569,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 context: context,
                                                 builder: (ctx) => AlertDialog(
                                                   backgroundColor: panel,
-                                                  title: const Text('UN-KICK MEMBER?', style: TextStyle(color: partyWhite)),
-                                                  content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.white70)),
+                                                  title: const Text('UN-KICK MEMBER?', style: TextStyle(color: Colors.black)),
+                                                  content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.black54)),
                                                   actions: [
-                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL', style: TextStyle(color: Colors.white70))),
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL', style: TextStyle(color: Colors.black54))),
                                                     TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('UN-KICK', style: TextStyle(color: Color(0xFF36D477)))),
                                                   ],
                                                 ),
@@ -11594,7 +11592,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Un-kick failed: $error')));
                                               }
                                             },
-                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : partyWhite.withValues(alpha: 0.18), fontWeight: FontWeight.w900)),
+                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.black.withValues(alpha: 0.18), fontWeight: FontWeight.w900)),
                                             ),
                                           ),
                                         );
@@ -11637,7 +11635,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
     await showDialog<void>(
       context: context,
-      barrierColor: Colors.white70,
+      barrierColor: Colors.black54,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 20),
@@ -11655,11 +11653,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 children: [
                   const Expanded(
                     child: Text('ROOM SETTINGS',
-                        style: TextStyle(color: partyWhite, fontSize: 17, fontWeight: FontWeight.w900)),
+                        style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(Icons.close_rounded, color: Colors.black54),
                   ),
                 ],
               ),
@@ -11697,7 +11695,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         children: [
                           Expanded(
                             child: Text(option,
-                                style: const TextStyle(color: partyWhite, fontSize: 15, fontWeight: FontWeight.w800)),
+                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
                           ),
                           const Icon(Icons.chevron_right_rounded, color: gold, size: 25),
                         ],
@@ -11734,12 +11732,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   Expanded(
                     child: Text(
                       forBlock ? 'SELECT MEMBER TO BLOCK' : 'REMOVE MEMBER',
-                      style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w900),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon: const Icon(Icons.close, color: Colors.black54),
                   ),
                 ],
               ),
@@ -11756,7 +11754,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         final role = (d['role'] ?? '').toString().toLowerCase();
                         return uid != currentUid && role != 'owner' && role != 'leader';
                       }).toList();
-                      if (docs.isEmpty) return const Center(child: Text('No members available.', style: TextStyle(color: Colors.white70)));
+                      if (docs.isEmpty) return const Center(child: Text('No members available.', style: TextStyle(color: Colors.black54)));
                       return ListView.builder(
                         itemCount: docs.length,
                         itemBuilder: (context, index) {
@@ -11765,8 +11763,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           final uid = (data['firebaseUid'] ?? doc.id).toString();
                           final name = (data['name'] ?? 'PartyNova User').toString();
                           return ListTile(
-                            title: Text(name, style: const TextStyle(color: partyWhite)),
-                            subtitle: Text('UID: ${(data['userId'] ?? '').toString()}', style: const TextStyle(color: Colors.white70)),
+                            title: Text(name, style: const TextStyle(color: Colors.black)),
+                            subtitle: Text('UID: ${(data['userId'] ?? '').toString()}', style: const TextStyle(color: Colors.black54)),
                             trailing: const Icon(Icons.chevron_right, color: gold),
                             onTap: () {
                               Navigator.pop(dialogContext);
@@ -11969,7 +11967,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: partyWhite,
+                  color: Colors.black,
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),
@@ -11999,7 +11997,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               )),
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+                child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
               ),
             ],
           ),
@@ -12068,16 +12066,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             final displayCount = count > 1000 ? 1000 : count;
             return Row(
               children: [
-                const Text('Member', style: TextStyle(color: partyWhite, fontSize: 19, fontWeight: FontWeight.bold)),
+                const Text('Member', style: TextStyle(color: Colors.black, fontSize: 19, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 10),
                 Text('$displayCount', style: const TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 9),
                   width: 1.5,
                   height: 20,
-                  color: Colors.white70,
+                  color: Colors.black54,
                 ),
-                const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
+                const Text('1000', style: TextStyle(color: Colors.black54, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
                   tooltip: 'Room Settings',
@@ -12100,11 +12098,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         TextField(
           controller: _memberSearchController,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: partyWhite),
+          style: const TextStyle(color: Colors.black),
           onChanged: (value) => setState(() => _memberSearchQuery = value.trim()),
           decoration: InputDecoration(
             hintText: 'Search member by PartyNova UID',
-            hintStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+            hintStyle: const TextStyle(color: Colors.black45, fontSize: 13),
             prefixIcon: const Icon(Icons.search_rounded, color: pink),
             filled: true,
             fillColor: panel,
@@ -12117,7 +12115,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           stream: membersRef.snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.white70)));
+              return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.black54)));
             }
             if (!snapshot.hasData) {
               return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: pink)));
@@ -12156,7 +12154,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             if (docs.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 28),
-                child: Center(child: Text(query.isEmpty ? 'No members yet.' : 'No member found with this PartyNova UID.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70))),
+                child: Center(child: Text(query.isEmpty ? 'No members yet.' : 'No member found with this PartyNova UID.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54))),
               );
             }
             return ListView.separated(
@@ -12193,13 +12191,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     showDialog<void>(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
-                        backgroundColor: partyWhite,
-                        title: Text(displayName, style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
-                        content: Text('PartyNova UID: $displayUid', style: const TextStyle(color: partyWhite87)),
+                        backgroundColor: Colors.black,
+                        title: Text(displayName, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+                        content: Text('PartyNova UID: $displayUid', style: const TextStyle(color: Colors.black87)),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(dialogContext),
-                            child: const Text('CANCEL', style: TextStyle(color: partyWhite87, fontWeight: FontWeight.w700)),
+                            child: const Text('CANCEL', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700)),
                           ),
                           ElevatedButton(
                             onPressed: () {
@@ -12224,7 +12222,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   decoration: BoxDecoration(
                     color: panel,
                     borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: isLeader ? gold.withOpacity(0.75) : partyWhite12),
+                    border: Border.all(color: isLeader ? gold.withOpacity(0.75) : Colors.black12),
                     boxShadow: isLeader
                         ? [BoxShadow(color: gold.withOpacity(0.16), blurRadius: 12, spreadRadius: 1)]
                         : null,
@@ -12258,7 +12256,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: partyWhite,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -12289,7 +12287,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white54,
+                                color: Colors.black45,
                                 fontSize: 10,
                               ),
                             ),
@@ -12367,7 +12365,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: const Text(
                                 'DEPUTY',
                                 style: TextStyle(
-                                  color: partyWhite,
+                                  color: Colors.black,
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.4,
@@ -12404,7 +12402,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: const Text(
                                 'INCHARGE',
                                 style: TextStyle(
-                                  color: partyWhite,
+                                  color: Colors.black,
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.4,
@@ -12573,7 +12571,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               ? Container(
                                   padding: const EdgeInsets.all(5),
                                   decoration: const BoxDecoration(color: pink, shape: BoxShape.circle),
-                                  child: const Icon(Icons.edit, color: partyWhite, size: 15),
+                                  child: const Icon(Icons.edit, color: Colors.black, size: 15),
                                 )
                               : const SizedBox.shrink(),
                         ),
@@ -12591,7 +12589,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             const Text(
                               'ID: ',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Colors.black54,
                                 fontSize: 13,
                               ),
                             ),
@@ -13051,10 +13049,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             side: const BorderSide(color: pink, width: 1.5),
           ),
           title: const Text('ROOM ACCESS RESTRICTED',
-              style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
           content: const Text(
             'You have been kicked from this room. You cannot enter until the Room Leader removes your kick from Room Record.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
           actions: [
             TextButton(
@@ -13091,8 +13089,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         builder: (dialogContext) => AlertDialog(
           backgroundColor: panelBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: pink, width: 1.5)),
-          title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
-          content: const Text('You have been kicked from this room. You must leave now and cannot return until the kick is removed in Room Record.', style: TextStyle(color: Colors.white70)),
+          title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+          content: const Text('You have been kicked from this room. You must leave now and cannot return until the kick is removed in Room Record.', style: TextStyle(color: Colors.black54)),
           actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
         ),
       );
@@ -13138,18 +13136,18 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           side: const BorderSide(color: pink, width: 1.5),
         ),
         title: const Text('MIC INVITATION',
-            style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
         content: Text(
           '$inviterName ($inviterRole) invited you to take the mic. Do you want to join?',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: partyWhite),
+            style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.black),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Yes'),
           ),
@@ -13322,7 +13320,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         border: Border.all(color: const Color(0xFFFFE6B8), width: 1.3),
         boxShadow: [
           BoxShadow(color: leader ? const Color(0xFFFFB45A) : gold, blurRadius: 13, spreadRadius: 1),
-          BoxShadow(color: partyWhite.withOpacity(0.22), blurRadius: 4, spreadRadius: 1),
+          BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 4, spreadRadius: 1),
         ],
       ),
       child: Stack(
@@ -13396,7 +13394,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           child: Text(
             label,
             style: const TextStyle(
-              color: partyWhite,
+              color: Colors.black,
               fontSize: 9,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.6,
@@ -13505,10 +13503,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           builder: (dialogContext) => AlertDialog(
             backgroundColor: panelBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-            title: const Text('MIC SEAT', style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
-            content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+            title: const Text('MIC SEAT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+            content: const Text('Leave the Mic?', style: TextStyle(color: Colors.black54)),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
               TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
             ],
           ),
@@ -13533,11 +13531,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panelBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-        title: const Text('MIC SEAT', style: TextStyle(color: partyWhite, fontWeight: FontWeight.w900)),
-        content: const Text('Take Mic?', style: TextStyle(color: Colors.white70)),
+        title: const Text('MIC SEAT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+        content: const Text('Take Mic?', style: TextStyle(color: Colors.black54)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: partyWhite), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Take Mic')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.black), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Take Mic')),
         ],
       ),
     );
@@ -13604,11 +13602,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
           decoration: BoxDecoration(color: panelBlue, borderRadius: const BorderRadius.vertical(top: Radius.circular(22)), border: Border.all(color: pink, width: 1.3)),
           child: Column(children: [
-            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(5))),
+            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(5))),
             const SizedBox(height: 18),
-            CircleAvatar(radius: 54, backgroundColor: const Color(0xFF17121D), backgroundImage: getCachedProfilePhotoImage(photo), child: getCachedProfilePhotoImage(photo) == null ? const Icon(Icons.person_rounded, size: 56, color: Colors.white70) : null),
+            CircleAvatar(radius: 54, backgroundColor: const Color(0xFFF7F7F8), backgroundImage: getCachedProfilePhotoImage(photo), child: getCachedProfilePhotoImage(photo) == null ? const Icon(Icons.person_rounded, size: 56, color: Colors.black54) : null),
             const SizedBox(height: 12),
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w900, fontSize: 19)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 19)),
             const SizedBox(height: 5),
             Text('UID: $partyId', style: const TextStyle(color: gold, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
@@ -13625,9 +13623,9 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
 
   Widget _micProfileAction(IconData icon, String label) => Column(mainAxisSize: MainAxisSize.min, children: [
-    Container(width: 48, height: 48, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: pink), color: partyWhite26), child: Icon(icon, color: gold)),
+    Container(width: 48, height: 48, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: pink), color: Colors.black26), child: Icon(icon, color: gold)),
     const SizedBox(height: 6),
-    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)),
+    Text(label, style: const TextStyle(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.w700)),
   ]);
 
   Widget _buildSeat(int number, Map<String, dynamic>? occupant) {
@@ -13652,22 +13650,22 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 decoration: BoxDecoration(
                   color: isOccupied ? const Color(0xFF24101F) : Colors.transparent,
                   shape: BoxShape.circle,
-                  border: Border.all(color: isMySeat ? gold : (isOccupied ? pink : partyWhite), width: isOccupied ? 2.2 : 1.8),
-                  boxShadow: [BoxShadow(color: (isOccupied ? pink : partyWhite).withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
+                  border: Border.all(color: isMySeat ? gold : (isOccupied ? pink : Colors.black), width: isOccupied ? 2.2 : 1.8),
+                  boxShadow: [BoxShadow(color: (isOccupied ? pink : Colors.black).withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
                 ),
                 child: isOccupied
                     ? CircleAvatar(
-                        backgroundColor: const Color(0xFF17121D),
+                        backgroundColor: const Color(0xFFF7F7F8),
                         backgroundImage: getCachedProfilePhotoImage(photo),
                         child: getCachedProfilePhotoImage(photo) == null
-                            ? Icon(Icons.person_rounded, color: isMySeat ? gold : Colors.white70, size: 39)
+                            ? Icon(Icons.person_rounded, color: isMySeat ? gold : Colors.black54, size: 39)
                             : null,
                       )
                     : const Center(child: Icon(Icons.chair_rounded, color: pink, size: 40)),
               ),
               const SizedBox(height: 5),
               Text(seatLabel, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: isMySeat ? gold : partyWhite, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
+                style: TextStyle(color: isMySeat ? gold : Colors.black, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
             ],
           ),
         ),
@@ -13816,28 +13814,28 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         children: [
           _buildActionIcon(
             icon: _messageOpen ? Icons.close_rounded : Icons.sms_rounded,
-            color: partyWhite,
+            color: Colors.black,
             size: 29,
             tooltip: _messageOpen ? 'Close message box' : 'Open messages',
             onPressed: _messageOpen ? _closeMessageBoard : _openMessageBoard,
           ),
           _buildActionIcon(
             icon: _micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-            color: partyWhite,
+            color: Colors.black,
             size: 30,
             tooltip: _micMuted ? 'Unmute microphone' : 'Mute microphone',
             onPressed: () => setState(() => _micMuted = !_micMuted),
           ),
           _buildActionIcon(
             icon: _speakerMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-            color: partyWhite,
+            color: Colors.black,
             size: 29,
             tooltip: _speakerMuted ? 'Unmute speaker' : 'Mute speaker',
             onPressed: () => setState(() => _speakerMuted = !_speakerMuted),
           ),
           _buildActionIcon(
             icon: Icons.emoji_emotions_outlined,
-            color: partyWhite,
+            color: Colors.black,
             size: 29,
             tooltip: 'Emoji',
             onPressed: () {},
@@ -13858,7 +13856,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           ),
           _buildActionIcon(
             icon: Icons.more_horiz_rounded,
-            color: partyWhite,
+            color: Colors.black,
             size: 31,
             tooltip: 'More',
             onPressed: () {},
@@ -13888,7 +13886,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     .collection('roomMessages').orderBy('createdAt', descending: true).limit(40).snapshots(),
                 builder: (context, snapshot) {
                   final messages = snapshot.data?.docs ?? [];
-                  if (messages.isEmpty) return const Center(child: Text('No messages yet.', style: TextStyle(color: Colors.white54)));
+                  if (messages.isEmpty) return const Center(child: Text('No messages yet.', style: TextStyle(color: Colors.black45)));
                   return ListView.builder(
                     reverse: true,
                     itemCount: messages.length,
@@ -13901,7 +13899,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                           const SizedBox(width: 7),
                           Expanded(child: RichText(text: TextSpan(children: [
                             TextSpan(text: '${data['senderName'] ?? 'User'}: ', style: const TextStyle(color: pink, fontWeight: FontWeight.w800)),
-                            TextSpan(text: (data['text'] ?? '').toString(), style: const TextStyle(color: partyWhite)),
+                            TextSpan(text: (data['text'] ?? '').toString(), style: const TextStyle(color: Colors.black)),
                           ]))),
                         ]),
                       );
@@ -13923,11 +13921,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _messageFocusNode.requestFocus(),
-                    style: const TextStyle(color: partyWhite, fontSize: 15),
+                    style: const TextStyle(color: Colors.black, fontSize: 15),
                     cursorColor: pink,
                     decoration: const InputDecoration(
                       hintText: 'Write a message...',
-                      hintStyle: TextStyle(color: Colors.white70, fontSize: 15),
+                      hintStyle: TextStyle(color: Colors.black54, fontSize: 15),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -13944,7 +13942,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 IconButton(
                   onPressed: _closeMessageBoard,
                   tooltip: 'Close message box',
-                  icon: const Icon(Icons.close_rounded, color: partyWhite, size: 22),
+                  icon: const Icon(Icons.close_rounded, color: Colors.black, size: 22),
                 ),
               ],
             ),
@@ -13980,16 +13978,16 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       backgroundColor: Colors.transparent,
       builder: (sheetContext) => Container(
         padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: partyWhite, borderRadius: const BorderRadius.vertical(top: Radius.circular(18)), border: Border.all(color: pink, width: 1.5)),
+        decoration: BoxDecoration(color: Colors.black, borderRadius: const BorderRadius.vertical(top: Radius.circular(18)), border: Border.all(color: pink, width: 1.5)),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(targetName, style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w900, fontSize: 16)),
+          Text(targetName, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           const SizedBox(height: 10),
           for (final item in <(String, IconData, Color)>[
-            ('Take the Mic', Icons.mic_rounded, partyWhite),
-            ('Kick', Icons.sports_kabaddi_rounded, partyWhite),
+            ('Take the Mic', Icons.mic_rounded, Colors.black),
+            ('Kick', Icons.sports_kabaddi_rounded, Colors.black),
             ('Ban', Icons.block_rounded, Colors.redAccent),
             ('Remove Mic', Icons.mic_off_rounded, pink),
-            ('Profile', Icons.person_rounded, partyWhite),
+            ('Profile', Icons.person_rounded, Colors.black),
           ])
             Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -13997,11 +13995,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               child: ListTile(
                 dense: true,
                 leading: Icon(item.$2, color: item.$3),
-                title: Text(item.$1, style: const TextStyle(color: partyWhite, fontWeight: FontWeight.w700)),
+                title: Text(item.$1, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
                 onTap: () => Navigator.pop(sheetContext, item.$1),
               ),
             ),
-          TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
         ]),
       ),
     );
@@ -14119,10 +14117,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panelBlue,
-        title: const Text('BAN MEMBER?', style: TextStyle(color: partyWhite)),
-        content: Text('Ban $targetName in this room? The member will remain visible but cannot message or take the mic.', style: const TextStyle(color: Colors.white70)),
+        title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.black)),
+        content: Text('Ban $targetName in this room? The member will remain visible but cannot message or take the mic.', style: const TextStyle(color: Colors.black54)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
           ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('BAN')),
         ],
       ),
@@ -14160,17 +14158,17 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
     final selectedDuration = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
-      title: const Text('KICK MEMBER?', style: TextStyle(color: partyWhite)),
-      content: Text('Choose the kick duration for $targetName.', style: const TextStyle(color: Colors.white70)),
+      title: const Text('KICK MEMBER?', style: TextStyle(color: Colors.black)),
+      content: Text('Choose the kick duration for $targetName.', style: const TextStyle(color: Colors.black54)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
         TextButton(
           onPressed: isLeader ? null : () => Navigator.pop(dialogContext, 'Two Hours Kick'),
-          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? partyWhite.withValues(alpha: 0.18) : pink)),
+          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.black.withValues(alpha: 0.18) : pink)),
         ),
         TextButton(
           onPressed: isLeader ? () => Navigator.pop(dialogContext, 'Twelve Months Kick') : null,
-          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : partyWhite.withValues(alpha: 0.18))),
+          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.black.withValues(alpha: 0.18))),
         ),
       ],
     ));
@@ -14262,10 +14260,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                             decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)),
                             child: CircleAvatar(
                               radius: 16,
-                              backgroundColor: const Color(0xFF17121D),
+                              backgroundColor: const Color(0xFFF7F7F8),
                               backgroundImage: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()),
                               child: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()) == null
-                                  ? const Icon(Icons.person_rounded, color: Colors.white70, size: 18) : null,
+                                  ? const Icon(Icons.person_rounded, color: Colors.black54, size: 18) : null,
                             ),
                           ),
                         ),
@@ -14290,7 +14288,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     height: 34,
                     padding: const EdgeInsets.symmetric(horizontal: 9),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF17121D),
+                      color: const Color(0xFFF7F7F8),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: const Color(0xFFFFC629),
@@ -14309,7 +14307,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         Text(
                           'Online ${onlineDocs.length}',
                           style: const TextStyle(
-                            color: partyWhite,
+                            color: Colors.black,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
@@ -14428,7 +14426,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         content: const Text(
           'Allow only this room leaders.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: partyWhite, fontWeight: FontWeight.w800),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
         ),
         actions: [
           TextButton(
@@ -14570,11 +14568,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               border: Border(top: BorderSide(color: Color(0xFFFF4FA3), width: 1.4)),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8)))),
+              Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)))),
               const SizedBox(height: 13),
               Row(children: [
                 Expanded(child: Text(title.toUpperCase(), style: const TextStyle(color: Color(0xFFF0DFC3), fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1))),
-                IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.white70)),
+                IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.black54)),
               ]),
               const SizedBox(height: 5),
               Expanded(child: _buildRoomToolPreviewContent(
@@ -14643,7 +14641,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
     if (title == 'Mic Setting') {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Choose mic layout', style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const Text('Choose mic layout', style: TextStyle(color: Colors.black54, fontSize: 12)),
         const SizedBox(height: 10),
         Wrap(spacing: 7, runSpacing: 7, children: [5, 7, 9, 10, 11, 15].map((n) => ChoiceChip(
           label: Text('$n Mics'), selected: selectedMics == n,
@@ -14679,10 +14677,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('publicProfiles').limit(100).snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
+          if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.black54)));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
           final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
-          if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
+          if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.black54)));
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
@@ -14711,7 +14709,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         content: const Text('Send a room invitation to this user?', style: TextStyle(color: Color(0xFF241B16))),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('CANCEL', style: TextStyle(color: Color(0xFF5D4A35)))),
-                          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: partyWhite), child: const Text('SEND')),
+                          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.black), child: const Text('SEND')),
                         ],
                       ),
                     );
@@ -14845,8 +14843,8 @@ InkWell(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                partyWhite.withValues(alpha: 0.16),
-                partyWhite.withValues(alpha: 0.07),
+                Colors.black.withValues(alpha: 0.16),
+                Colors.black.withValues(alpha: 0.07),
                 panelBlue,
               ],
               begin: Alignment.centerLeft,
@@ -14858,7 +14856,7 @@ InkWell(
             ),
             boxShadow: [
               BoxShadow(
-                color: partyWhite.withValues(alpha: 0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 15,
                 spreadRadius: 1,
               ),
@@ -14897,7 +14895,7 @@ InkWell(
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Colors.black54,
                         fontSize: 15,
                       ),
                     ),
@@ -14928,7 +14926,7 @@ InkWell(
             ),
             icon: const Icon(
               Icons.more_horiz_rounded,
-              color: partyWhite,
+              color: Colors.black,
               size: 35,
             ),
           ),
@@ -15043,7 +15041,7 @@ InkWell(
                         Text(
                           description.isEmpty ? 'Room rules will appear here.' : description,
                           style: const TextStyle(
-                            color: partyWhite, fontSize: 14,
+                            color: Colors.black, fontSize: 14,
                             fontWeight: FontWeight.w600, height: 1.45,
                           ),
                         ),
@@ -15089,17 +15087,17 @@ InkWell(
                             width: 86,
                             height: 86,
                             decoration: BoxDecoration(
-                              color: partyWhite,
+                              color: Colors.black,
                               shape: BoxShape.circle,
                               border: Border.all(color: const Color(0xFFFFC629), width: 3),
                               boxShadow: const [
                                 BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
                               ],
                             ),
-                            child: const Icon(Icons.file_upload_rounded, color: partyWhite, size: 43),
+                            child: const Icon(Icons.file_upload_rounded, color: Colors.black, size: 43),
                           ),
                           const SizedBox(height: 7),
-                          const Text('Keep', style: TextStyle(color: partyWhite, fontSize: 20, fontWeight: FontWeight.w900)),
+                          const Text('Keep', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -15121,17 +15119,17 @@ InkWell(
                             width: 86,
                             height: 86,
                             decoration: BoxDecoration(
-                              color: partyWhite,
+                              color: Colors.black,
                               shape: BoxShape.circle,
                               border: Border.all(color: const Color(0xFFFFC629), width: 3),
                               boxShadow: const [
                                 BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
                               ],
                             ),
-                            child: const Icon(Icons.power_settings_new_rounded, color: partyWhite, size: 43),
+                            child: const Icon(Icons.power_settings_new_rounded, color: Colors.black, size: 43),
                           ),
                           const SizedBox(height: 7),
-                          const Text('Exit', style: TextStyle(color: partyWhite, fontSize: 20, fontWeight: FontWeight.w900)),
+                          const Text('Exit', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -15178,7 +15176,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Could not load online users.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -15212,7 +15210,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
             return const Center(
               child: Text(
                 'No users are online right now.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -15258,13 +15256,13 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                           height: 30,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: partyWhite,
+                            color: Colors.black,
                             shape: BoxShape.circle,
                             border: Border.all(color: const Color(0xFFFFC629), width: 1.5),
                           ),
                           child: Text(
                             '${index + 1}',
-                            style: const TextStyle(color: partyWhite, fontSize: 13, fontWeight: FontWeight.w900),
+                            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
                           ),
                         ),
                         const SizedBox(width: 9),
@@ -15273,7 +15271,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                           backgroundColor: const Color(0xFF100810),
                           backgroundImage: photoImage,
                           child: photoImage == null
-                              ? const Icon(Icons.person_rounded, color: Colors.white70)
+                              ? const Icon(Icons.person_rounded, color: Colors.black54)
                               : null,
                         ),
                         const SizedBox(width: 12),
@@ -15283,7 +15281,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: partyWhite,
+                              color: Colors.black,
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                             ),
@@ -15598,7 +15596,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Search by PartyNova UID',
-        style: TextStyle(color: Colors.white70, fontSize: 15),
+        style: TextStyle(color: Colors.black54, fontSize: 15),
       ),
     );
   }
@@ -15607,7 +15605,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Enter a valid PartyNova UID.',
-        style: TextStyle(color: Colors.white70, fontSize: 14),
+        style: TextStyle(color: Colors.black54, fontSize: 14),
       ),
     );
   }
@@ -15616,7 +15614,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Please log in first.',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: Colors.black54),
       ),
     );
   }
@@ -15648,7 +15646,7 @@ Widget _buildSearchResult() {
         return const Center(
           child: Text(
             'No user found with this UID.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -15661,7 +15659,7 @@ Widget _buildSearchResult() {
         return const Center(
           child: Text(
             'This is your profile.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -15731,7 +15729,7 @@ Widget _buildSearchResult() {
               vertical: 8,
             ),
             decoration: BoxDecoration(
-              color: partyWhite,
+              color: Colors.black,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -15769,7 +15767,7 @@ Widget _buildSearchResult() {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            color: partyWhite,
+                            color: Colors.black,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -15779,7 +15777,7 @@ Widget _buildSearchResult() {
                       Text(
                         'ID: $partyNovaUid',
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 12,
                         ),
                       ),
@@ -15888,13 +15886,13 @@ Widget _buildSearchResult() {
                 controller: _searchController,
                 keyboardType: TextInputType.number,
                 style: const TextStyle(
-                  color: partyWhite,
+                  color: Colors.black,
                   fontSize: 15,
                 ),
                 cursorColor: pink,
                 decoration: const InputDecoration(
                   hintText: 'Enter PartyNova UID',
-                  hintStyle: TextStyle(color: Colors.white70),
+                  hintStyle: TextStyle(color: Colors.black54),
                   prefixIcon: Icon(
                     Icons.search_rounded,
                     color: gold,
@@ -15936,7 +15934,7 @@ class _SocialBottomNavIcon extends StatelessWidget {
         icon,
         color: selected
             ? const Color(0xFFFFD700)
-            : Colors.white54,
+            : Colors.black45,
       );
     }
 
@@ -15979,7 +15977,7 @@ class _SocialBottomNavIcon extends StatelessWidget {
                   icon,
                   color: selected
                       ? const Color(0xFFFFD700)
-                      : Colors.white54,
+                      : Colors.black45,
                 ),
 
                 if (requestCount > 0)
@@ -16021,7 +16019,7 @@ class _SocialBottomNavLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54));
+      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.black45));
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
@@ -16046,7 +16044,7 @@ class _SocialBottomNavLabel extends StatelessWidget {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
+                Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.black45)),
                 if (count > 0 || hasUnreadMessages) ...[
                   const SizedBox(width: 3),
                   Container(
@@ -16076,7 +16074,7 @@ class _RequestCountBadge extends StatelessWidget {
         child: Center(
           child: Text(
             count > 99 ? '99+' : '$count',
-            style: const TextStyle(color: partyWhite, fontSize: 9, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
           ),
         ),
       );
@@ -16156,20 +16154,20 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
 
   @override
   Widget build(BuildContext context) {
-    const black = Color(0xFF080A12);
+    const black = Color(0xFFF4F5F7);
 
     return Container(
-      color: partyWhite,
+      color: Colors.black,
       child: Column(
         children: [
           Material(
-            color: partyWhite,
+            color: Colors.black,
             child: TabBar(
               controller: _controller,
               indicatorColor: black,
               indicatorWeight: 3,
               labelColor: black,
-              unselectedLabelColor: Colors.white70,
+              unselectedLabelColor: Colors.black54,
               labelStyle: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
@@ -16290,17 +16288,17 @@ class _SocialEmptySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Color(0xFF080A12), fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(color: Color(0xFFF4F5F7), fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: partyWhite, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 children: [
                   Icon(icon, color: const Color(0xFFFFC629), size: 32),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF080A12), fontSize: 15))),
+                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFFF4F5F7), fontSize: 15))),
                 ],
               ),
             ),
@@ -16374,7 +16372,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                 key: ValueKey<String>(doc.id),
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: partyWhite, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFFC629).withValues(alpha: 0.35))),
+                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFFC629).withValues(alpha: 0.35))),
                 child: Row(
                   children: [
                     InkWell(
@@ -16386,7 +16384,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                         radius: 26,
                         backgroundColor: const Color(0xFFEDEDED),
                         backgroundImage: photoImage,
-                        child: photoImage == null ? const Icon(Icons.person_rounded, color: Colors.white70) : null,
+                        child: photoImage == null ? const Icon(Icons.person_rounded, color: Colors.black54) : null,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -16398,9 +16396,9 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: partyWhite, fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 15)),
                             const SizedBox(height: 4),
-                            Text('ID: $partyId', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                            Text('ID: $partyId', style: const TextStyle(color: Colors.black54, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -16432,8 +16430,8 @@ class _BlackRequestAction extends StatelessWidget {
         child: Container(
           width: 34,
           height: 34,
-          decoration: BoxDecoration(color: const Color(0xFF17121D), borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, color: partyWhite, size: 20),
+          decoration: BoxDecoration(color: const Color(0xFFF4F5F7), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: Colors.black, size: 20),
         ),
       );
 }
@@ -16590,7 +16588,7 @@ class _FriendsListSection extends StatelessWidget {
 
                       return Card(
                         key: ValueKey<String>(friendUid),
-                        color: partyWhite,
+                        color: Colors.black,
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundImage: photoImage,
@@ -16601,14 +16599,14 @@ class _FriendsListSection extends StatelessWidget {
                           title: Text(
                             name,
                             style: const TextStyle(
-                              color: partyWhite,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           subtitle: Text(
                             'ID: $partyId',
                             style: const TextStyle(
-                              color: Colors.white70,
+                              color: Colors.black54,
                             ),
                           ),
                           onTap: () async {
@@ -16616,7 +16614,7 @@ class _FriendsListSection extends StatelessWidget {
                               context: context,
                               builder: (dialogContext) {
                                 return AlertDialog(
-                                  backgroundColor: partyWhite,
+                                  backgroundColor: Colors.black,
                                   shape: RoundedRectangleBorder(
                                     borderRadius:
                                         BorderRadius.circular(20),
@@ -16656,7 +16654,7 @@ class _FriendsListSection extends StatelessWidget {
                                           name,
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
-                                            color: partyWhite,
+                                            color: Colors.black,
                                             fontSize: 20,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -16666,7 +16664,7 @@ class _FriendsListSection extends StatelessWidget {
                                           'PartyNova ID: $partyId',
                                           textAlign: TextAlign.center,
                                           style: const TextStyle(
-                                            color: Colors.white70,
+                                            color: Colors.black54,
                                             fontSize: 13,
                                           ),
                                         ),
@@ -16676,7 +16674,7 @@ class _FriendsListSection extends StatelessWidget {
                                           text: 'Delete',
                                           background:
                                               const Color(0xFFFFC629),
-                                          foreground: partyWhite,
+                                          foreground: Colors.black,
                                           onPressed: () async {
                                             final confirm =
                                                 await showDialog<bool>(
@@ -16685,17 +16683,17 @@ class _FriendsListSection extends StatelessWidget {
                                                   (confirmContext) =>
                                                       AlertDialog(
                                                 backgroundColor:
-                                                    partyWhite,
+                                                    Colors.black,
                                                 title: const Text(
                                                   'Remove friend?',
                                                   style: TextStyle(
-                                                    color: partyWhite,
+                                                    color: Colors.black,
                                                   ),
                                                 ),
                                                 content: const Text(
                                                   'This removes the friendship only. It will not delete either account.',
                                                   style: TextStyle(
-                                                    color: partyWhite87,
+                                                    color: Colors.black87,
                                                   ),
                                                 ),
                                                 actions: [
@@ -16882,7 +16880,7 @@ class _FriendsListSection extends StatelessWidget {
                                           text: 'Profile',
                                           background:
                                               const Color(0xFFFFC629),
-                                          foreground: partyWhite,
+                                          foreground: Colors.black,
                                           onPressed: () {
                                             Navigator.pop(
                                               dialogContext,
@@ -16907,7 +16905,7 @@ class _FriendsListSection extends StatelessWidget {
                                           text: 'Message',
                                           background:
                                               const Color(0xFFFFC629),
-                                          foreground: partyWhite,
+                                          foreground: Colors.black,
                                           onPressed: () {
                                             Navigator.pop(
                                               dialogContext,
@@ -16940,7 +16938,7 @@ class _FriendsListSection extends StatelessWidget {
                                           text: 'Cancel',
                                           background:
                                               const Color(0xFFFFC629),
-                                          foreground: partyWhite,
+                                          foreground: Colors.black,
                                           onPressed: () =>
                                               Navigator.pop(
                                             dialogContext,
@@ -17112,7 +17110,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
     this.hideBlockReport = false,
   });
 
-  static const Color _background = Color(0xFF080A12);
+  static const Color _background = Color(0xFFF4F5F7);
   static const Color _gold = Color(0xFFB8E2FF);
   static const Color _pink = Color(0xFFFFC629);
 
@@ -17141,7 +17139,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Could not load profile. Please check your connection and profile access.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -17158,7 +17156,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Profile not found.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -17212,7 +17210,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     'ID: $userId',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : Colors.white70,
+                      color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : Colors.black54,
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
@@ -17257,7 +17255,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 ? const Icon(
                                     Icons.person_rounded,
                                     size: 64,
-                                    color: partyWhite,
+                                    color: Colors.black,
                                   )
                                 : Image(
                                     image: photoImage,
@@ -17268,7 +17266,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                       return const Icon(
                                         Icons.person_rounded,
                                         size: 64,
-                                        color: partyWhite,
+                                        color: Colors.black,
                                       );
                                     },
                                   ),
@@ -17297,7 +17295,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     name,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: partyWhite,
+                      color: Colors.black,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -17343,7 +17341,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                         bio,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
@@ -17358,10 +17356,11 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         if (dateOfBirth.isNotEmpty) ...[
                           const Icon(Icons.cake_rounded, color: _gold, size: 18), const SizedBox(width: 5),
-                          Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.white70)), const SizedBox(width: 12),
+                          Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.black54)), const SizedBox(width: 12),
                         ],
                         if (gender.isNotEmpty) ...[
-                          Icon(gender.toLowerCase() == 'male' ? Icons.male_rounded : gender.toLowerCase() == 'female' ? Icons.female_rounded : Icons.person_outline_rounded, color: gender.toLowerCase() == 'male' ? const Color(0xFF368BFF) : gender.toLowerCase() == 'female' ? const Color(0xFFFF4FA3) : const Color(0xFFB7B7C4), size: 22), const SizedBox(width: 12),
+                          const Icon(Icons.person_outline_rounded, color: _gold, size: 18), const SizedBox(width: 5),
+                          Text(gender, style: const TextStyle(color: Colors.black54)), const SizedBox(width: 12),
                         ],
                         if (countryCode.isNotEmpty) Text(partyNovaCountryFlag(countryCode), style: const TextStyle(fontSize: 22)),
                       ]),
@@ -17418,7 +17417,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Block',
-                                  style: TextStyle(color: partyWhite),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ],
                             ),
@@ -17435,7 +17434,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Report',
-                                  style: TextStyle(color: partyWhite),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ],
                             ),
@@ -17525,9 +17524,9 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFFD9A43B),
-                              foregroundColor: alreadyFriend ? partyWhite : const Color(0xFF24101F),
+                              foregroundColor: alreadyFriend ? Colors.black : const Color(0xFF24101F),
                               disabledBackgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFF806A43),
-                              disabledForegroundColor: partyWhite,
+                              disabledForegroundColor: Colors.black,
                               elevation: 5,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(13),
@@ -17559,8 +17558,8 @@ String _partyNovaConversationId(String uidA, String uidB) {
   return '${ids[0]}_${ids[1]}';
 }
 
-const Color _chatBackground = partyWhite;
-const Color _chatPink = partyWhite; // Retained name for compatibility; chat accent is black, never pink.
+const Color _chatBackground = Colors.black;
+const Color _chatPink = Colors.black; // Retained name for compatibility; chat accent is black, never pink.
 const Color _chatGold = Color(0xFFB58A2A);
 
 DateTime _chatExpiryCutoff() {
@@ -17817,7 +17816,7 @@ void dispose() {
                   roomDocumentId: roomId, autoJoinOnOpen: true,
                 )));
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: partyWhite, padding: const EdgeInsets.symmetric(vertical: 7)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 7)),
               child: const Text('JOIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
             )),
           ]),
@@ -17913,7 +17912,7 @@ void dispose() {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: const Color(0xFFB9E8FF),
-        foregroundColor: partyWhite,
+        foregroundColor: Colors.black,
         elevation: 0,
         surfaceTintColor: const Color(0xFFB9E8FF),
         title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
@@ -17950,7 +17949,7 @@ void dispose() {
             latestName,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: partyWhite,
+              color: Colors.black,
               fontSize: 17,
               fontWeight: FontWeight.w600,
             ),
@@ -17971,7 +17970,7 @@ void dispose() {
                   return const Center(
                     child: Text(
                       'Could not load messages.',
-                      style: TextStyle(color: partyWhite),
+                      style: TextStyle(color: Colors.black),
                     ),
                   );
                 }
@@ -17999,7 +17998,7 @@ final messages = snapshot.data!.docs.where((doc) {
                   return const Center(
                     child: Text(
                       'Start your conversation 💬',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Colors.black54),
                     ),
                   );
                 }
@@ -18020,8 +18019,8 @@ final messages = snapshot.data!.docs.where((doc) {
                     final text = data['text'] as String? ?? '';
                     final timestamp = data['createdAt'] as Timestamp?;
 
-                    final bubbleColor = isMine ? partyWhite : partyWhite;
-                    final textColor = isMine ? partyWhite : partyWhite;
+                    final bubbleColor = isMine ? Colors.black : Colors.black;
+                    final textColor = isMine ? Colors.black : Colors.black;
                     final senderName = isMine
     ? (_latestMyName.trim().isNotEmpty ? _latestMyName : 'You')
     : (_latestFriendName.trim().isNotEmpty
@@ -18067,14 +18066,14 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                                 crossAxisAlignment: isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                                 children: [
                                   Text(senderName, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: partyWhite87, fontSize: 12, fontWeight: FontWeight.w700)),
+                                    style: const TextStyle(color: Colors.black87, fontSize: 12, fontWeight: FontWeight.w700)),
                                   const SizedBox(height: 4),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
                                     decoration: BoxDecoration(
                                       color: bubbleColor,
                                       borderRadius: BorderRadius.circular(15),
-                                      border: Border.all(color: isMine ? const Color(0xFFE0E0E0) : partyWhite, width: 0.8),
+                                      border: Border.all(color: isMine ? const Color(0xFFE0E0E0) : Colors.black, width: 0.8),
                                     ),
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -18088,10 +18087,10 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                                         if (text.isNotEmpty) Text(text, style: TextStyle(color: textColor, fontSize: 15)),
                                         const SizedBox(height: 4),
                                         Row(mainAxisSize: MainAxisSize.min, children: [
-                                          Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.white70 : Colors.white70, fontSize: 10)),
+                                          Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.black54, fontSize: 10)),
                                           if (isMine) ...[
                                             const SizedBox(width: 5),
-                                            Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.white70, fontSize: 10)),
+                                            Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.black54, fontSize: 10)),
                                           ],
                                         ]),
                                       ],
@@ -18128,7 +18127,7 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: partyWhite,
+                color: Colors.black,
                 border: Border(
                   top: BorderSide(color: Color(0xFFE0E0E0), width: 0.8),
                 ),
@@ -18141,11 +18140,11 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                       minLines: 1,
                       maxLines: 1,
                       textInputAction: TextInputAction.send,
-                      style: const TextStyle(color: partyWhite),
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         hintText: 'Type a message...',
                         hintStyle:
-                            const TextStyle(color: Colors.white54),
+                            const TextStyle(color: Colors.black45),
                         filled: true,
                         fillColor: const Color(0xFFF4F4F4),
                         contentPadding: const EdgeInsets.symmetric(
@@ -18166,8 +18165,8 @@ ValueListenableBuilder<bool>(
     return IconButton(
       onPressed: sending ? null : _sendMessage,
       style: IconButton.styleFrom(
-        backgroundColor: partyWhite,
-        foregroundColor: partyWhite,
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.black,
       ),
       icon: const Icon(Icons.send_rounded),
     );
@@ -18196,7 +18195,7 @@ class _MessagesListSection extends StatelessWidget {
       return const Center(
         child: Text(
           'Please sign in to view messages.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
       );
     }
@@ -18350,7 +18349,7 @@ final conversationId =
     vertical: 12,
   ),
   decoration: BoxDecoration(
-    color: partyWhite,
+    color: Colors.black,
     borderRadius: BorderRadius.circular(14),
   ),
   child: Row(
@@ -18370,7 +18369,7 @@ final conversationId =
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
-            color: partyWhite,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 15,
           ),
@@ -18435,7 +18434,7 @@ class _StableChatAvatar extends StatelessWidget {
           child: imageProvider == null
               ? const Icon(
                   Icons.person_rounded,
-                  color: Colors.white70,
+                  color: Colors.black54,
                 )
               : null,
         );
