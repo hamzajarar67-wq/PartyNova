@@ -3921,256 +3921,255 @@ TextField(
               style: const TextStyle(color: Colors.white),
               decoration: _inputDecoration(hint: 'Select country', icon: Icons.flag_rounded),
               items: const [
-                DropdownMenuItem(value: 'AF', child: Text('Afghanistan'))
-                DropdownMenuItem(value: 'AL', child: Text('Albania'))
-                DropdownMenuItem(value: 'DZ', child: Text('Algeria'))
-                DropdownMenuItem(value: 'AS', child: Text('American Samoa'))
-                DropdownMenuItem(value: 'AD', child: Text('Andorra'))
-                DropdownMenuItem(value: 'AO', child: Text('Angola'))
-                DropdownMenuItem(value: 'AI', child: Text('Anguilla'))
-                DropdownMenuItem(value: 'AQ', child: Text('Antarctica'))
-                DropdownMenuItem(value: 'AG', child: Text('Antigua and Barbuda'))
-                DropdownMenuItem(value: 'AR', child: Text('Argentina'))
-                DropdownMenuItem(value: 'AM', child: Text('Armenia'))
-                DropdownMenuItem(value: 'AW', child: Text('Aruba'))
-                DropdownMenuItem(value: 'AU', child: Text('Australia'))
-                DropdownMenuItem(value: 'AT', child: Text('Austria'))
-                DropdownMenuItem(value: 'AZ', child: Text('Azerbaijan'))
-                DropdownMenuItem(value: 'BS', child: Text('Bahamas'))
-                DropdownMenuItem(value: 'BH', child: Text('Bahrain'))
-                DropdownMenuItem(value: 'BD', child: Text('Bangladesh'))
-                DropdownMenuItem(value: 'BB', child: Text('Barbados'))
-                DropdownMenuItem(value: 'BY', child: Text('Belarus'))
-                DropdownMenuItem(value: 'BE', child: Text('Belgium'))
-                DropdownMenuItem(value: 'BZ', child: Text('Belize'))
-                DropdownMenuItem(value: 'BJ', child: Text('Benin'))
-                DropdownMenuItem(value: 'BM', child: Text('Bermuda'))
-                DropdownMenuItem(value: 'BT', child: Text('Bhutan'))
-                DropdownMenuItem(value: 'BO', child: Text('Bolivia, Plurinational State of'))
-                DropdownMenuItem(value: 'BQ', child: Text('Bonaire, Sint Eustatius and Saba'))
-                DropdownMenuItem(value: 'BA', child: Text('Bosnia and Herzegovina'))
-                DropdownMenuItem(value: 'BW', child: Text('Botswana'))
-                DropdownMenuItem(value: 'BV', child: Text('Bouvet Island'))
-                DropdownMenuItem(value: 'BR', child: Text('Brazil'))
-                DropdownMenuItem(value: 'IO', child: Text('British Indian Ocean Territory'))
-                DropdownMenuItem(value: 'BN', child: Text('Brunei Darussalam'))
-                DropdownMenuItem(value: 'BG', child: Text('Bulgaria'))
-                DropdownMenuItem(value: 'BF', child: Text('Burkina Faso'))
-                DropdownMenuItem(value: 'BI', child: Text('Burundi'))
-                DropdownMenuItem(value: 'CV', child: Text('Cabo Verde'))
-                DropdownMenuItem(value: 'KH', child: Text('Cambodia'))
-                DropdownMenuItem(value: 'CM', child: Text('Cameroon'))
-                DropdownMenuItem(value: 'CA', child: Text('Canada'))
-                DropdownMenuItem(value: 'KY', child: Text('Cayman Islands'))
-                DropdownMenuItem(value: 'CF', child: Text('Central African Republic'))
-                DropdownMenuItem(value: 'TD', child: Text('Chad'))
-                DropdownMenuItem(value: 'CL', child: Text('Chile'))
-                DropdownMenuItem(value: 'CN', child: Text('China'))
-                DropdownMenuItem(value: 'CX', child: Text('Christmas Island'))
-                DropdownMenuItem(value: 'CC', child: Text('Cocos (Keeling) Islands'))
-                DropdownMenuItem(value: 'CO', child: Text('Colombia'))
-                DropdownMenuItem(value: 'KM', child: Text('Comoros'))
-                DropdownMenuItem(value: 'CG', child: Text('Congo'))
-                DropdownMenuItem(value: 'CD', child: Text('Congo, The Democratic Republic of the'))
-                DropdownMenuItem(value: 'CK', child: Text('Cook Islands'))
-                DropdownMenuItem(value: 'CR', child: Text('Costa Rica'))
-                DropdownMenuItem(value: 'HR', child: Text('Croatia'))
-                DropdownMenuItem(value: 'CU', child: Text('Cuba'))
-                DropdownMenuItem(value: 'CW', child: Text('Curaçao'))
-                DropdownMenuItem(value: 'CY', child: Text('Cyprus'))
-                DropdownMenuItem(value: 'CZ', child: Text('Czechia'))
-                DropdownMenuItem(value: 'CI', child: Text('Côte d\'Ivoire'))
-                DropdownMenuItem(value: 'DK', child: Text('Denmark'))
-                DropdownMenuItem(value: 'DJ', child: Text('Djibouti'))
-                DropdownMenuItem(value: 'DM', child: Text('Dominica'))
-                DropdownMenuItem(value: 'DO', child: Text('Dominican Republic'))
-                DropdownMenuItem(value: 'EC', child: Text('Ecuador'))
-                DropdownMenuItem(value: 'EG', child: Text('Egypt'))
-                DropdownMenuItem(value: 'SV', child: Text('El Salvador'))
-                DropdownMenuItem(value: 'GQ', child: Text('Equatorial Guinea'))
-                DropdownMenuItem(value: 'ER', child: Text('Eritrea'))
-                DropdownMenuItem(value: 'EE', child: Text('Estonia'))
-                DropdownMenuItem(value: 'SZ', child: Text('Eswatini'))
-                DropdownMenuItem(value: 'ET', child: Text('Ethiopia'))
-                DropdownMenuItem(value: 'FK', child: Text('Falkland Islands (Malvinas)'))
-                DropdownMenuItem(value: 'FO', child: Text('Faroe Islands'))
-                DropdownMenuItem(value: 'FJ', child: Text('Fiji'))
-                DropdownMenuItem(value: 'FI', child: Text('Finland'))
-                DropdownMenuItem(value: 'FR', child: Text('France'))
-                DropdownMenuItem(value: 'GF', child: Text('French Guiana'))
-                DropdownMenuItem(value: 'PF', child: Text('French Polynesia'))
-                DropdownMenuItem(value: 'TF', child: Text('French Southern Territories'))
-                DropdownMenuItem(value: 'GA', child: Text('Gabon'))
-                DropdownMenuItem(value: 'GM', child: Text('Gambia'))
-                DropdownMenuItem(value: 'GE', child: Text('Georgia'))
-                DropdownMenuItem(value: 'DE', child: Text('Germany'))
-                DropdownMenuItem(value: 'GH', child: Text('Ghana'))
-                DropdownMenuItem(value: 'GI', child: Text('Gibraltar'))
-                DropdownMenuItem(value: 'GR', child: Text('Greece'))
-                DropdownMenuItem(value: 'GL', child: Text('Greenland'))
-                DropdownMenuItem(value: 'GD', child: Text('Grenada'))
-                DropdownMenuItem(value: 'GP', child: Text('Guadeloupe'))
-                DropdownMenuItem(value: 'GU', child: Text('Guam'))
-                DropdownMenuItem(value: 'GT', child: Text('Guatemala'))
-                DropdownMenuItem(value: 'GG', child: Text('Guernsey'))
-                DropdownMenuItem(value: 'GN', child: Text('Guinea'))
-                DropdownMenuItem(value: 'GW', child: Text('Guinea-Bissau'))
-                DropdownMenuItem(value: 'GY', child: Text('Guyana'))
-                DropdownMenuItem(value: 'HT', child: Text('Haiti'))
-                DropdownMenuItem(value: 'HM', child: Text('Heard Island and McDonald Islands'))
-                DropdownMenuItem(value: 'VA', child: Text('Holy See (Vatican City State)'))
-                DropdownMenuItem(value: 'HN', child: Text('Honduras'))
-                DropdownMenuItem(value: 'HK', child: Text('Hong Kong'))
-                DropdownMenuItem(value: 'HU', child: Text('Hungary'))
-                DropdownMenuItem(value: 'IS', child: Text('Iceland'))
-                DropdownMenuItem(value: 'IN', child: Text('India'))
-                DropdownMenuItem(value: 'ID', child: Text('Indonesia'))
-                DropdownMenuItem(value: 'IR', child: Text('Iran, Islamic Republic of'))
-                DropdownMenuItem(value: 'IQ', child: Text('Iraq'))
-                DropdownMenuItem(value: 'IE', child: Text('Ireland'))
-                DropdownMenuItem(value: 'IM', child: Text('Isle of Man'))
-                DropdownMenuItem(value: 'IL', child: Text('Israel'))
-                DropdownMenuItem(value: 'IT', child: Text('Italy'))
-                DropdownMenuItem(value: 'JM', child: Text('Jamaica'))
-                DropdownMenuItem(value: 'JP', child: Text('Japan'))
-                DropdownMenuItem(value: 'JE', child: Text('Jersey'))
-                DropdownMenuItem(value: 'JO', child: Text('Jordan'))
-                DropdownMenuItem(value: 'KZ', child: Text('Kazakhstan'))
-                DropdownMenuItem(value: 'KE', child: Text('Kenya'))
-                DropdownMenuItem(value: 'KI', child: Text('Kiribati'))
-                DropdownMenuItem(value: 'KP', child: Text('Korea, Democratic People\'s Republic of'))
-                DropdownMenuItem(value: 'KR', child: Text('Korea, Republic of'))
-                DropdownMenuItem(value: 'KW', child: Text('Kuwait'))
-                DropdownMenuItem(value: 'KG', child: Text('Kyrgyzstan'))
-                DropdownMenuItem(value: 'LA', child: Text('Lao People\'s Democratic Republic'))
-                DropdownMenuItem(value: 'LV', child: Text('Latvia'))
-                DropdownMenuItem(value: 'LB', child: Text('Lebanon'))
-                DropdownMenuItem(value: 'LS', child: Text('Lesotho'))
-                DropdownMenuItem(value: 'LR', child: Text('Liberia'))
-                DropdownMenuItem(value: 'LY', child: Text('Libya'))
-                DropdownMenuItem(value: 'LI', child: Text('Liechtenstein'))
-                DropdownMenuItem(value: 'LT', child: Text('Lithuania'))
-                DropdownMenuItem(value: 'LU', child: Text('Luxembourg'))
-                DropdownMenuItem(value: 'MO', child: Text('Macao'))
-                DropdownMenuItem(value: 'MG', child: Text('Madagascar'))
-                DropdownMenuItem(value: 'MW', child: Text('Malawi'))
-                DropdownMenuItem(value: 'MY', child: Text('Malaysia'))
-                DropdownMenuItem(value: 'MV', child: Text('Maldives'))
-                DropdownMenuItem(value: 'ML', child: Text('Mali'))
-                DropdownMenuItem(value: 'MT', child: Text('Malta'))
-                DropdownMenuItem(value: 'MH', child: Text('Marshall Islands'))
-                DropdownMenuItem(value: 'MQ', child: Text('Martinique'))
-                DropdownMenuItem(value: 'MR', child: Text('Mauritania'))
-                DropdownMenuItem(value: 'MU', child: Text('Mauritius'))
-                DropdownMenuItem(value: 'YT', child: Text('Mayotte'))
-                DropdownMenuItem(value: 'MX', child: Text('Mexico'))
-                DropdownMenuItem(value: 'FM', child: Text('Micronesia, Federated States of'))
-                DropdownMenuItem(value: 'MD', child: Text('Moldova, Republic of'))
-                DropdownMenuItem(value: 'MC', child: Text('Monaco'))
-                DropdownMenuItem(value: 'MN', child: Text('Mongolia'))
-                DropdownMenuItem(value: 'ME', child: Text('Montenegro'))
-                DropdownMenuItem(value: 'MS', child: Text('Montserrat'))
-                DropdownMenuItem(value: 'MA', child: Text('Morocco'))
-                DropdownMenuItem(value: 'MZ', child: Text('Mozambique'))
-                DropdownMenuItem(value: 'MM', child: Text('Myanmar'))
-                DropdownMenuItem(value: 'NA', child: Text('Namibia'))
-                DropdownMenuItem(value: 'NR', child: Text('Nauru'))
-                DropdownMenuItem(value: 'NP', child: Text('Nepal'))
-                DropdownMenuItem(value: 'NL', child: Text('Netherlands'))
-                DropdownMenuItem(value: 'NC', child: Text('New Caledonia'))
-                DropdownMenuItem(value: 'NZ', child: Text('New Zealand'))
-                DropdownMenuItem(value: 'NI', child: Text('Nicaragua'))
-                DropdownMenuItem(value: 'NE', child: Text('Niger'))
-                DropdownMenuItem(value: 'NG', child: Text('Nigeria'))
-                DropdownMenuItem(value: 'NU', child: Text('Niue'))
-                DropdownMenuItem(value: 'NF', child: Text('Norfolk Island'))
-                DropdownMenuItem(value: 'MK', child: Text('North Macedonia'))
-                DropdownMenuItem(value: 'MP', child: Text('Northern Mariana Islands'))
-                DropdownMenuItem(value: 'NO', child: Text('Norway'))
-                DropdownMenuItem(value: 'OM', child: Text('Oman'))
-                DropdownMenuItem(value: 'PK', child: Text('Pakistan'))
-                DropdownMenuItem(value: 'PW', child: Text('Palau'))
-                DropdownMenuItem(value: 'PS', child: Text('Palestine, State of'))
-                DropdownMenuItem(value: 'PA', child: Text('Panama'))
-                DropdownMenuItem(value: 'PG', child: Text('Papua New Guinea'))
-                DropdownMenuItem(value: 'PY', child: Text('Paraguay'))
-                DropdownMenuItem(value: 'PE', child: Text('Peru'))
-                DropdownMenuItem(value: 'PH', child: Text('Philippines'))
-                DropdownMenuItem(value: 'PN', child: Text('Pitcairn'))
-                DropdownMenuItem(value: 'PL', child: Text('Poland'))
-                DropdownMenuItem(value: 'PT', child: Text('Portugal'))
-                DropdownMenuItem(value: 'PR', child: Text('Puerto Rico'))
-                DropdownMenuItem(value: 'QA', child: Text('Qatar'))
-                DropdownMenuItem(value: 'RO', child: Text('Romania'))
-                DropdownMenuItem(value: 'RU', child: Text('Russian Federation'))
-                DropdownMenuItem(value: 'RW', child: Text('Rwanda'))
-                DropdownMenuItem(value: 'RE', child: Text('Réunion'))
-                DropdownMenuItem(value: 'BL', child: Text('Saint Barthélemy'))
-                DropdownMenuItem(value: 'SH', child: Text('Saint Helena, Ascension and Tristan da Cunha'))
-                DropdownMenuItem(value: 'KN', child: Text('Saint Kitts and Nevis'))
-                DropdownMenuItem(value: 'LC', child: Text('Saint Lucia'))
-                DropdownMenuItem(value: 'MF', child: Text('Saint Martin (French part)'))
-                DropdownMenuItem(value: 'PM', child: Text('Saint Pierre and Miquelon'))
-                DropdownMenuItem(value: 'VC', child: Text('Saint Vincent and the Grenadines'))
-                DropdownMenuItem(value: 'WS', child: Text('Samoa'))
-                DropdownMenuItem(value: 'SM', child: Text('San Marino'))
-                DropdownMenuItem(value: 'ST', child: Text('Sao Tome and Principe'))
-                DropdownMenuItem(value: 'SA', child: Text('Saudi Arabia'))
-                DropdownMenuItem(value: 'SN', child: Text('Senegal'))
-                DropdownMenuItem(value: 'RS', child: Text('Serbia'))
-                DropdownMenuItem(value: 'SC', child: Text('Seychelles'))
-                DropdownMenuItem(value: 'SL', child: Text('Sierra Leone'))
-                DropdownMenuItem(value: 'SG', child: Text('Singapore'))
-                DropdownMenuItem(value: 'SX', child: Text('Sint Maarten (Dutch part)'))
-                DropdownMenuItem(value: 'SK', child: Text('Slovakia'))
-                DropdownMenuItem(value: 'SI', child: Text('Slovenia'))
-                DropdownMenuItem(value: 'SB', child: Text('Solomon Islands'))
-                DropdownMenuItem(value: 'SO', child: Text('Somalia'))
-                DropdownMenuItem(value: 'ZA', child: Text('South Africa'))
-                DropdownMenuItem(value: 'GS', child: Text('South Georgia and the South Sandwich Islands'))
-                DropdownMenuItem(value: 'SS', child: Text('South Sudan'))
-                DropdownMenuItem(value: 'ES', child: Text('Spain'))
-                DropdownMenuItem(value: 'LK', child: Text('Sri Lanka'))
-                DropdownMenuItem(value: 'SD', child: Text('Sudan'))
-                DropdownMenuItem(value: 'SR', child: Text('Suriname'))
-                DropdownMenuItem(value: 'SJ', child: Text('Svalbard and Jan Mayen'))
-                DropdownMenuItem(value: 'SE', child: Text('Sweden'))
-                DropdownMenuItem(value: 'CH', child: Text('Switzerland'))
-                DropdownMenuItem(value: 'SY', child: Text('Syrian Arab Republic'))
-                DropdownMenuItem(value: 'TW', child: Text('Taiwan, Province of China'))
-                DropdownMenuItem(value: 'TJ', child: Text('Tajikistan'))
-                DropdownMenuItem(value: 'TZ', child: Text('Tanzania, United Republic of'))
-                DropdownMenuItem(value: 'TH', child: Text('Thailand'))
-                DropdownMenuItem(value: 'TL', child: Text('Timor-Leste'))
-                DropdownMenuItem(value: 'TG', child: Text('Togo'))
-                DropdownMenuItem(value: 'TK', child: Text('Tokelau'))
-                DropdownMenuItem(value: 'TO', child: Text('Tonga'))
-                DropdownMenuItem(value: 'TT', child: Text('Trinidad and Tobago'))
-                DropdownMenuItem(value: 'TN', child: Text('Tunisia'))
-                DropdownMenuItem(value: 'TM', child: Text('Turkmenistan'))
-                DropdownMenuItem(value: 'TC', child: Text('Turks and Caicos Islands'))
-                DropdownMenuItem(value: 'TV', child: Text('Tuvalu'))
-                DropdownMenuItem(value: 'TR', child: Text('Türkiye'))
-                DropdownMenuItem(value: 'UG', child: Text('Uganda'))
-                DropdownMenuItem(value: 'UA', child: Text('Ukraine'))
-                DropdownMenuItem(value: 'AE', child: Text('United Arab Emirates'))
-                DropdownMenuItem(value: 'GB', child: Text('United Kingdom'))
-                DropdownMenuItem(value: 'US', child: Text('United States'))
-                DropdownMenuItem(value: 'UM', child: Text('United States Minor Outlying Islands'))
-                DropdownMenuItem(value: 'UY', child: Text('Uruguay'))
-                DropdownMenuItem(value: 'UZ', child: Text('Uzbekistan'))
-                DropdownMenuItem(value: 'VU', child: Text('Vanuatu'))
-                DropdownMenuItem(value: 'VE', child: Text('Venezuela, Bolivarian Republic of'))
-                DropdownMenuItem(value: 'VN', child: Text('Viet Nam'))
-                DropdownMenuItem(value: 'VG', child: Text('Virgin Islands, British'))
-                DropdownMenuItem(value: 'VI', child: Text('Virgin Islands, U.S.'))
-                DropdownMenuItem(value: 'WF', child: Text('Wallis and Futuna'))
-                DropdownMenuItem(value: 'EH', child: Text('Western Sahara'))
-                DropdownMenuItem(value: 'YE', child: Text('Yemen'))
-                DropdownMenuItem(value: 'ZM', child: Text('Zambia'))
-                DropdownMenuItem(value: 'ZW', child: Text('Zimbabwe'))
-                DropdownMenuItem(value: 'AX', child: Text('Åland Islands'))
-              ],
+                DropdownMenuItem(value: 'AF', child: Text('Afghanistan')),
+                DropdownMenuItem(value: 'AL', child: Text('Albania')),
+                DropdownMenuItem(value: 'DZ', child: Text('Algeria')),
+                DropdownMenuItem(value: 'AS', child: Text('American Samoa')),
+                DropdownMenuItem(value: 'AD', child: Text('Andorra')),
+                DropdownMenuItem(value: 'AO', child: Text('Angola')),
+                DropdownMenuItem(value: 'AI', child: Text('Anguilla')),
+                DropdownMenuItem(value: 'AQ', child: Text('Antarctica')),
+                DropdownMenuItem(value: 'AG', child: Text('Antigua and Barbuda')),
+                DropdownMenuItem(value: 'AR', child: Text('Argentina')),
+                DropdownMenuItem(value: 'AM', child: Text('Armenia')),
+                DropdownMenuItem(value: 'AW', child: Text('Aruba')),
+                DropdownMenuItem(value: 'AU', child: Text('Australia')),
+                DropdownMenuItem(value: 'AT', child: Text('Austria')),
+                DropdownMenuItem(value: 'AZ', child: Text('Azerbaijan')),
+                DropdownMenuItem(value: 'BS', child: Text('Bahamas')),
+                DropdownMenuItem(value: 'BH', child: Text('Bahrain')),
+                DropdownMenuItem(value: 'BD', child: Text('Bangladesh')),
+                DropdownMenuItem(value: 'BB', child: Text('Barbados')),
+                DropdownMenuItem(value: 'BY', child: Text('Belarus')),
+                DropdownMenuItem(value: 'BE', child: Text('Belgium')),
+                DropdownMenuItem(value: 'BZ', child: Text('Belize')),
+                DropdownMenuItem(value: 'BJ', child: Text('Benin')),
+                DropdownMenuItem(value: 'BM', child: Text('Bermuda')),
+                DropdownMenuItem(value: 'BT', child: Text('Bhutan')),
+                DropdownMenuItem(value: 'BO', child: Text('Bolivia, Plurinational State of')),
+                DropdownMenuItem(value: 'BQ', child: Text('Bonaire, Sint Eustatius and Saba')),
+                DropdownMenuItem(value: 'BA', child: Text('Bosnia and Herzegovina')),
+                DropdownMenuItem(value: 'BW', child: Text('Botswana')),
+                DropdownMenuItem(value: 'BV', child: Text('Bouvet Island')),
+                DropdownMenuItem(value: 'BR', child: Text('Brazil')),
+                DropdownMenuItem(value: 'IO', child: Text('British Indian Ocean Territory')),
+                DropdownMenuItem(value: 'BN', child: Text('Brunei Darussalam')),
+                DropdownMenuItem(value: 'BG', child: Text('Bulgaria')),
+                DropdownMenuItem(value: 'BF', child: Text('Burkina Faso')),
+                DropdownMenuItem(value: 'BI', child: Text('Burundi')),
+                DropdownMenuItem(value: 'CV', child: Text('Cabo Verde')),
+                DropdownMenuItem(value: 'KH', child: Text('Cambodia')),
+                DropdownMenuItem(value: 'CM', child: Text('Cameroon')),
+                DropdownMenuItem(value: 'CA', child: Text('Canada')),
+                DropdownMenuItem(value: 'KY', child: Text('Cayman Islands')),
+                DropdownMenuItem(value: 'CF', child: Text('Central African Republic')),
+                DropdownMenuItem(value: 'TD', child: Text('Chad')),
+                DropdownMenuItem(value: 'CL', child: Text('Chile')),
+                DropdownMenuItem(value: 'CN', child: Text('China')),
+                DropdownMenuItem(value: 'CX', child: Text('Christmas Island')),
+                DropdownMenuItem(value: 'CC', child: Text('Cocos (Keeling) Islands')),
+                DropdownMenuItem(value: 'CO', child: Text('Colombia')),
+                DropdownMenuItem(value: 'KM', child: Text('Comoros')),
+                DropdownMenuItem(value: 'CG', child: Text('Congo')),
+                DropdownMenuItem(value: 'CD', child: Text('Congo, The Democratic Republic of the')),
+                DropdownMenuItem(value: 'CK', child: Text('Cook Islands')),
+                DropdownMenuItem(value: 'CR', child: Text('Costa Rica')),
+                DropdownMenuItem(value: 'HR', child: Text('Croatia')),
+                DropdownMenuItem(value: 'CU', child: Text('Cuba')),
+                DropdownMenuItem(value: 'CW', child: Text('Curaçao')),
+                DropdownMenuItem(value: 'CY', child: Text('Cyprus')),
+                DropdownMenuItem(value: 'CZ', child: Text('Czechia')),
+                DropdownMenuItem(value: 'CI', child: Text("Côte d'Ivoire")),
+                DropdownMenuItem(value: 'DK', child: Text('Denmark')),
+                DropdownMenuItem(value: 'DJ', child: Text('Djibouti')),
+                DropdownMenuItem(value: 'DM', child: Text('Dominica')),
+                DropdownMenuItem(value: 'DO', child: Text('Dominican Republic')),
+                DropdownMenuItem(value: 'EC', child: Text('Ecuador')),
+                DropdownMenuItem(value: 'EG', child: Text('Egypt')),
+                DropdownMenuItem(value: 'SV', child: Text('El Salvador')),
+                DropdownMenuItem(value: 'GQ', child: Text('Equatorial Guinea')),
+                DropdownMenuItem(value: 'ER', child: Text('Eritrea')),
+                DropdownMenuItem(value: 'EE', child: Text('Estonia')),
+                DropdownMenuItem(value: 'SZ', child: Text('Eswatini')),
+                DropdownMenuItem(value: 'ET', child: Text('Ethiopia')),
+                DropdownMenuItem(value: 'FK', child: Text('Falkland Islands (Malvinas)')),
+                DropdownMenuItem(value: 'FO', child: Text('Faroe Islands')),
+                DropdownMenuItem(value: 'FJ', child: Text('Fiji')),
+                DropdownMenuItem(value: 'FI', child: Text('Finland')),
+                DropdownMenuItem(value: 'FR', child: Text('France')),
+                DropdownMenuItem(value: 'GF', child: Text('French Guiana')),
+                DropdownMenuItem(value: 'PF', child: Text('French Polynesia')),
+                DropdownMenuItem(value: 'TF', child: Text('French Southern Territories')),
+                DropdownMenuItem(value: 'GA', child: Text('Gabon')),
+                DropdownMenuItem(value: 'GM', child: Text('Gambia')),
+                DropdownMenuItem(value: 'GE', child: Text('Georgia')),
+                DropdownMenuItem(value: 'DE', child: Text('Germany')),
+                DropdownMenuItem(value: 'GH', child: Text('Ghana')),
+                DropdownMenuItem(value: 'GI', child: Text('Gibraltar')),
+                DropdownMenuItem(value: 'GR', child: Text('Greece')),
+                DropdownMenuItem(value: 'GL', child: Text('Greenland')),
+                DropdownMenuItem(value: 'GD', child: Text('Grenada')),
+                DropdownMenuItem(value: 'GP', child: Text('Guadeloupe')),
+                DropdownMenuItem(value: 'GU', child: Text('Guam')),
+                DropdownMenuItem(value: 'GT', child: Text('Guatemala')),
+                DropdownMenuItem(value: 'GG', child: Text('Guernsey')),
+                DropdownMenuItem(value: 'GN', child: Text('Guinea')),
+                DropdownMenuItem(value: 'GW', child: Text('Guinea-Bissau')),
+                DropdownMenuItem(value: 'GY', child: Text('Guyana')),
+                DropdownMenuItem(value: 'HT', child: Text('Haiti')),
+                DropdownMenuItem(value: 'HM', child: Text('Heard Island and McDonald Islands')),
+                DropdownMenuItem(value: 'VA', child: Text('Holy See (Vatican City State)')),
+                DropdownMenuItem(value: 'HN', child: Text('Honduras')),
+                DropdownMenuItem(value: 'HK', child: Text('Hong Kong')),
+                DropdownMenuItem(value: 'HU', child: Text('Hungary')),
+                DropdownMenuItem(value: 'IS', child: Text('Iceland')),
+                DropdownMenuItem(value: 'IN', child: Text('India')),
+                DropdownMenuItem(value: 'ID', child: Text('Indonesia')),
+                DropdownMenuItem(value: 'IR', child: Text('Iran, Islamic Republic of')),
+                DropdownMenuItem(value: 'IQ', child: Text('Iraq')),
+                DropdownMenuItem(value: 'IE', child: Text('Ireland')),
+                DropdownMenuItem(value: 'IM', child: Text('Isle of Man')),
+                DropdownMenuItem(value: 'IL', child: Text('Israel')),
+                DropdownMenuItem(value: 'IT', child: Text('Italy')),
+                DropdownMenuItem(value: 'JM', child: Text('Jamaica')),
+                DropdownMenuItem(value: 'JP', child: Text('Japan')),
+                DropdownMenuItem(value: 'JE', child: Text('Jersey')),
+                DropdownMenuItem(value: 'JO', child: Text('Jordan')),
+                DropdownMenuItem(value: 'KZ', child: Text('Kazakhstan')),
+                DropdownMenuItem(value: 'KE', child: Text('Kenya')),
+                DropdownMenuItem(value: 'KI', child: Text('Kiribati')),
+                DropdownMenuItem(value: 'KP', child: Text("Korea, Democratic People's Republic of")),
+                DropdownMenuItem(value: 'KR', child: Text('Korea, Republic of')),
+                DropdownMenuItem(value: 'KW', child: Text('Kuwait')),
+                DropdownMenuItem(value: 'KG', child: Text('Kyrgyzstan')),
+                DropdownMenuItem(value: 'LA', child: Text("Lao People's Democratic Republic")),
+                DropdownMenuItem(value: 'LV', child: Text('Latvia')),
+                DropdownMenuItem(value: 'LB', child: Text('Lebanon')),
+                DropdownMenuItem(value: 'LS', child: Text('Lesotho')),
+                DropdownMenuItem(value: 'LR', child: Text('Liberia')),
+                DropdownMenuItem(value: 'LY', child: Text('Libya')),
+                DropdownMenuItem(value: 'LI', child: Text('Liechtenstein')),
+                DropdownMenuItem(value: 'LT', child: Text('Lithuania')),
+                DropdownMenuItem(value: 'LU', child: Text('Luxembourg')),
+                DropdownMenuItem(value: 'MO', child: Text('Macao')),
+                DropdownMenuItem(value: 'MG', child: Text('Madagascar')),
+                DropdownMenuItem(value: 'MW', child: Text('Malawi')),
+                DropdownMenuItem(value: 'MY', child: Text('Malaysia')),
+                DropdownMenuItem(value: 'MV', child: Text('Maldives')),
+                DropdownMenuItem(value: 'ML', child: Text('Mali')),
+                DropdownMenuItem(value: 'MT', child: Text('Malta')),
+                DropdownMenuItem(value: 'MH', child: Text('Marshall Islands')),
+                DropdownMenuItem(value: 'MQ', child: Text('Martinique')),
+                DropdownMenuItem(value: 'MR', child: Text('Mauritania')),
+                DropdownMenuItem(value: 'MU', child: Text('Mauritius')),
+                DropdownMenuItem(value: 'YT', child: Text('Mayotte')),
+                DropdownMenuItem(value: 'MX', child: Text('Mexico')),
+                DropdownMenuItem(value: 'FM', child: Text('Micronesia, Federated States of')),
+                DropdownMenuItem(value: 'MD', child: Text('Moldova, Republic of')),
+                DropdownMenuItem(value: 'MC', child: Text('Monaco')),
+                DropdownMenuItem(value: 'MN', child: Text('Mongolia')),
+                DropdownMenuItem(value: 'ME', child: Text('Montenegro')),
+                DropdownMenuItem(value: 'MS', child: Text('Montserrat')),
+                DropdownMenuItem(value: 'MA', child: Text('Morocco')),
+                DropdownMenuItem(value: 'MZ', child: Text('Mozambique')),
+                DropdownMenuItem(value: 'MM', child: Text('Myanmar')),
+                DropdownMenuItem(value: 'NA', child: Text('Namibia')),
+                DropdownMenuItem(value: 'NR', child: Text('Nauru')),
+                DropdownMenuItem(value: 'NP', child: Text('Nepal')),
+                DropdownMenuItem(value: 'NL', child: Text('Netherlands')),
+                DropdownMenuItem(value: 'NC', child: Text('New Caledonia')),
+                DropdownMenuItem(value: 'NZ', child: Text('New Zealand')),
+                DropdownMenuItem(value: 'NI', child: Text('Nicaragua')),
+                DropdownMenuItem(value: 'NE', child: Text('Niger')),
+                DropdownMenuItem(value: 'NG', child: Text('Nigeria')),
+                DropdownMenuItem(value: 'NU', child: Text('Niue')),
+                DropdownMenuItem(value: 'NF', child: Text('Norfolk Island')),
+                DropdownMenuItem(value: 'MK', child: Text('North Macedonia')),
+                DropdownMenuItem(value: 'MP', child: Text('Northern Mariana Islands')),
+                DropdownMenuItem(value: 'NO', child: Text('Norway')),
+                DropdownMenuItem(value: 'OM', child: Text('Oman')),
+                DropdownMenuItem(value: 'PK', child: Text('Pakistan')),
+                DropdownMenuItem(value: 'PW', child: Text('Palau')),
+                DropdownMenuItem(value: 'PS', child: Text('Palestine, State of')),
+                DropdownMenuItem(value: 'PA', child: Text('Panama')),
+                DropdownMenuItem(value: 'PG', child: Text('Papua New Guinea')),
+                DropdownMenuItem(value: 'PY', child: Text('Paraguay')),
+                DropdownMenuItem(value: 'PE', child: Text('Peru')),
+                DropdownMenuItem(value: 'PH', child: Text('Philippines')),
+                DropdownMenuItem(value: 'PN', child: Text('Pitcairn')),
+                DropdownMenuItem(value: 'PL', child: Text('Poland')),
+                DropdownMenuItem(value: 'PT', child: Text('Portugal')),
+                DropdownMenuItem(value: 'PR', child: Text('Puerto Rico')),
+                DropdownMenuItem(value: 'QA', child: Text('Qatar')),
+                DropdownMenuItem(value: 'RO', child: Text('Romania')),
+                DropdownMenuItem(value: 'RU', child: Text('Russian Federation')),
+                DropdownMenuItem(value: 'RW', child: Text('Rwanda')),
+                DropdownMenuItem(value: 'RE', child: Text('Réunion')),
+                DropdownMenuItem(value: 'BL', child: Text('Saint Barthélemy')),
+                DropdownMenuItem(value: 'SH', child: Text('Saint Helena, Ascension and Tristan da Cunha')),
+                DropdownMenuItem(value: 'KN', child: Text('Saint Kitts and Nevis')),
+                DropdownMenuItem(value: 'LC', child: Text('Saint Lucia')),
+                DropdownMenuItem(value: 'MF', child: Text('Saint Martin (French part)')),
+                DropdownMenuItem(value: 'PM', child: Text('Saint Pierre and Miquelon')),
+                DropdownMenuItem(value: 'VC', child: Text('Saint Vincent and the Grenadines')),
+                DropdownMenuItem(value: 'WS', child: Text('Samoa')),
+                DropdownMenuItem(value: 'SM', child: Text('San Marino')),
+                DropdownMenuItem(value: 'ST', child: Text('Sao Tome and Principe')),
+                DropdownMenuItem(value: 'SA', child: Text('Saudi Arabia')),
+                DropdownMenuItem(value: 'SN', child: Text('Senegal')),
+                DropdownMenuItem(value: 'RS', child: Text('Serbia')),
+                DropdownMenuItem(value: 'SC', child: Text('Seychelles')),
+                DropdownMenuItem(value: 'SL', child: Text('Sierra Leone')),
+                DropdownMenuItem(value: 'SG', child: Text('Singapore')),
+                DropdownMenuItem(value: 'SX', child: Text('Sint Maarten (Dutch part)')),
+                DropdownMenuItem(value: 'SK', child: Text('Slovakia')),
+                DropdownMenuItem(value: 'SI', child: Text('Slovenia')),
+                DropdownMenuItem(value: 'SB', child: Text('Solomon Islands')),
+                DropdownMenuItem(value: 'SO', child: Text('Somalia')),
+                DropdownMenuItem(value: 'ZA', child: Text('South Africa')),
+                DropdownMenuItem(value: 'GS', child: Text('South Georgia and the South Sandwich Islands')),
+                DropdownMenuItem(value: 'SS', child: Text('South Sudan')),
+                DropdownMenuItem(value: 'ES', child: Text('Spain')),
+                DropdownMenuItem(value: 'LK', child: Text('Sri Lanka')),
+                DropdownMenuItem(value: 'SD', child: Text('Sudan')),
+                DropdownMenuItem(value: 'SR', child: Text('Suriname')),
+                DropdownMenuItem(value: 'SJ', child: Text('Svalbard and Jan Mayen')),
+                DropdownMenuItem(value: 'SE', child: Text('Sweden')),
+                DropdownMenuItem(value: 'CH', child: Text('Switzerland')),
+                DropdownMenuItem(value: 'SY', child: Text('Syrian Arab Republic')),
+                DropdownMenuItem(value: 'TW', child: Text('Taiwan, Province of China')),
+                DropdownMenuItem(value: 'TJ', child: Text('Tajikistan')),
+                DropdownMenuItem(value: 'TZ', child: Text('Tanzania, United Republic of')),
+                DropdownMenuItem(value: 'TH', child: Text('Thailand')),
+                DropdownMenuItem(value: 'TL', child: Text('Timor-Leste')),
+                DropdownMenuItem(value: 'TG', child: Text('Togo')),
+                DropdownMenuItem(value: 'TK', child: Text('Tokelau')),
+                DropdownMenuItem(value: 'TO', child: Text('Tonga')),
+                DropdownMenuItem(value: 'TT', child: Text('Trinidad and Tobago')),
+                DropdownMenuItem(value: 'TN', child: Text('Tunisia')),
+                DropdownMenuItem(value: 'TM', child: Text('Turkmenistan')),
+                DropdownMenuItem(value: 'TC', child: Text('Turks and Caicos Islands')),
+                DropdownMenuItem(value: 'TV', child: Text('Tuvalu')),
+                DropdownMenuItem(value: 'TR', child: Text('Türkiye')),
+                DropdownMenuItem(value: 'UG', child: Text('Uganda')),
+                DropdownMenuItem(value: 'UA', child: Text('Ukraine')),
+                DropdownMenuItem(value: 'AE', child: Text('United Arab Emirates')),
+                DropdownMenuItem(value: 'GB', child: Text('United Kingdom')),
+                DropdownMenuItem(value: 'US', child: Text('United States')),
+                DropdownMenuItem(value: 'UM', child: Text('United States Minor Outlying Islands')),
+                DropdownMenuItem(value: 'UY', child: Text('Uruguay')),
+                DropdownMenuItem(value: 'UZ', child: Text('Uzbekistan')),
+                DropdownMenuItem(value: 'VU', child: Text('Vanuatu')),
+                DropdownMenuItem(value: 'VE', child: Text('Venezuela, Bolivarian Republic of')),
+                DropdownMenuItem(value: 'VN', child: Text('Viet Nam')),
+                DropdownMenuItem(value: 'VG', child: Text('Virgin Islands, British')),
+                DropdownMenuItem(value: 'VI', child: Text('Virgin Islands, U.S.')),
+                DropdownMenuItem(value: 'WF', child: Text('Wallis and Futuna')),
+                DropdownMenuItem(value: 'EH', child: Text('Western Sahara')),
+                DropdownMenuItem(value: 'YE', child: Text('Yemen')),
+                DropdownMenuItem(value: 'ZM', child: Text('Zambia')),
+                DropdownMenuItem(value: 'ZW', child: Text('Zimbabwe')),
+                DropdownMenuItem(value: 'AX', child: Text('Åland Islands')),              ],
               onChanged: _saving ? null : (value) => setState(() => _countryCode = value ?? ''),
             ),
             const SizedBox(height: 14),
