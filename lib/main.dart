@@ -120,6 +120,9 @@ const Color partyPink = Color(0xFFFF1688);
 const Color partyBlack = Color(0xFF080A12);
 const Color partyGold = Color(0xFFFFD700);
 const Color partyWhite = Color(0xFF17121D);
+const Color partyWhite12 = Colors.white12;
+const Color partyWhite26 = Colors.white24;
+const Color partyWhite87 = Colors.white70;
 
 String partyNovaRoleForEmail(String? email) {
   final normalizedEmail = email?.trim().toLowerCase();
@@ -4013,7 +4016,7 @@ TextField(
                 DropdownMenuItem<String>(value: 'CW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Curaçao') ])),
                 DropdownMenuItem<String>(value: 'CY', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CY'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Cyprus') ])),
                 DropdownMenuItem<String>(value: 'CZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Czechia') ])),
-                DropdownMenuItem<String>(value: 'CI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Côte d'Ivoire') ])),
+                DropdownMenuItem<String>(value: 'CI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('CI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Côte d'Ivoire") ])),
                 DropdownMenuItem<String>(value: 'DK', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DK'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Denmark') ])),
                 DropdownMenuItem<String>(value: 'DJ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DJ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Djibouti') ])),
                 DropdownMenuItem<String>(value: 'DM', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('DM'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Dominica') ])),
@@ -4072,11 +4075,11 @@ TextField(
                 DropdownMenuItem<String>(value: 'KZ', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KZ'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kazakhstan') ])),
                 DropdownMenuItem<String>(value: 'KE', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KE'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kenya') ])),
                 DropdownMenuItem<String>(value: 'KI', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KI'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kiribati') ])),
-                DropdownMenuItem<String>(value: 'KP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Korea, Democratic People's Republic of') ])),
+                DropdownMenuItem<String>(value: 'KP', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KP'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Korea, Democratic People's Republic of") ])),
                 DropdownMenuItem<String>(value: 'KR', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KR'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Korea, Republic of') ])),
                 DropdownMenuItem<String>(value: 'KW', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KW'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kuwait') ])),
                 DropdownMenuItem<String>(value: 'KG', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('KG'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Kyrgyzstan') ])),
-                DropdownMenuItem<String>(value: 'LA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lao People's Democratic Republic') ])),
+                DropdownMenuItem<String>(value: 'LA', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LA'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text("Lao People's Democratic Republic") ])),
                 DropdownMenuItem<String>(value: 'LV', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LV'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Latvia') ])),
                 DropdownMenuItem<String>(value: 'LB', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LB'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lebanon') ])),
                 DropdownMenuItem<String>(value: 'LS', child: Row(mainAxisSize: MainAxisSize.min, children: [Text(partyNovaCountryFlag('LS'), style: const TextStyle(fontSize: 25)), const SizedBox(width: 9), Text('Lesotho') ])),
