@@ -13091,12 +13091,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final roomRef = FirebaseFirestore.instance.collection('rooms').doc(widget.roomDocumentId);
-    final seatRef = roomRef.collection('micSeats').doc('$number');
+    final seatsRef = roomRef.collection('micSeats');
+    final seatRef = seatsRef.doc('$number');
     if ((await roomRef.collection('blockedMembers').doc(user.uid).get()).exists) return;
 
     if (occupant != null) {
       if ((occupant['firebaseUid'] ?? '').toString() == user.uid) {
-        // Keep the existing Leave Mic popup unchanged.
         final leave = await showDialog<bool>(
           context: context,
           builder: (dialogContext) => AlertDialog(
@@ -13111,7 +13111,12 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           ),
         );
         if (leave == true) {
-          await seatRef.delete();
+          await FirebaseFirestore.instance.runTransaction((transaction) async {
+            final currentSeat = await transaction.get(seatRef);
+            if (currentSeat.exists && (currentSeat.data()?['firebaseUid'] ?? '').toString() == user.uid) {
+              transaction.delete(seatRef);
+            }
+          });
         }
       } else {
         await _showMicUserProfile(occupant);
@@ -13119,12 +13124,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       return;
     }
 
-    // Reject users who already occupy any mic in this room.
-    final alreadySeated = await roomRef.collection('micSeats').where('firebaseUid', isEqualTo: user.uid).get();
-    if (alreadySeated.docs.isNotEmpty) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('You are already sitting on a mic.')));
-      return;
-    }
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -13144,40 +13143,18 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     try {
       final profileSnapshot = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final profile = profileSnapshot.data() ?? <String, dynamic>{};
-
-      // Detect a hidden/stale seat record (the seat can look empty because
-      // its occupant is offline, while the Firestore micSeats document remains).
-      final existingSeat = await seatRef.get();
-      if (existingSeat.exists) {
-        final oldUid = (existingSeat.data()?['firebaseUid'] ?? '').toString();
-        final oldPresence = oldUid.isEmpty
-            ? null
-            : await roomRef.collection('presence').doc(oldUid).get();
-        final lastSeen = oldPresence?.data()?['lastSeenAt'];
-        final isOnline = lastSeen is Timestamp &&
-            DateTime.now().difference(lastSeen.toDate()) <= const Duration(minutes: 2);
-        if (isOnline) throw StateError('This mic seat is occupied by an online user.');
-
-        // If a seat has no active presence, it is a stale seat record. Any
-        // joining user may clear that specific offline record, but never an active seat.
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
-          final currentSeat = await transaction.get(seatRef);
-          final currentUid = (currentSeat.data()?['firebaseUid'] ?? '').toString();
-          if (currentSeat.exists && currentUid == oldUid) transaction.delete(seatRef);
-        });
-      }
-
-      // Prevent a user from taking a second mic (best-effort client check).
-      final otherSeats = await roomRef.collection('micSeats')
-          .where('firebaseUid', isEqualTo: user.uid).get();
-      if (otherSeats.docs.any((doc) => doc.id != '$number')) {
-        throw StateError('You are already sitting on another mic.');
-      }
-
-
       await FirebaseFirestore.instance.runTransaction((transaction) async {
+        // Read target and all seats belonging to this Firebase UID before writing.
         final targetSeat = await transaction.get(seatRef);
-        if (targetSeat.exists) throw StateError('This mic seat is already taken.');
+        final mySeatsQuery = seatsRef.where('firebaseUid', isEqualTo: user.uid);
+        final mySeats = await transaction.get(mySeatsQuery);
+        if (targetSeat.exists && (targetSeat.data()?['firebaseUid'] ?? '').toString() != user.uid) {
+          throw StateError('This mic seat is already taken.');
+        }
+        // Transfer/return mic atomically: remove any old seat(s), then claim target.
+        for (final oldSeat in mySeats.docs) {
+          if (oldSeat.id != '$number') transaction.delete(oldSeat.reference);
+        }
         transaction.set(seatRef, {
           'seatNumber': number,
           'firebaseUid': user.uid,
@@ -13191,7 +13168,6 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not take mic: $error')));
     }
   }
-
 
   Future<void> _showMicUserProfile(Map<String, dynamic> occupant) async {
     final uid = (occupant['firebaseUid'] ?? '').toString();
