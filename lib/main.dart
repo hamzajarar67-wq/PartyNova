@@ -116,10 +116,10 @@ const Map<String, String> partyNovaReservedIds = {
   'hamzajarar67@gmail.com': '111112',
 };
 
-const Color partyPink = Color(0xFFFF1688);
-const Color partyBlack = Color(0xFF09070B);
-const Color partyGold = Color(0xFFFFD780);
-const Color partyWhite = Color(0xFFFFFFFF);
+const Color partyPink = Color(0xFFFFC629);
+const Color partyBlack = Color(0xFFF4F5F7);
+const Color partyGold = Color(0xFFFFC629);
+const Color partyWhite = Color(0xFF171717);
 
 String partyNovaRoleForEmail(String? email) {
   final normalizedEmail = email?.trim().toLowerCase();
@@ -164,7 +164,7 @@ BoxDecoration partyNightDecoration() {
       colors: [
         Color(0xFF7A174A),
         Color(0xFF321024),
-        Color(0xFF09070B),
+        Color(0xFFF4F5F7),
       ],
       stops: [0.0, 0.48, 1.0],
     ),
@@ -615,7 +615,7 @@ class PartyButton extends StatelessWidget {
             color: const Color(0xFFFFC7E2),
             width: 1.2,
           ),
-          color: outlined ? const Color(0xFF21101F) : null,
+          color: outlined ? const Color(0xFFFFFFFF) : null,
           boxShadow: [
             BoxShadow(
               color: partyPink.withValues(alpha: 0.18),
@@ -705,7 +705,7 @@ class _PartyTextFieldState extends State<PartyTextField> {
               )
             : null,
         filled: true,
-        fillColor: const Color(0xFF171017),
+        fillColor: const Color(0xFFF7F7F8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
           borderSide: const BorderSide(color: Color(0xFF654052)),
@@ -1338,12 +1338,12 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
         Scaffold(
       backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF21101F),
+        backgroundColor: const Color(0xFFFFFFFF),
         elevation: 0,
         title: Text(
           _titles[_selectedIndex],
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1375,7 +1375,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF110B19),
+          color: Color(0xFFF4F5F7),
           border: Border(
             top: BorderSide(color: Color(0xFF3B2448)),
           ),
@@ -1416,7 +1416,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                             icons[index],
                             color: selected
                                 ? const Color(0xFFFFD700)
-                                : Colors.white54,
+                                : Colors.black45,
                           ),
                         const SizedBox(height: 4),
                         if (index == 4)
@@ -1429,7 +1429,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                               fontSize: 10,
                               color: selected
                                   ? const Color(0xFFFFD700)
-                                  : Colors.white54,
+                                  : Colors.black45,
                             ),
                           ),
                       ],
@@ -1481,8 +1481,8 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
-                  Color(0xFF28123C),
-                  Color(0xFF120B1B),
+                  Color(0xFFFFD84A),
+                  Color(0xFFF2F2F4),
                 ],
               ),
               borderRadius: BorderRadius.circular(20),
@@ -1504,7 +1504,7 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
                 SizedBox(height: 8),
                 Text(
                   'Connect, play and enjoy together.',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(color: Colors.black54),
                 ),
               ],
             ),
@@ -1541,20 +1541,20 @@ class _PartyNovaHomeState extends State<PartyNovaHome> {
 
 Widget _buildGamesTab() {
   const gold = Color(0xFFFFD700);
-  const panel = Color(0xFF21101F);
+  const panel = Color(0xFFFFFFFF);
 
     final games = [
     {
       'title': 'ONE VS ONE',
       'subtitle': 'BATTLE',
       'image': 'assets/games/1792928262794.jpg',
-      'colors': [Color(0xFFFFD700), Colors.white],
+      'colors': [Color(0xFFFFD700), Colors.black],
     },
     {
       'title': 'PRIVATE',
       'subtitle': 'MATCH',
       'image': 'assets/games/51a253a0f1625ec50129f8e42b47d04f.jpg',
-      'colors': [Colors.white, Color(0xFFFFD700)],
+      'colors': [Colors.black, Color(0xFFFFD700)],
     },
     {
       'title': 'TEAM',
@@ -1590,7 +1590,7 @@ Widget _buildGamesTab() {
           'Choose Your Battle',
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white70,
+            color: Colors.black54,
             fontSize: 14,
           ),
         ),
@@ -1691,8 +1691,8 @@ Widget _buildGamesTab() {
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              Color(0xFF281A31),
-                              Color(0xFF100B17),
+                              Color(0xFFFFD84A),
+                              Color(0xFFF5F5F6),
                             ],
                           ),
                         ),
@@ -1766,7 +1766,7 @@ Widget _socialDesignSection({
         Text(
           title,
           style: const TextStyle(
-            color: const Color(0xFF09070B),
+            color: const Color(0xFFF4F5F7),
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -1776,7 +1776,7 @@ Widget _socialDesignSection({
           width: double.infinity,
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.black,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
@@ -1787,7 +1787,7 @@ Widget _socialDesignSection({
                 child: Text(
                   subtitle,
                   style: const TextStyle(
-                    color: Color(0xFF09070B),
+                    color: Color(0xFFF4F5F7),
                     fontSize: 15,
                   ),
                 ),
@@ -1818,7 +1818,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -1826,7 +1826,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
         const SizedBox(height: 8),
         const Text(
           'Coming soon',
-          style: TextStyle(color: Colors.white54),
+          style: TextStyle(color: Colors.black45),
         ),
       ],
     ),
@@ -1848,7 +1848,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
       barrierDismissible: false,
       builder: (dialogContext) {
         return Dialog(
-          backgroundColor: const Color(0xFF21101F),
+          backgroundColor: const Color(0xFFFFFFFF),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
             side: const BorderSide(color: Color(0xFFFFD780), width: 1.5),
@@ -1879,14 +1879,14 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                   textAlign: TextAlign.center,
                   textCapitalization: TextCapitalization.words,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Type your room name',
-                    hintStyle: TextStyle(color: Colors.white54),
-                    counterStyle: TextStyle(color: Colors.white54),
+                    hintStyle: TextStyle(color: Colors.black45),
+                    counterStyle: TextStyle(color: Colors.black45),
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -1899,7 +1899,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                       child: TextButton(
                         onPressed: () => Navigator.pop(dialogContext),
                         child: const Text('CANCEL',
-                            style: TextStyle(color: Colors.white70)),
+                            style: TextStyle(color: Colors.black54)),
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -1907,7 +1907,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFF1688),
-                          foregroundColor: Colors.white,
+                          foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2200,7 +2200,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                                 }
                                 return const Icon(
                                   Icons.groups_rounded,
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   size: 48,
                                 );
                               },
@@ -2223,7 +2223,7 @@ Widget _buildPlaceholderTab(IconData icon, String title) {
                     ),
                     child: const Icon(
                       Icons.star_rounded,
-                      color: Colors.white,
+                      color: Colors.black,
                       size: 22,
                     ),
                   ),
@@ -2247,7 +2247,7 @@ late Stream<QuerySnapshot<Map<String, dynamic>>> _activeRoomsStream =
   Widget _buildRoomsTab() {
   const gold = Color(0xFFFFD700);
   const pink = Color(0xFFFF4FA3);
-  const panel = Color(0xFF21101F);
+  const panel = Color(0xFFFFFFFF);
   const purple = Color(0xFF392047);
 
   const filters = ['All Room', 'Popular Room', 'My Room'];
@@ -2287,7 +2287,7 @@ Widget buildUserSearchResult() {
           padding: EdgeInsets.all(12),
           child: Text(
             'User search failed. Please try again.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -2297,7 +2297,7 @@ Widget buildUserSearchResult() {
           padding: EdgeInsets.all(12),
           child: Text(
             'No user found with this UID.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -2327,7 +2327,7 @@ Widget buildUserSearchResult() {
               child: photoBytes == null
                   ? const Icon(
                       Icons.person_rounded,
-                      color: Colors.white,
+                      color: Colors.black,
                       size: 30,
                     )
                   : null,
@@ -2342,7 +2342,7 @@ Widget buildUserSearchResult() {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2418,7 +2418,7 @@ Widget buildUserSearchResult() {
                     child: Text(
                       filters[index],
                       style: TextStyle(
-                        color: selected ? pink : Colors.white70,
+                        color: selected ? pink : Colors.black54,
                         fontSize: 13,
                         fontWeight:
                             selected ? FontWeight.bold : FontWeight.w500,
@@ -2444,7 +2444,7 @@ Widget buildUserSearchResult() {
     if (_selectedMyRoomFilter == 3) {
       return const Padding(
         padding: EdgeInsets.all(24),
-        child: Center(child: Text('Friends rooms will appear here.', style: TextStyle(color: Colors.white70))),
+        child: Center(child: Text('Friends rooms will appear here.', style: TextStyle(color: Colors.black54))),
       );
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -2453,7 +2453,7 @@ Widget buildUserSearchResult() {
         if (snapshot.hasError) {
           return const Padding(
             padding: EdgeInsets.all(20),
-            child: Text('Could not load your room list.', style: TextStyle(color: Colors.white70)),
+            child: Text('Could not load your room list.', style: TextStyle(color: Colors.black54)),
           );
         }
         if (!snapshot.hasData) {
@@ -2481,7 +2481,7 @@ Widget buildUserSearchResult() {
                   : 'You are not following any room yet.';
           return Padding(
             padding: const EdgeInsets.all(24),
-            child: Center(child: Text(label, style: const TextStyle(color: Colors.white70))),
+            child: Center(child: Text(label, style: const TextStyle(color: Colors.black54))),
           );
         }
         return GridView.builder(
@@ -2512,7 +2512,7 @@ Widget buildUserSearchResult() {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE0FFF7),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: Colors.black, width: 2),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2606,7 +2606,7 @@ Widget buildUserSearchResult() {
                     gradient: const LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [Color(0xFF54244F), Color(0xFF21101F), Color(0xFF392047)],
+                      colors: [Color(0xFF54244F), Color(0xFFFFFFFF), Color(0xFF392047)],
                     ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(color: gold, width: 1.5),
@@ -2619,7 +2619,7 @@ Widget buildUserSearchResult() {
                       Text(
                         'CREATE ROOM',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 19,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.5,
@@ -2699,7 +2699,7 @@ Widget buildUserSearchResult() {
                         children: [
                           Icon(
                             icons[index],
-                            color: selected ? pink : Colors.white70,
+                            color: selected ? pink : Colors.black54,
                             size: 20,
                           ),
                           const SizedBox(height: 5),
@@ -2710,7 +2710,7 @@ Widget buildUserSearchResult() {
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color:
-                                    selected ? pink : Colors.white70,
+                                    selected ? pink : Colors.black54,
                                 fontSize: 10,
                                 fontWeight: selected
                                     ? FontWeight.bold
@@ -2747,7 +2747,7 @@ Widget buildUserSearchResult() {
           child: Center(
             child: Text(
               'Unable to load rooms: ${snapshot.error}',
-              style: const TextStyle(color: Colors.white70),
+              style: const TextStyle(color: Colors.black54),
             ),
           ),
         );
@@ -2823,7 +2823,7 @@ Widget buildUserSearchResult() {
         if (rooms.isEmpty) {
           return const Expanded(
             child: Center(
-              child: Text('No rooms found', style: TextStyle(color: Colors.white70)),
+              child: Text('No rooms found', style: TextStyle(color: Colors.black54)),
             ),
           );
         }
@@ -2862,7 +2862,7 @@ Widget buildUserSearchResult() {
                   decoration: BoxDecoration(
                     color: const Color(0xFFE0FFF7),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: Colors.black, width: 2),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2927,7 +2927,7 @@ Widget buildUserSearchResult() {
                                         const SizedBox(width: 4),
                                         Text(
                                           inRoom ? '1' : '0',
-                                          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                          style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
                                         ),
                                       ],
                                     ),
@@ -2944,7 +2944,7 @@ Widget buildUserSearchResult() {
                         decoration: const BoxDecoration(
                           color: Color(0xFFE0FFF7),
                           border: Border(
-                            top: BorderSide(color: Colors.white, width: 2),
+                            top: BorderSide(color: Colors.black, width: 2),
                           ),
                         ),
                         child: Column(
@@ -3020,14 +3020,14 @@ Widget buildUserSearchResult() {
           );
         },
         style: const TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 14,
         ),
         cursorColor: pink,
         decoration: const InputDecoration(
           hintText: 'Search UID and Room',
           hintStyle: TextStyle(
-            color: Colors.white60,
+            color: Colors.black54,
             fontSize: 14,
           ),
           prefixIcon: Icon(
@@ -3083,7 +3083,7 @@ Widget _buildProfileTab(User? user) {
     return const Center(
       child: Text(
         'Please log in again.',
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Colors.black),
       ),
     );
   }
@@ -3098,7 +3098,7 @@ Widget _buildProfileTab(User? user) {
         return const Center(
           child: Text(
             'Could not load your profile.',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.black),
           ),
         );
       }
@@ -3136,7 +3136,7 @@ Widget _buildProfileTab(User? user) {
       final isOwnerOrAdmin = role == 'owner' || role == 'admin';
 
       return Container(
-        color: const Color(0xFF09070B),
+        color: const Color(0xFFF4F5F7),
         width: double.infinity,
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
@@ -3181,7 +3181,7 @@ Widget _buildProfileTab(User? user) {
                       children: [
                         Icon(
                           Icons.edit_rounded,
-                          color: Colors.white,
+                          color: Colors.black,
                           size: 18,
                         ),
                         SizedBox(width: 7),
@@ -3261,7 +3261,7 @@ Widget _buildProfileTab(User? user) {
             child: Icon(
               Icons.person_rounded,
               size: 64,
-              color: Colors.white,
+              color: Colors.black,
             ),
           );
         }
@@ -3280,7 +3280,7 @@ Widget _buildProfileTab(User? user) {
                 child: Icon(
                   Icons.person_rounded,
                   size: 64,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               );
             },
@@ -3310,7 +3310,7 @@ const SizedBox(height: 14),
                 name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -3347,7 +3347,7 @@ if (bio.trim().isNotEmpty) ...[
     bio,
     textAlign: TextAlign.center,
     style: const TextStyle(
-      color: Colors.white70,
+      color: Colors.black54,
       fontSize: 18,
       fontWeight: FontWeight.w500,
     ),
@@ -3367,13 +3367,13 @@ const SizedBox(height: 10),
                     if (dateOfBirth.isNotEmpty) ...[
                       const Icon(Icons.cake_rounded, color: Color(0xFFFFD780), size: 18),
                       const SizedBox(width: 5),
-                      Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.white70)),
+                      Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.black54)),
                       const SizedBox(width: 12),
                     ],
                     if (gender.isNotEmpty) ...[
                       const Icon(Icons.person_outline_rounded, color: Color(0xFFFFD780), size: 18),
                       const SizedBox(width: 5),
-                      Text(gender, style: const TextStyle(color: Colors.white70)),
+                      Text(gender, style: const TextStyle(color: Colors.black54)),
                       const SizedBox(width: 12),
                     ],
                     if (countryCode.isNotEmpty)
@@ -3469,7 +3469,7 @@ Widget _profileStatCard({
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 19,
             fontWeight: FontWeight.bold,
           ),
@@ -3585,7 +3585,7 @@ Future<void> _pickDP() async {
         AndroidUiSettings(
           toolbarTitle: 'Adjust Profile Photo',
           toolbarColor: const Color(0xFF7028A0),
-          toolbarWidgetColor: Colors.white,
+          toolbarWidgetColor: Colors.black,
           activeControlsWidgetColor: const Color(0xFFFF1688),
           lockAspectRatio: true,
           aspectRatioPresets: [
@@ -3755,18 +3755,57 @@ Future<void> _saveProfile() async {
 
 
   
+  Widget _genderChoice({
+    required String value,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final selected = _gender == value;
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: _saving ? null : () => setState(() => _gender = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 88,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: selected
+                  ? [color.withValues(alpha: 0.32), const Color(0xFF17121D)]
+                  : [const Color(0xFF252333), const Color(0xFF17121D)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: selected ? color : color.withValues(alpha: 0.42), width: selected ? 2 : 1),
+            boxShadow: selected ? [BoxShadow(color: color.withValues(alpha: 0.20), blurRadius: 12)] : const [],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 30, color: color),
+              const SizedBox(height: 5),
+              Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09070B),
+      backgroundColor: const Color(0xFFF4F5F7),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF09070B),
-        foregroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF4F5F7),
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Edit Profile',
           style: TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -3806,7 +3845,7 @@ Future<void> _saveProfile() async {
             return const Icon(
               Icons.person_rounded,
               size: 58,
-              color: Colors.white,
+              color: Colors.black,
             );
           },
         ),
@@ -3814,7 +3853,7 @@ Future<void> _saveProfile() async {
     : const Icon(
         Icons.person_rounded,
         size: 58,
-        color: Colors.white,
+        color: Colors.black,
       ),
               ),
             ),
@@ -3826,7 +3865,7 @@ Future<void> _saveProfile() async {
                 widget.name,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -3851,7 +3890,7 @@ _inputLabel('Change Name'),
 TextField(
   controller: _nameController,
   maxLength: 20,
-  style: const TextStyle(color: Colors.white),
+  style: const TextStyle(color: Colors.black),
   decoration: _inputDecoration(
     hint: 'Enter your name',
     icon: Icons.person_outline_rounded,
@@ -3866,7 +3905,7 @@ TextField(
               controller: _bioController,
               maxLength: 50,
               maxLines: 2,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration(
                 hint: 'Write something about yourself',
                 icon: Icons.edit_note_rounded,
@@ -3890,286 +3929,284 @@ TextField(
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 14),
-                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF654052)), borderRadius: BorderRadius.circular(14), color: const Color(0xFF171017)),
+                decoration: BoxDecoration(border: Border.all(color: const Color(0xFF654052)), borderRadius: BorderRadius.circular(14), color: const Color(0xFFF7F7F8)),
                 child: Row(children: [
                   const Icon(Icons.cake_rounded, color: partyGold),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(_dateOfBirth.isEmpty ? 'Select date of birth' : partyNovaFormatDate(_dateOfBirth), style: const TextStyle(color: Colors.white))),
+                  Expanded(child: Text(_dateOfBirth.isEmpty ? 'Select date of birth' : partyNovaFormatDate(_dateOfBirth), style: const TextStyle(color: Colors.black))),
                   const Icon(Icons.calendar_month_rounded, color: partyGold),
                 ]),
               ),
             ),
             const SizedBox(height: 14),
             _inputLabel('Gender'),
-            DropdownButtonFormField<String>(
-              value: _gender.isEmpty ? null : _gender,
-              dropdownColor: const Color(0xFF21101F),
-              style: const TextStyle(color: Colors.white),
-              decoration: _inputDecoration(hint: 'Select gender', icon: Icons.person_outline_rounded),
-              items: const [
-                DropdownMenuItem(value: 'Female', child: Text('Female')),
-                DropdownMenuItem(value: 'Male', child: Text('Male')),
-                DropdownMenuItem(value: 'Non-binary', child: Text('Non-binary')),
+            Row(
+              children: [
+                _genderChoice(value: 'Male', label: 'Male', icon: Icons.male_rounded, color: const Color(0xFF368BFF)),
+                const SizedBox(width: 8),
+                _genderChoice(value: 'Female', label: 'Female', icon: Icons.female_rounded, color: const Color(0xFFFF4FA3)),
+                const SizedBox(width: 8),
+                _genderChoice(value: 'Non', label: 'Non', icon: Icons.person_outline_rounded, color: const Color(0xFFB7B7C4)),
               ],
-              onChanged: _saving ? null : (value) => setState(() => _gender = value ?? ''),
             ),
             const SizedBox(height: 14),
             _inputLabel('Country (flag shown on profile)'),
             DropdownButtonFormField<String>(
               value: _countryCode.isEmpty ? null : _countryCode,
-              dropdownColor: const Color(0xFF21101F),
-              style: const TextStyle(color: Colors.white),
+              dropdownColor: const Color(0xFFFFFFFF),
+              style: const TextStyle(color: Colors.black),
               decoration: _inputDecoration(hint: 'Select country', icon: Icons.flag_rounded),
-              items: const [
-                DropdownMenuItem(value: 'AF', child: Text('Afghanistan')),
-                DropdownMenuItem(value: 'AL', child: Text('Albania')),
-                DropdownMenuItem(value: 'DZ', child: Text('Algeria')),
-                DropdownMenuItem(value: 'AS', child: Text('American Samoa')),
-                DropdownMenuItem(value: 'AD', child: Text('Andorra')),
-                DropdownMenuItem(value: 'AO', child: Text('Angola')),
-                DropdownMenuItem(value: 'AI', child: Text('Anguilla')),
-                DropdownMenuItem(value: 'AQ', child: Text('Antarctica')),
-                DropdownMenuItem(value: 'AG', child: Text('Antigua and Barbuda')),
-                DropdownMenuItem(value: 'AR', child: Text('Argentina')),
-                DropdownMenuItem(value: 'AM', child: Text('Armenia')),
-                DropdownMenuItem(value: 'AW', child: Text('Aruba')),
-                DropdownMenuItem(value: 'AU', child: Text('Australia')),
-                DropdownMenuItem(value: 'AT', child: Text('Austria')),
-                DropdownMenuItem(value: 'AZ', child: Text('Azerbaijan')),
-                DropdownMenuItem(value: 'BS', child: Text('Bahamas')),
-                DropdownMenuItem(value: 'BH', child: Text('Bahrain')),
-                DropdownMenuItem(value: 'BD', child: Text('Bangladesh')),
-                DropdownMenuItem(value: 'BB', child: Text('Barbados')),
-                DropdownMenuItem(value: 'BY', child: Text('Belarus')),
-                DropdownMenuItem(value: 'BE', child: Text('Belgium')),
-                DropdownMenuItem(value: 'BZ', child: Text('Belize')),
-                DropdownMenuItem(value: 'BJ', child: Text('Benin')),
-                DropdownMenuItem(value: 'BM', child: Text('Bermuda')),
-                DropdownMenuItem(value: 'BT', child: Text('Bhutan')),
-                DropdownMenuItem(value: 'BO', child: Text('Bolivia, Plurinational State of')),
-                DropdownMenuItem(value: 'BQ', child: Text('Bonaire, Sint Eustatius and Saba')),
-                DropdownMenuItem(value: 'BA', child: Text('Bosnia and Herzegovina')),
-                DropdownMenuItem(value: 'BW', child: Text('Botswana')),
-                DropdownMenuItem(value: 'BV', child: Text('Bouvet Island')),
-                DropdownMenuItem(value: 'BR', child: Text('Brazil')),
-                DropdownMenuItem(value: 'IO', child: Text('British Indian Ocean Territory')),
-                DropdownMenuItem(value: 'BN', child: Text('Brunei Darussalam')),
-                DropdownMenuItem(value: 'BG', child: Text('Bulgaria')),
-                DropdownMenuItem(value: 'BF', child: Text('Burkina Faso')),
-                DropdownMenuItem(value: 'BI', child: Text('Burundi')),
-                DropdownMenuItem(value: 'CV', child: Text('Cabo Verde')),
-                DropdownMenuItem(value: 'KH', child: Text('Cambodia')),
-                DropdownMenuItem(value: 'CM', child: Text('Cameroon')),
-                DropdownMenuItem(value: 'CA', child: Text('Canada')),
-                DropdownMenuItem(value: 'KY', child: Text('Cayman Islands')),
-                DropdownMenuItem(value: 'CF', child: Text('Central African Republic')),
-                DropdownMenuItem(value: 'TD', child: Text('Chad')),
-                DropdownMenuItem(value: 'CL', child: Text('Chile')),
-                DropdownMenuItem(value: 'CN', child: Text('China')),
-                DropdownMenuItem(value: 'CX', child: Text('Christmas Island')),
-                DropdownMenuItem(value: 'CC', child: Text('Cocos (Keeling) Islands')),
-                DropdownMenuItem(value: 'CO', child: Text('Colombia')),
-                DropdownMenuItem(value: 'KM', child: Text('Comoros')),
-                DropdownMenuItem(value: 'CG', child: Text('Congo')),
-                DropdownMenuItem(value: 'CD', child: Text('Congo, The Democratic Republic of the')),
-                DropdownMenuItem(value: 'CK', child: Text('Cook Islands')),
-                DropdownMenuItem(value: 'CR', child: Text('Costa Rica')),
-                DropdownMenuItem(value: 'HR', child: Text('Croatia')),
-                DropdownMenuItem(value: 'CU', child: Text('Cuba')),
-                DropdownMenuItem(value: 'CW', child: Text('Curaçao')),
-                DropdownMenuItem(value: 'CY', child: Text('Cyprus')),
-                DropdownMenuItem(value: 'CZ', child: Text('Czechia')),
-                DropdownMenuItem(value: 'CI', child: Text("Côte d'Ivoire")),
-                DropdownMenuItem(value: 'DK', child: Text('Denmark')),
-                DropdownMenuItem(value: 'DJ', child: Text('Djibouti')),
-                DropdownMenuItem(value: 'DM', child: Text('Dominica')),
-                DropdownMenuItem(value: 'DO', child: Text('Dominican Republic')),
-                DropdownMenuItem(value: 'EC', child: Text('Ecuador')),
-                DropdownMenuItem(value: 'EG', child: Text('Egypt')),
-                DropdownMenuItem(value: 'SV', child: Text('El Salvador')),
-                DropdownMenuItem(value: 'GQ', child: Text('Equatorial Guinea')),
-                DropdownMenuItem(value: 'ER', child: Text('Eritrea')),
-                DropdownMenuItem(value: 'EE', child: Text('Estonia')),
-                DropdownMenuItem(value: 'SZ', child: Text('Eswatini')),
-                DropdownMenuItem(value: 'ET', child: Text('Ethiopia')),
-                DropdownMenuItem(value: 'FK', child: Text('Falkland Islands (Malvinas)')),
-                DropdownMenuItem(value: 'FO', child: Text('Faroe Islands')),
-                DropdownMenuItem(value: 'FJ', child: Text('Fiji')),
-                DropdownMenuItem(value: 'FI', child: Text('Finland')),
-                DropdownMenuItem(value: 'FR', child: Text('France')),
-                DropdownMenuItem(value: 'GF', child: Text('French Guiana')),
-                DropdownMenuItem(value: 'PF', child: Text('French Polynesia')),
-                DropdownMenuItem(value: 'TF', child: Text('French Southern Territories')),
-                DropdownMenuItem(value: 'GA', child: Text('Gabon')),
-                DropdownMenuItem(value: 'GM', child: Text('Gambia')),
-                DropdownMenuItem(value: 'GE', child: Text('Georgia')),
-                DropdownMenuItem(value: 'DE', child: Text('Germany')),
-                DropdownMenuItem(value: 'GH', child: Text('Ghana')),
-                DropdownMenuItem(value: 'GI', child: Text('Gibraltar')),
-                DropdownMenuItem(value: 'GR', child: Text('Greece')),
-                DropdownMenuItem(value: 'GL', child: Text('Greenland')),
-                DropdownMenuItem(value: 'GD', child: Text('Grenada')),
-                DropdownMenuItem(value: 'GP', child: Text('Guadeloupe')),
-                DropdownMenuItem(value: 'GU', child: Text('Guam')),
-                DropdownMenuItem(value: 'GT', child: Text('Guatemala')),
-                DropdownMenuItem(value: 'GG', child: Text('Guernsey')),
-                DropdownMenuItem(value: 'GN', child: Text('Guinea')),
-                DropdownMenuItem(value: 'GW', child: Text('Guinea-Bissau')),
-                DropdownMenuItem(value: 'GY', child: Text('Guyana')),
-                DropdownMenuItem(value: 'HT', child: Text('Haiti')),
-                DropdownMenuItem(value: 'HM', child: Text('Heard Island and McDonald Islands')),
-                DropdownMenuItem(value: 'VA', child: Text('Holy See (Vatican City State)')),
-                DropdownMenuItem(value: 'HN', child: Text('Honduras')),
-                DropdownMenuItem(value: 'HK', child: Text('Hong Kong')),
-                DropdownMenuItem(value: 'HU', child: Text('Hungary')),
-                DropdownMenuItem(value: 'IS', child: Text('Iceland')),
-                DropdownMenuItem(value: 'IN', child: Text('India')),
-                DropdownMenuItem(value: 'ID', child: Text('Indonesia')),
-                DropdownMenuItem(value: 'IR', child: Text('Iran, Islamic Republic of')),
-                DropdownMenuItem(value: 'IQ', child: Text('Iraq')),
-                DropdownMenuItem(value: 'IE', child: Text('Ireland')),
-                DropdownMenuItem(value: 'IM', child: Text('Isle of Man')),
-                DropdownMenuItem(value: 'IL', child: Text('Israel')),
-                DropdownMenuItem(value: 'IT', child: Text('Italy')),
-                DropdownMenuItem(value: 'JM', child: Text('Jamaica')),
-                DropdownMenuItem(value: 'JP', child: Text('Japan')),
-                DropdownMenuItem(value: 'JE', child: Text('Jersey')),
-                DropdownMenuItem(value: 'JO', child: Text('Jordan')),
-                DropdownMenuItem(value: 'KZ', child: Text('Kazakhstan')),
-                DropdownMenuItem(value: 'KE', child: Text('Kenya')),
-                DropdownMenuItem(value: 'KI', child: Text('Kiribati')),
-                DropdownMenuItem(value: 'KP', child: Text("Korea, Democratic People's Republic of")),
-                DropdownMenuItem(value: 'KR', child: Text('Korea, Republic of')),
-                DropdownMenuItem(value: 'KW', child: Text('Kuwait')),
-                DropdownMenuItem(value: 'KG', child: Text('Kyrgyzstan')),
-                DropdownMenuItem(value: 'LA', child: Text("Lao People's Democratic Republic")),
-                DropdownMenuItem(value: 'LV', child: Text('Latvia')),
-                DropdownMenuItem(value: 'LB', child: Text('Lebanon')),
-                DropdownMenuItem(value: 'LS', child: Text('Lesotho')),
-                DropdownMenuItem(value: 'LR', child: Text('Liberia')),
-                DropdownMenuItem(value: 'LY', child: Text('Libya')),
-                DropdownMenuItem(value: 'LI', child: Text('Liechtenstein')),
-                DropdownMenuItem(value: 'LT', child: Text('Lithuania')),
-                DropdownMenuItem(value: 'LU', child: Text('Luxembourg')),
-                DropdownMenuItem(value: 'MO', child: Text('Macao')),
-                DropdownMenuItem(value: 'MG', child: Text('Madagascar')),
-                DropdownMenuItem(value: 'MW', child: Text('Malawi')),
-                DropdownMenuItem(value: 'MY', child: Text('Malaysia')),
-                DropdownMenuItem(value: 'MV', child: Text('Maldives')),
-                DropdownMenuItem(value: 'ML', child: Text('Mali')),
-                DropdownMenuItem(value: 'MT', child: Text('Malta')),
-                DropdownMenuItem(value: 'MH', child: Text('Marshall Islands')),
-                DropdownMenuItem(value: 'MQ', child: Text('Martinique')),
-                DropdownMenuItem(value: 'MR', child: Text('Mauritania')),
-                DropdownMenuItem(value: 'MU', child: Text('Mauritius')),
-                DropdownMenuItem(value: 'YT', child: Text('Mayotte')),
-                DropdownMenuItem(value: 'MX', child: Text('Mexico')),
-                DropdownMenuItem(value: 'FM', child: Text('Micronesia, Federated States of')),
-                DropdownMenuItem(value: 'MD', child: Text('Moldova, Republic of')),
-                DropdownMenuItem(value: 'MC', child: Text('Monaco')),
-                DropdownMenuItem(value: 'MN', child: Text('Mongolia')),
-                DropdownMenuItem(value: 'ME', child: Text('Montenegro')),
-                DropdownMenuItem(value: 'MS', child: Text('Montserrat')),
-                DropdownMenuItem(value: 'MA', child: Text('Morocco')),
-                DropdownMenuItem(value: 'MZ', child: Text('Mozambique')),
-                DropdownMenuItem(value: 'MM', child: Text('Myanmar')),
-                DropdownMenuItem(value: 'NA', child: Text('Namibia')),
-                DropdownMenuItem(value: 'NR', child: Text('Nauru')),
-                DropdownMenuItem(value: 'NP', child: Text('Nepal')),
-                DropdownMenuItem(value: 'NL', child: Text('Netherlands')),
-                DropdownMenuItem(value: 'NC', child: Text('New Caledonia')),
-                DropdownMenuItem(value: 'NZ', child: Text('New Zealand')),
-                DropdownMenuItem(value: 'NI', child: Text('Nicaragua')),
-                DropdownMenuItem(value: 'NE', child: Text('Niger')),
-                DropdownMenuItem(value: 'NG', child: Text('Nigeria')),
-                DropdownMenuItem(value: 'NU', child: Text('Niue')),
-                DropdownMenuItem(value: 'NF', child: Text('Norfolk Island')),
-                DropdownMenuItem(value: 'MK', child: Text('North Macedonia')),
-                DropdownMenuItem(value: 'MP', child: Text('Northern Mariana Islands')),
-                DropdownMenuItem(value: 'NO', child: Text('Norway')),
-                DropdownMenuItem(value: 'OM', child: Text('Oman')),
-                DropdownMenuItem(value: 'PK', child: Text('Pakistan')),
-                DropdownMenuItem(value: 'PW', child: Text('Palau')),
-                DropdownMenuItem(value: 'PS', child: Text('Palestine, State of')),
-                DropdownMenuItem(value: 'PA', child: Text('Panama')),
-                DropdownMenuItem(value: 'PG', child: Text('Papua New Guinea')),
-                DropdownMenuItem(value: 'PY', child: Text('Paraguay')),
-                DropdownMenuItem(value: 'PE', child: Text('Peru')),
-                DropdownMenuItem(value: 'PH', child: Text('Philippines')),
-                DropdownMenuItem(value: 'PN', child: Text('Pitcairn')),
-                DropdownMenuItem(value: 'PL', child: Text('Poland')),
-                DropdownMenuItem(value: 'PT', child: Text('Portugal')),
-                DropdownMenuItem(value: 'PR', child: Text('Puerto Rico')),
-                DropdownMenuItem(value: 'QA', child: Text('Qatar')),
-                DropdownMenuItem(value: 'RO', child: Text('Romania')),
-                DropdownMenuItem(value: 'RU', child: Text('Russian Federation')),
-                DropdownMenuItem(value: 'RW', child: Text('Rwanda')),
-                DropdownMenuItem(value: 'RE', child: Text('Réunion')),
-                DropdownMenuItem(value: 'BL', child: Text('Saint Barthélemy')),
-                DropdownMenuItem(value: 'SH', child: Text('Saint Helena, Ascension and Tristan da Cunha')),
-                DropdownMenuItem(value: 'KN', child: Text('Saint Kitts and Nevis')),
-                DropdownMenuItem(value: 'LC', child: Text('Saint Lucia')),
-                DropdownMenuItem(value: 'MF', child: Text('Saint Martin (French part)')),
-                DropdownMenuItem(value: 'PM', child: Text('Saint Pierre and Miquelon')),
-                DropdownMenuItem(value: 'VC', child: Text('Saint Vincent and the Grenadines')),
-                DropdownMenuItem(value: 'WS', child: Text('Samoa')),
-                DropdownMenuItem(value: 'SM', child: Text('San Marino')),
-                DropdownMenuItem(value: 'ST', child: Text('Sao Tome and Principe')),
-                DropdownMenuItem(value: 'SA', child: Text('Saudi Arabia')),
-                DropdownMenuItem(value: 'SN', child: Text('Senegal')),
-                DropdownMenuItem(value: 'RS', child: Text('Serbia')),
-                DropdownMenuItem(value: 'SC', child: Text('Seychelles')),
-                DropdownMenuItem(value: 'SL', child: Text('Sierra Leone')),
-                DropdownMenuItem(value: 'SG', child: Text('Singapore')),
-                DropdownMenuItem(value: 'SX', child: Text('Sint Maarten (Dutch part)')),
-                DropdownMenuItem(value: 'SK', child: Text('Slovakia')),
-                DropdownMenuItem(value: 'SI', child: Text('Slovenia')),
-                DropdownMenuItem(value: 'SB', child: Text('Solomon Islands')),
-                DropdownMenuItem(value: 'SO', child: Text('Somalia')),
-                DropdownMenuItem(value: 'ZA', child: Text('South Africa')),
-                DropdownMenuItem(value: 'GS', child: Text('South Georgia and the South Sandwich Islands')),
-                DropdownMenuItem(value: 'SS', child: Text('South Sudan')),
-                DropdownMenuItem(value: 'ES', child: Text('Spain')),
-                DropdownMenuItem(value: 'LK', child: Text('Sri Lanka')),
-                DropdownMenuItem(value: 'SD', child: Text('Sudan')),
-                DropdownMenuItem(value: 'SR', child: Text('Suriname')),
-                DropdownMenuItem(value: 'SJ', child: Text('Svalbard and Jan Mayen')),
-                DropdownMenuItem(value: 'SE', child: Text('Sweden')),
-                DropdownMenuItem(value: 'CH', child: Text('Switzerland')),
-                DropdownMenuItem(value: 'SY', child: Text('Syrian Arab Republic')),
-                DropdownMenuItem(value: 'TW', child: Text('Taiwan, Province of China')),
-                DropdownMenuItem(value: 'TJ', child: Text('Tajikistan')),
-                DropdownMenuItem(value: 'TZ', child: Text('Tanzania, United Republic of')),
-                DropdownMenuItem(value: 'TH', child: Text('Thailand')),
-                DropdownMenuItem(value: 'TL', child: Text('Timor-Leste')),
-                DropdownMenuItem(value: 'TG', child: Text('Togo')),
-                DropdownMenuItem(value: 'TK', child: Text('Tokelau')),
-                DropdownMenuItem(value: 'TO', child: Text('Tonga')),
-                DropdownMenuItem(value: 'TT', child: Text('Trinidad and Tobago')),
-                DropdownMenuItem(value: 'TN', child: Text('Tunisia')),
-                DropdownMenuItem(value: 'TM', child: Text('Turkmenistan')),
-                DropdownMenuItem(value: 'TC', child: Text('Turks and Caicos Islands')),
-                DropdownMenuItem(value: 'TV', child: Text('Tuvalu')),
-                DropdownMenuItem(value: 'TR', child: Text('Türkiye')),
-                DropdownMenuItem(value: 'UG', child: Text('Uganda')),
-                DropdownMenuItem(value: 'UA', child: Text('Ukraine')),
-                DropdownMenuItem(value: 'AE', child: Text('United Arab Emirates')),
-                DropdownMenuItem(value: 'GB', child: Text('United Kingdom')),
-                DropdownMenuItem(value: 'US', child: Text('United States')),
-                DropdownMenuItem(value: 'UM', child: Text('United States Minor Outlying Islands')),
-                DropdownMenuItem(value: 'UY', child: Text('Uruguay')),
-                DropdownMenuItem(value: 'UZ', child: Text('Uzbekistan')),
-                DropdownMenuItem(value: 'VU', child: Text('Vanuatu')),
-                DropdownMenuItem(value: 'VE', child: Text('Venezuela, Bolivarian Republic of')),
-                DropdownMenuItem(value: 'VN', child: Text('Viet Nam')),
-                DropdownMenuItem(value: 'VG', child: Text('Virgin Islands, British')),
-                DropdownMenuItem(value: 'VI', child: Text('Virgin Islands, U.S.')),
-                DropdownMenuItem(value: 'WF', child: Text('Wallis and Futuna')),
-                DropdownMenuItem(value: 'EH', child: Text('Western Sahara')),
-                DropdownMenuItem(value: 'YE', child: Text('Yemen')),
-                DropdownMenuItem(value: 'ZM', child: Text('Zambia')),
-                DropdownMenuItem(value: 'ZW', child: Text('Zimbabwe')),
-                DropdownMenuItem(value: 'AX', child: Text('Åland Islands')),              ],
+              items: [
+                DropdownMenuItem<String>(value: 'AF', child: Text(partyNovaCountryFlag('AF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AL', child: Text(partyNovaCountryFlag('AL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DZ', child: Text(partyNovaCountryFlag('DZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AS', child: Text(partyNovaCountryFlag('AS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AD', child: Text(partyNovaCountryFlag('AD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AO', child: Text(partyNovaCountryFlag('AO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AI', child: Text(partyNovaCountryFlag('AI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AQ', child: Text(partyNovaCountryFlag('AQ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AG', child: Text(partyNovaCountryFlag('AG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AR', child: Text(partyNovaCountryFlag('AR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AM', child: Text(partyNovaCountryFlag('AM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AW', child: Text(partyNovaCountryFlag('AW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AU', child: Text(partyNovaCountryFlag('AU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AT', child: Text(partyNovaCountryFlag('AT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AZ', child: Text(partyNovaCountryFlag('AZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BS', child: Text(partyNovaCountryFlag('BS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BH', child: Text(partyNovaCountryFlag('BH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BD', child: Text(partyNovaCountryFlag('BD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BB', child: Text(partyNovaCountryFlag('BB'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BY', child: Text(partyNovaCountryFlag('BY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BE', child: Text(partyNovaCountryFlag('BE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BZ', child: Text(partyNovaCountryFlag('BZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BJ', child: Text(partyNovaCountryFlag('BJ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BM', child: Text(partyNovaCountryFlag('BM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BT', child: Text(partyNovaCountryFlag('BT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BO', child: Text(partyNovaCountryFlag('BO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BQ', child: Text(partyNovaCountryFlag('BQ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BA', child: Text(partyNovaCountryFlag('BA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BW', child: Text(partyNovaCountryFlag('BW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BV', child: Text(partyNovaCountryFlag('BV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BR', child: Text(partyNovaCountryFlag('BR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IO', child: Text(partyNovaCountryFlag('IO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BN', child: Text(partyNovaCountryFlag('BN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BG', child: Text(partyNovaCountryFlag('BG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BF', child: Text(partyNovaCountryFlag('BF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BI', child: Text(partyNovaCountryFlag('BI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CV', child: Text(partyNovaCountryFlag('CV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KH', child: Text(partyNovaCountryFlag('KH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CM', child: Text(partyNovaCountryFlag('CM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CA', child: Text(partyNovaCountryFlag('CA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KY', child: Text(partyNovaCountryFlag('KY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CF', child: Text(partyNovaCountryFlag('CF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TD', child: Text(partyNovaCountryFlag('TD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CL', child: Text(partyNovaCountryFlag('CL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CN', child: Text(partyNovaCountryFlag('CN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CX', child: Text(partyNovaCountryFlag('CX'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CC', child: Text(partyNovaCountryFlag('CC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CO', child: Text(partyNovaCountryFlag('CO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KM', child: Text(partyNovaCountryFlag('KM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CG', child: Text(partyNovaCountryFlag('CG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CD', child: Text(partyNovaCountryFlag('CD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CK', child: Text(partyNovaCountryFlag('CK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CR', child: Text(partyNovaCountryFlag('CR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HR', child: Text(partyNovaCountryFlag('HR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CU', child: Text(partyNovaCountryFlag('CU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CW', child: Text(partyNovaCountryFlag('CW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CY', child: Text(partyNovaCountryFlag('CY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CZ', child: Text(partyNovaCountryFlag('CZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CI', child: Text(partyNovaCountryFlag('CI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DK', child: Text(partyNovaCountryFlag('DK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DJ', child: Text(partyNovaCountryFlag('DJ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DM', child: Text(partyNovaCountryFlag('DM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DO', child: Text(partyNovaCountryFlag('DO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'EC', child: Text(partyNovaCountryFlag('EC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'EG', child: Text(partyNovaCountryFlag('EG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SV', child: Text(partyNovaCountryFlag('SV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GQ', child: Text(partyNovaCountryFlag('GQ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ER', child: Text(partyNovaCountryFlag('ER'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'EE', child: Text(partyNovaCountryFlag('EE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SZ', child: Text(partyNovaCountryFlag('SZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ET', child: Text(partyNovaCountryFlag('ET'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FK', child: Text(partyNovaCountryFlag('FK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FO', child: Text(partyNovaCountryFlag('FO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FJ', child: Text(partyNovaCountryFlag('FJ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FI', child: Text(partyNovaCountryFlag('FI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FR', child: Text(partyNovaCountryFlag('FR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GF', child: Text(partyNovaCountryFlag('GF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PF', child: Text(partyNovaCountryFlag('PF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TF', child: Text(partyNovaCountryFlag('TF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GA', child: Text(partyNovaCountryFlag('GA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GM', child: Text(partyNovaCountryFlag('GM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GE', child: Text(partyNovaCountryFlag('GE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'DE', child: Text(partyNovaCountryFlag('DE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GH', child: Text(partyNovaCountryFlag('GH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GI', child: Text(partyNovaCountryFlag('GI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GR', child: Text(partyNovaCountryFlag('GR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GL', child: Text(partyNovaCountryFlag('GL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GD', child: Text(partyNovaCountryFlag('GD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GP', child: Text(partyNovaCountryFlag('GP'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GU', child: Text(partyNovaCountryFlag('GU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GT', child: Text(partyNovaCountryFlag('GT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GG', child: Text(partyNovaCountryFlag('GG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GN', child: Text(partyNovaCountryFlag('GN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GW', child: Text(partyNovaCountryFlag('GW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GY', child: Text(partyNovaCountryFlag('GY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HT', child: Text(partyNovaCountryFlag('HT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HM', child: Text(partyNovaCountryFlag('HM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VA', child: Text(partyNovaCountryFlag('VA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HN', child: Text(partyNovaCountryFlag('HN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HK', child: Text(partyNovaCountryFlag('HK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'HU', child: Text(partyNovaCountryFlag('HU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IS', child: Text(partyNovaCountryFlag('IS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IN', child: Text(partyNovaCountryFlag('IN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ID', child: Text(partyNovaCountryFlag('ID'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IR', child: Text(partyNovaCountryFlag('IR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IQ', child: Text(partyNovaCountryFlag('IQ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IE', child: Text(partyNovaCountryFlag('IE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IM', child: Text(partyNovaCountryFlag('IM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IL', child: Text(partyNovaCountryFlag('IL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'IT', child: Text(partyNovaCountryFlag('IT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'JM', child: Text(partyNovaCountryFlag('JM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'JP', child: Text(partyNovaCountryFlag('JP'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'JE', child: Text(partyNovaCountryFlag('JE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'JO', child: Text(partyNovaCountryFlag('JO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KZ', child: Text(partyNovaCountryFlag('KZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KE', child: Text(partyNovaCountryFlag('KE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KI', child: Text(partyNovaCountryFlag('KI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KP', child: Text(partyNovaCountryFlag('KP'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KR', child: Text(partyNovaCountryFlag('KR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KW', child: Text(partyNovaCountryFlag('KW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KG', child: Text(partyNovaCountryFlag('KG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LA', child: Text(partyNovaCountryFlag('LA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LV', child: Text(partyNovaCountryFlag('LV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LB', child: Text(partyNovaCountryFlag('LB'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LS', child: Text(partyNovaCountryFlag('LS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LR', child: Text(partyNovaCountryFlag('LR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LY', child: Text(partyNovaCountryFlag('LY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LI', child: Text(partyNovaCountryFlag('LI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LT', child: Text(partyNovaCountryFlag('LT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LU', child: Text(partyNovaCountryFlag('LU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MO', child: Text(partyNovaCountryFlag('MO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MG', child: Text(partyNovaCountryFlag('MG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MW', child: Text(partyNovaCountryFlag('MW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MY', child: Text(partyNovaCountryFlag('MY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MV', child: Text(partyNovaCountryFlag('MV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ML', child: Text(partyNovaCountryFlag('ML'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MT', child: Text(partyNovaCountryFlag('MT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MH', child: Text(partyNovaCountryFlag('MH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MQ', child: Text(partyNovaCountryFlag('MQ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MR', child: Text(partyNovaCountryFlag('MR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MU', child: Text(partyNovaCountryFlag('MU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'YT', child: Text(partyNovaCountryFlag('YT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MX', child: Text(partyNovaCountryFlag('MX'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'FM', child: Text(partyNovaCountryFlag('FM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MD', child: Text(partyNovaCountryFlag('MD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MC', child: Text(partyNovaCountryFlag('MC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MN', child: Text(partyNovaCountryFlag('MN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ME', child: Text(partyNovaCountryFlag('ME'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MS', child: Text(partyNovaCountryFlag('MS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MA', child: Text(partyNovaCountryFlag('MA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MZ', child: Text(partyNovaCountryFlag('MZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MM', child: Text(partyNovaCountryFlag('MM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NA', child: Text(partyNovaCountryFlag('NA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NR', child: Text(partyNovaCountryFlag('NR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NP', child: Text(partyNovaCountryFlag('NP'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NL', child: Text(partyNovaCountryFlag('NL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NC', child: Text(partyNovaCountryFlag('NC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NZ', child: Text(partyNovaCountryFlag('NZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NI', child: Text(partyNovaCountryFlag('NI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NE', child: Text(partyNovaCountryFlag('NE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NG', child: Text(partyNovaCountryFlag('NG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NU', child: Text(partyNovaCountryFlag('NU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NF', child: Text(partyNovaCountryFlag('NF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MK', child: Text(partyNovaCountryFlag('MK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MP', child: Text(partyNovaCountryFlag('MP'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'NO', child: Text(partyNovaCountryFlag('NO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'OM', child: Text(partyNovaCountryFlag('OM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PK', child: Text(partyNovaCountryFlag('PK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PW', child: Text(partyNovaCountryFlag('PW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PS', child: Text(partyNovaCountryFlag('PS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PA', child: Text(partyNovaCountryFlag('PA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PG', child: Text(partyNovaCountryFlag('PG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PY', child: Text(partyNovaCountryFlag('PY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PE', child: Text(partyNovaCountryFlag('PE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PH', child: Text(partyNovaCountryFlag('PH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PN', child: Text(partyNovaCountryFlag('PN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PL', child: Text(partyNovaCountryFlag('PL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PT', child: Text(partyNovaCountryFlag('PT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PR', child: Text(partyNovaCountryFlag('PR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'QA', child: Text(partyNovaCountryFlag('QA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'RO', child: Text(partyNovaCountryFlag('RO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'RU', child: Text(partyNovaCountryFlag('RU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'RW', child: Text(partyNovaCountryFlag('RW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'RE', child: Text(partyNovaCountryFlag('RE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'BL', child: Text(partyNovaCountryFlag('BL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SH', child: Text(partyNovaCountryFlag('SH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'KN', child: Text(partyNovaCountryFlag('KN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LC', child: Text(partyNovaCountryFlag('LC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'MF', child: Text(partyNovaCountryFlag('MF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'PM', child: Text(partyNovaCountryFlag('PM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VC', child: Text(partyNovaCountryFlag('VC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'WS', child: Text(partyNovaCountryFlag('WS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SM', child: Text(partyNovaCountryFlag('SM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ST', child: Text(partyNovaCountryFlag('ST'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SA', child: Text(partyNovaCountryFlag('SA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SN', child: Text(partyNovaCountryFlag('SN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'RS', child: Text(partyNovaCountryFlag('RS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SC', child: Text(partyNovaCountryFlag('SC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SL', child: Text(partyNovaCountryFlag('SL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SG', child: Text(partyNovaCountryFlag('SG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SX', child: Text(partyNovaCountryFlag('SX'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SK', child: Text(partyNovaCountryFlag('SK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SI', child: Text(partyNovaCountryFlag('SI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SB', child: Text(partyNovaCountryFlag('SB'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SO', child: Text(partyNovaCountryFlag('SO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ZA', child: Text(partyNovaCountryFlag('ZA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GS', child: Text(partyNovaCountryFlag('GS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SS', child: Text(partyNovaCountryFlag('SS'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ES', child: Text(partyNovaCountryFlag('ES'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'LK', child: Text(partyNovaCountryFlag('LK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SD', child: Text(partyNovaCountryFlag('SD'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SR', child: Text(partyNovaCountryFlag('SR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SJ', child: Text(partyNovaCountryFlag('SJ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SE', child: Text(partyNovaCountryFlag('SE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'CH', child: Text(partyNovaCountryFlag('CH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'SY', child: Text(partyNovaCountryFlag('SY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TW', child: Text(partyNovaCountryFlag('TW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TJ', child: Text(partyNovaCountryFlag('TJ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TZ', child: Text(partyNovaCountryFlag('TZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TH', child: Text(partyNovaCountryFlag('TH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TL', child: Text(partyNovaCountryFlag('TL'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TG', child: Text(partyNovaCountryFlag('TG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TK', child: Text(partyNovaCountryFlag('TK'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TO', child: Text(partyNovaCountryFlag('TO'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TT', child: Text(partyNovaCountryFlag('TT'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TN', child: Text(partyNovaCountryFlag('TN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TM', child: Text(partyNovaCountryFlag('TM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TC', child: Text(partyNovaCountryFlag('TC'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TV', child: Text(partyNovaCountryFlag('TV'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'TR', child: Text(partyNovaCountryFlag('TR'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'UG', child: Text(partyNovaCountryFlag('UG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'UA', child: Text(partyNovaCountryFlag('UA'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AE', child: Text(partyNovaCountryFlag('AE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'GB', child: Text(partyNovaCountryFlag('GB'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'US', child: Text(partyNovaCountryFlag('US'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'UM', child: Text(partyNovaCountryFlag('UM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'UY', child: Text(partyNovaCountryFlag('UY'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'UZ', child: Text(partyNovaCountryFlag('UZ'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VU', child: Text(partyNovaCountryFlag('VU'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VE', child: Text(partyNovaCountryFlag('VE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VN', child: Text(partyNovaCountryFlag('VN'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VG', child: Text(partyNovaCountryFlag('VG'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'VI', child: Text(partyNovaCountryFlag('VI'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'WF', child: Text(partyNovaCountryFlag('WF'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'EH', child: Text(partyNovaCountryFlag('EH'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'YE', child: Text(partyNovaCountryFlag('YE'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ZM', child: Text(partyNovaCountryFlag('ZM'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'ZW', child: Text(partyNovaCountryFlag('ZW'), style: const TextStyle(fontSize: 25))),
+                DropdownMenuItem<String>(value: 'AX', child: Text(partyNovaCountryFlag('AX'), style: const TextStyle(fontSize: 25))),
+              ],
               onChanged: _saving ? null : (value) => setState(() => _countryCode = value ?? ''),
             ),
             const SizedBox(height: 14),
@@ -4180,7 +4217,7 @@ TextField(
     onPressed: _saving ? null : _saveProfile,
     style: ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFFFF1688),
-      foregroundColor: Colors.white,
+      foregroundColor: Colors.black,
       padding: const EdgeInsets.symmetric(vertical: 15),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -4192,7 +4229,7 @@ TextField(
             height: 22,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.white,
+              color: Colors.black,
             ),
           )
         : const Text(
@@ -4366,7 +4403,7 @@ builder: (_) => FramesGalleryPage(
       child: Text(
         title,
         style: const TextStyle(
-          color: Colors.white,
+          color: Colors.black,
           fontSize: 15,
           fontWeight: FontWeight.w600,
         ),
@@ -4380,15 +4417,15 @@ builder: (_) => FramesGalleryPage(
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white),
-prefixIcon: Icon(icon, color: const Color(0xFFFF1688)),
-counterStyle: const TextStyle(color: Colors.white),
+      hintStyle: const TextStyle(color: Colors.black),
+prefixIcon: Icon(icon, color: const Color(0xFFFFC629)),
+counterStyle: const TextStyle(color: Colors.black),
       filled: true,
-      fillColor: const Color(0xFF17121D),
+      fillColor: const Color(0xFFF0F1F3),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(
-          color: const Color(0xFFFF1688).withValues(alpha: 0.4),
+          color: const Color(0xFFFFC629).withValues(alpha: 0.4),
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -4410,10 +4447,10 @@ counterStyle: const TextStyle(color: Colors.white),
     return Container(
       margin: const EdgeInsets.only(bottom: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFF17121D),
+        gradient: const LinearGradient(colors: [Color(0xFF34275D), Color(0xFF1B2036)], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: const Color(0xFFFF1688).withValues(alpha: 0.35),
+          color: const Color(0xFFFFC629).withValues(alpha: 0.35),
         ),
       ),
       child: ListTile(
@@ -4426,31 +4463,31 @@ counterStyle: const TextStyle(color: Colors.white),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF1688).withValues(alpha: 0.13),
+            color: const Color(0xFFFFC629).withValues(alpha: 0.13),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
-            color: const Color(0xFFFFD780),
+            color: const Color(0xFFB8E2FF),
           ),
         ),
         title: Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: const TextStyle(
-  color: Colors.white,
+  color: Colors.black,
   fontSize: 12,
           ),
         ),
         trailing: const Icon(
           Icons.arrow_forward_ios_rounded,
-          color: Color(0xFFFF1688),
+          color: Color(0xFFFFC629),
           size: 17,
         ),
       ),
@@ -4477,9 +4514,9 @@ _FramesGalleryPageState();
 class _FramesGalleryPageState extends State<FramesGalleryPage> {
 int _selectedFrame = 1;
 
-static const Color _background = Color(0xFF09070B);
-static const Color _pink = Color(0xFFFF1688);
-static const Color _gold = Color(0xFFFFD780);
+static const Color _background = Color(0xFFF4F5F7);
+static const Color _pink = Color(0xFFFFC629);
+static const Color _gold = Color(0xFFB8E2FF);
 static const Color _panel = Color(0xFF17121D);
 
 static const List<String> _frameNames = [
@@ -4587,7 +4624,7 @@ static const List<String> _frameNames = [
 
 static const List<Color> _frameColors = [
 Color(0xFFFFD700),
-Color(0xFFFF1688),
+Color(0xFFFFC629),
 Color(0xFF8A2BE2),
 Color(0xFF00CFFF),
 Color(0xFF20C997),
@@ -4611,7 +4648,7 @@ final Widget avatar = photoImage == null
     ? Icon(
         Icons.person_rounded,
         size: size * 0.58,
-        color: Colors.white,
+        color: Colors.black,
       )
     : Image(
         image: photoImage,
@@ -4622,7 +4659,7 @@ final Widget avatar = photoImage == null
         errorBuilder: (_, __, ___) => Icon(
           Icons.person_rounded,
           size: size * 0.58,
-          color: Colors.white,
+          color: Colors.black,
         ),
       );  
 
@@ -4635,7 +4672,7 @@ return Container(
     gradient: SweepGradient(  
       colors: [  
         color,  
-        Colors.white,  
+        Colors.black,  
         color,  
         color.withValues(alpha: 0.45),  
         color,  
@@ -4704,7 +4741,7 @@ return InkWell(
           textAlign: TextAlign.center,  
           overflow: TextOverflow.ellipsis,  
           style: TextStyle(  
-            color: selected ? _gold : Colors.white,  
+            color: selected ? _gold : Colors.black,  
             fontSize: 10,  
             fontWeight: FontWeight.w600,  
           ),  
@@ -4753,7 +4790,7 @@ return Container(
             : widget.userName,  
         textAlign: TextAlign.center,  
         style: const TextStyle(  
-          color: Colors.white,  
+          color: Colors.black,  
           fontSize: 19,  
           fontWeight: FontWeight.bold,  
         ),  
@@ -4783,7 +4820,7 @@ return Container(
           'UI Preview Only',  
           textAlign: TextAlign.center,  
           style: TextStyle(  
-            color: Colors.white70,  
+            color: Colors.black54,  
             fontSize: 12,  
           ),  
         ),  
@@ -4800,12 +4837,12 @@ return Scaffold(
 backgroundColor: _background,
 appBar: AppBar(
 backgroundColor: _background,
-foregroundColor: Colors.white,
+foregroundColor: Colors.black,
 elevation: 0,
 title: const Text(
 'Frames Gallery',
 style: TextStyle(
-color: Colors.white,
+color: Colors.black,
 fontWeight: FontWeight.bold,
 ),
 ),
@@ -4845,7 +4882,7 @@ SizedBox(height: 6),
 Text(
 'Explore 100 profile frames.',
 style: TextStyle(
-color: Colors.white70,
+color: Colors.black54,
 fontSize: 13,
 ),
 ),
@@ -4873,7 +4910,7 @@ const SizedBox(height: 20),
             Text(  
               '${_frameNames.length} Frames',  
               style: const TextStyle(  
-                color: Colors.white70,  
+                color: Colors.black54,  
                 fontSize: 12,  
               ),  
             ),  
@@ -4924,9 +4961,9 @@ class ThemesGalleryPage extends StatefulWidget {
 class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
   int _selectedTheme = 1;
 
-  static const Color _background = Color(0xFF09070B);
-  static const Color _pink = Color(0xFFFF1688);
-  static const Color _gold = Color(0xFFFFD780);
+  static const Color _background = Color(0xFFF4F5F7);
+  static const Color _pink = Color(0xFFFFC629);
+  static const Color _gold = Color(0xFFB8E2FF);
   static const Color _panel = Color(0xFF17121D);
 
   static const List<String> _names = [
@@ -5163,7 +5200,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
       ),
       child: Icon(
         Icons.person_rounded,
-        color: Colors.white,
+        color: Colors.black,
         size: size * 0.62,
       ),
     );
@@ -5207,7 +5244,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   height: 75,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(
+                    color: Colors.black.withValues(
                       alpha: 0.09,
                     ),
                   ),
@@ -5222,7 +5259,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(
+                      color: Colors.black.withValues(
                         alpha: 0.13,
                       ),
                       width: 9,
@@ -5243,7 +5280,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(
+                          color: Colors.black.withValues(
                             alpha: 0.9,
                           ),
                           width: 2,
@@ -5260,7 +5297,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -5269,7 +5306,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                     Container(
                       width: double.infinity,
                       height: 1,
-                      color: Colors.white.withValues(
+                      color: Colors.black.withValues(
                         alpha: 0.45,
                       ),
                     ),
@@ -5280,7 +5317,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -5289,7 +5326,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                     if (selected)
                       const Icon(
                         Icons.check_circle_rounded,
-                        color: Colors.white,
+                        color: Colors.black,
                         size: 19,
                       )
                     else
@@ -5355,7 +5392,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                       : widget.userName,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -5365,7 +5402,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   _names[_selectedTheme - 1],
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -5378,7 +5415,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
             'Preview only — not applied to your profile.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white54,
+              color: Colors.black45,
               fontSize: 12,
             ),
           ),
@@ -5393,7 +5430,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
       backgroundColor: _background,
       appBar: AppBar(
         backgroundColor: _background,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         title: const Text(
           'Themes Gallery',
@@ -5442,7 +5479,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                   Text(
                     '100 unique looks for your profile.',
                     style: TextStyle(
-                      color: Colors.white70,
+                      color: Colors.black54,
                       fontSize: 13,
                     ),
                   ),
@@ -5469,7 +5506,7 @@ class _ThemesGalleryPageState extends State<ThemesGalleryPage> {
                 Text(
                   '${_names.length} Themes',
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: Colors.black54,
                     fontSize: 12,
                   ),
                 ),
@@ -5797,7 +5834,7 @@ class _OrnamentsGalleryPageState
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: isSelected ? gold : Colors.white,
+                color: isSelected ? gold : Colors.black,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -5904,7 +5941,7 @@ class _OrnamentsGalleryPageState
                             ? 'Your Profile'
                             : widget.userName,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 14,
                         ),
                       ),
@@ -6483,7 +6520,7 @@ class _PvipPageState extends State<PvipPage> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      color: Colors.white,
+                                      color: Colors.black,
                                       fontSize: 10.5,
                                       height: 1.15,
                                       fontWeight: FontWeight.w700,
@@ -6581,7 +6618,7 @@ class EntryGalleryPage extends StatefulWidget {
 }
 
 class _EntryGalleryPageState extends State<EntryGalleryPage> {
-  static const Color _background = Color(0xFF09070B);
+  static const Color _background = Color(0xFFF4F5F7);
   static const Color _card = Color(0xFF17121F);
   static const Color _gold = Color(0xFFFFC857);
   static const Color _purple = Color(0xFF8B5CF6);
@@ -6896,7 +6933,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                                 )
                               : const Icon(
                                   Icons.person_rounded,
-                                  color: Colors.white70,
+                                  color: Colors.black54,
                                   size: 62,
                                 ),
                         ),
@@ -6927,7 +6964,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -6946,7 +6983,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                     Text(
                       selected['description'] as String,
                       style: const TextStyle(
-                        color: Colors.white60,
+                        color: Colors.black54,
                         fontSize: 13,
                       ),
                     ),
@@ -6970,7 +7007,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                   const Text(
                     'Choose Your Entry',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -7009,7 +7046,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                           color: _card,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isSelected ? color : Colors.white12,
+                            color: isSelected ? color : Colors.black12,
                             width: isSelected ? 2 : 1,
                           ),
                         ),
@@ -7042,7 +7079,7 @@ class _EntryGalleryPageState extends State<EntryGalleryPage> {
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: isSelected ? color : Colors.white,
+                                  color: isSelected ? color : Colors.black,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                 ),
@@ -7244,7 +7281,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                       crown['name'] as String,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
@@ -7305,7 +7342,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                         child: Text(
                           'CROWN ${index + 1}',
                           style: TextStyle(
-                            color: active ? darkBlue : Colors.white,
+                            color: active ? darkBlue : Colors.black,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -7356,7 +7393,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                         child: const Icon(
                           Icons.person_rounded,
                           size: 42,
-                          color: Colors.white70,
+                          color: Colors.black54,
                         ),
                       ),
                     ),
@@ -7368,7 +7405,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Profile DP Frame',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -7385,7 +7422,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Demo preview only',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Colors.black45,
                               fontSize: 11,
                             ),
                           ),
@@ -7440,7 +7477,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Room Mic Glow',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -7457,7 +7494,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                           const Text(
                             'Room connection comes later',
                             style: TextStyle(
-                              color: Colors.white54,
+                              color: Colors.black45,
                               fontSize: 11,
                             ),
                           ),
@@ -7512,7 +7549,7 @@ class _CrownGalleryPageState extends State<CrownGalleryPage> {
                   'UI DEMO • FEATURES WILL BE CONNECTED LATER',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white38,
+                    color: Colors.black38,
                     fontSize: 10,
                     letterSpacing: 0.7,
                   ),
@@ -7588,11 +7625,11 @@ class _CrownPainter extends CustomPainter {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.white.withOpacity(0.85),
+          Colors.black.withOpacity(0.85),
           metal,
           darkMetal,
           metal,
-          Colors.white.withOpacity(0.55),
+          Colors.black.withOpacity(0.55),
         ],
         stops: const [0, 0.22, 0.52, 0.78, 1],
       ).createShader(
@@ -7626,7 +7663,7 @@ class _CrownPainter extends CustomPainter {
     );
 
     final linePaint = Paint()
-      ..color = Colors.white.withOpacity(0.5)
+      ..color = Colors.black.withOpacity(0.5)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 
@@ -7639,7 +7676,7 @@ class _CrownPainter extends CustomPainter {
     final gemPaint = Paint()
   ..shader = RadialGradient(
     colors: [
-      Colors.white,
+      Colors.black,
       gem,
       darkMetal,
     ],
@@ -7669,12 +7706,12 @@ class _CrownPainter extends CustomPainter {
       canvas.drawCircle(
         point.translate(-1, -1),
         1.4,
-        Paint()..color = Colors.white.withOpacity(0.85),
+        Paint()..color = Colors.black.withOpacity(0.85),
       );
     }
 
     final sparklePaint = Paint()
-      ..color = Colors.white.withOpacity(0.9)
+      ..color = Colors.black.withOpacity(0.9)
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
 
@@ -7911,7 +7948,7 @@ class _GameBadgeGalleryPageState
                     badge['name'] as String,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -7949,7 +7986,7 @@ class _GameBadgeGalleryPageState
                     'Select a badge below to preview it',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Colors.white60,
+                      color: Colors.black54,
                       fontSize: 11,
                     ),
                   ),
@@ -7981,7 +8018,7 @@ class _GameBadgeGalleryPageState
                   Text(
                     '10 BADGES',
                     style: TextStyle(
-                      color: Colors.white60,
+                      color: Colors.black54,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),
@@ -8069,7 +8106,7 @@ class _GameBadgeGalleryPageState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -8212,7 +8249,7 @@ class _GameBadgeArtwork extends StatelessWidget {
                 ],
               ),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.black.withValues(alpha: 0.8),
                 width: size * 0.012,
               ),
             ),
@@ -8224,7 +8261,7 @@ class _GameBadgeArtwork extends StatelessWidget {
             left: size * 0.15,
             child: Icon(
               Icons.auto_awesome,
-              color: Colors.white.withValues(alpha: 0.95),
+              color: Colors.black.withValues(alpha: 0.95),
               size: size * 0.12,
             ),
           ),
@@ -8235,7 +8272,7 @@ class _GameBadgeArtwork extends StatelessWidget {
             right: size * 0.15,
             child: Icon(
               Icons.auto_awesome,
-              color: Colors.white.withValues(alpha: 0.75),
+              color: Colors.black.withValues(alpha: 0.75),
               size: size * 0.09,
             ),
           ),
@@ -8244,7 +8281,7 @@ class _GameBadgeArtwork extends StatelessWidget {
           Icon(
             icon,
             size: size * 0.47,
-            color: Colors.white,
+            color: Colors.black,
             shadows: [
               Shadow(
                 color: Colors.black.withValues(alpha: 0.65),
@@ -8511,7 +8548,7 @@ class _RoyalBadgeGalleryState
                     selectedName,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 21,
                       fontWeight: FontWeight.w900,
                     ),
@@ -8548,7 +8585,7 @@ class _RoyalBadgeGalleryState
                   const Text(
                     'Tap any badge below to preview',
                     style: TextStyle(
-                      color: Colors.white60,
+                      color: Colors.black54,
                       fontSize: 11,
                     ),
                   ),
@@ -8588,7 +8625,7 @@ class _RoyalBadgeGalleryState
                   const Text(
                     '10 BADGES',
                     style: TextStyle(
-                      color: Colors.white60,
+                      color: Colors.black54,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -8688,7 +8725,7 @@ class _RoyalBadgeGalleryState
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w900,
                                 ),
@@ -8733,7 +8770,7 @@ class _RoyalBadgeGalleryState
                                 style: TextStyle(
                                   color: selected
                                       ? gold
-                                      : Colors.white54,
+                                      : Colors.black45,
                                   fontSize: 9,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1,
@@ -8766,7 +8803,7 @@ class _RoyalBadgePainter extends CustomPainter {
   final int level;
   final bool isGift;
 
-  static const Color gold = Color(0xFFFFD780);
+  static const Color gold = Color(0xFFB8E2FF);
   static const Color dark = Color(0xFF071426);
 
   @override
@@ -8928,7 +8965,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const RadialGradient(
             colors: [
-              Colors.white,
+              Colors.black,
               Color(0xFF56E8FF),
               Color(0xFF1350A0),
             ],
@@ -8953,7 +8990,7 @@ class _RoyalBadgePainter extends CustomPainter {
           fontFamily: symbol.fontFamily,
           package: symbol.fontPackage,
           fontSize: 31,
-          color: Colors.white,
+          color: Colors.black,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -9013,7 +9050,7 @@ class _RoyalBadgePainter extends CustomPainter {
       text: TextSpan(
         text: number,
         style: const TextStyle(
-          color: Color(0xFFFFD780),
+          color: Color(0xFFB8E2FF),
           fontSize: 14,
           fontWeight: FontWeight.w900,
           letterSpacing: 0.4,
@@ -9052,7 +9089,7 @@ class _RoyalBadgePainter extends CustomPainter {
       canvas.drawCircle(
         point,
         1,
-        Paint()..color = Colors.white,
+        Paint()..color = Colors.black,
       );
     }
 
@@ -9070,7 +9107,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const LinearGradient(
             colors: [
-              Colors.white,
+              Colors.black,
               Color(0xFF65E7FF),
               Color(0xFF2254B7),
             ],
@@ -9100,7 +9137,7 @@ class _RoyalBadgePainter extends CustomPainter {
         Paint()
           ..shader = const LinearGradient(
             colors: [
-              Colors.white,
+              Colors.black,
               Color(0xFFFFD65A),
               Color(0xFFB56C00),
             ],
@@ -9195,7 +9232,7 @@ class _ProfileCountItem extends StatelessWidget {
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -9205,7 +9242,7 @@ class _ProfileCountItem extends StatelessWidget {
           title,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Color(0xFFFFD780),
+            color: Color(0xFFB8E2FF),
             fontSize: 11,
           ),
         ),
@@ -9364,12 +9401,12 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: partyBlack,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF21101F),
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(
           'Settings',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: ListView(
         padding: const EdgeInsets.all(18),
@@ -9420,14 +9457,14 @@ class SettingsPage extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF21101F),
+        backgroundColor: const Color(0xFFFFFFFF),
         title: const Text(
           'Delete Account?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
         content: const Text(
           'This permanently deletes your account. This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -9438,7 +9475,7 @@ class SettingsPage extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Color(0xFFFF1688)),
+              style: TextStyle(color: Color(0xFFFFC629)),
             ),
           ),
         ],
@@ -9482,11 +9519,11 @@ class SettingsPage extends StatelessWidget {
         backgroundColor: const Color(0xFF1A1022),
         title: const Text(
           'Log Out?',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Colors.black),
         ),
         content: const Text(
           'Are you sure you want to log out?',
-          style: TextStyle(color: Colors.white70),
+          style: TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -9560,16 +9597,12 @@ class _GlossySettingsBox extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [
-            Color(0xFF6F1648),
-            Color(0xFF21101F),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFFF9BC8).withValues(alpha: 0.75),
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFFFC629), width: 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.16), blurRadius: 18, offset: const Offset(0, 7)),
+        ],
       ),
       child: ListTile(
         onTap: onTap,
@@ -9581,25 +9614,25 @@ class _GlossySettingsBox extends StatelessWidget {
           width: 46,
           height: 46,
           decoration: BoxDecoration(
-            color: const Color(0xFF9B1558),
+            color: const Color(0xFFFFC629),
             borderRadius: BorderRadius.circular(13),
           ),
-          child: Icon(icon, color: const Color(0xFFFFD700)),
+          child: Icon(icon, color: const Color(0xFFB8E2FF)),
         ),
         title: Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: Colors.white60),
+          style: const TextStyle(color: Colors.black54),
         ),
         trailing: const Icon(
           Icons.chevron_right_rounded,
-          color: Colors.white54,
+          color: Colors.black45,
         ),
       ),
     );
@@ -9851,7 +9884,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         insetPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
         title: Text(
           editName ? 'Change Room Name' : 'Room Description',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -9862,12 +9895,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             maxLines: editName ? 1 : null,
             expands: !editName,
             textAlignVertical: TextAlignVertical.top,
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: const TextStyle(color: Colors.black, fontSize: 16),
             cursorColor: gold,
             decoration: InputDecoration(
               hintText: editName ? 'Enter room name (max 30)' : 'Write room description (max 200 characters)',
-              hintStyle: const TextStyle(color: Colors.white54),
-              counterStyle: const TextStyle(color: Colors.white54),
+              hintStyle: const TextStyle(color: Colors.black45),
+              counterStyle: const TextStyle(color: Colors.black45),
               enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: pink, width: 1.2),
               ),
@@ -9927,8 +9960,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           AndroidUiSettings(
             toolbarTitle: 'Adjust Room Photo',
             toolbarColor: const Color(0xFF7028A0),
-            toolbarWidgetColor: Colors.white,
-            activeControlsWidgetColor: const Color(0xFFFF1688),
+            toolbarWidgetColor: Colors.black,
+            activeControlsWidgetColor: const Color(0xFFFFC629),
             lockAspectRatio: true,
             aspectRatioPresets: [CropAspectRatioPreset.square],
           ),
@@ -10003,7 +10036,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               title: const Text(
                 'Select Room Languages',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -10039,13 +10072,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             border: Border.all(
                               color: selected
                                   ? pink
-                                  : Colors.white24,
+                                  : Colors.black24,
                             ),
                           ),
                           child: Text(
                             language,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontSize: 13,
                               fontWeight: selected
                                   ? FontWeight.bold
@@ -10065,7 +10098,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   },
                   child: const Text(
                     'CANCEL',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(color: Colors.black54),
                   ),
                 ),
                 ElevatedButton(
@@ -10085,7 +10118,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: pink,
-                    foregroundColor: Colors.white,
+                    foregroundColor: Colors.black,
                   ),
                   child: const Text('SAVE'),
                 ),
@@ -10120,14 +10153,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             children: [
               Icon(
                 tabIcon,
-                color: selected ? pink : Colors.white70,
+                color: selected ? pink : Colors.black54,
                 size: 27,
               ),
               const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
-                  color: selected ? Colors.white : Colors.white70,
+                  color: selected ? Colors.black : Colors.black54,
                   fontSize: 14,
                   fontWeight: selected ? FontWeight.bold : FontWeight.w600,
                 ),
@@ -10177,7 +10210,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Colors.white70,
+              color: Colors.black54,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -10222,7 +10255,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             const Text(
               'Level 1',
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
@@ -10231,7 +10264,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Text(
               '0%',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.black.withOpacity(0.7),
                 fontSize: 12,
               ),
             ),
@@ -10243,7 +10276,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           child: const LinearProgressIndicator(
             value: 0,
             minHeight: 7,
-            backgroundColor: Colors.white12,
+            backgroundColor: Colors.black12,
             valueColor: AlwaysStoppedAnimation<Color>(pink),
           ),
         ),
@@ -10276,7 +10309,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   child: Text(
                     'Room Languages',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
                     ),
@@ -10293,7 +10326,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             if (_selectedLanguages.isEmpty)
               const Text(
                 'Select Room Languages',
-                style: TextStyle(color: Colors.white60, fontSize: 13),
+                style: TextStyle(color: Colors.black54, fontSize: 13),
               )
             else
               Wrap(
@@ -10323,7 +10356,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     child: Text(
                       language,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                       ),
@@ -10384,7 +10417,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ? 'No room rules or description added yet.'
                 : _currentRoomDescription,
             textAlign: TextAlign.left,
-            style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5),
+            style: const TextStyle(color: Colors.black, fontSize: 14, height: 1.5),
           ),
         ],
       ),
@@ -10415,22 +10448,22 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panel,
-        title: const Text('Change Club Name', style: TextStyle(color: Colors.white)),
+        title: const Text('Change Club Name', style: TextStyle(color: Colors.black)),
         content: TextField(
           controller: controller,
           maxLength: 6,
           textCapitalization: TextCapitalization.characters,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black),
           decoration: const InputDecoration(
             hintText: 'Maximum 6 letters',
-            hintStyle: TextStyle(color: Colors.white54),
-            counterStyle: TextStyle(color: Colors.white54),
+            hintStyle: TextStyle(color: Colors.black45),
+            counterStyle: TextStyle(color: Colors.black45),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
@@ -10480,7 +10513,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             Expanded(
               child: Column(
                 children: [
-                  const Text('Club Name', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  const Text('Club Name', style: TextStyle(color: Colors.black54, fontSize: 12)),
                   const SizedBox(height: 7),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -10550,9 +10583,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ],
               ),
             ),
-            Container(width: 1, height: 54, color: Colors.white24),
+            Container(width: 1, height: 54, color: Colors.black24),
             _buildPoint('Club Point', widget.clubPoint, Icons.stars_rounded),
-            Container(width: 1, height: 54, color: Colors.white24),
+            Container(width: 1, height: 54, color: Colors.black24),
             _buildPoint('Member Point', widget.memberPoint, Icons.military_tech_rounded),
           ],
         );
@@ -10638,9 +10671,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
     final choice = await showDialog<String>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF21101F),
-        title: const Text('Room options', style: TextStyle(color: Colors.white)),
-        content: const Text('Choose how you want to leave this room.', style: TextStyle(color: Colors.white70)),
+        backgroundColor: const Color(0xFFFFFFFF),
+        title: const Text('Room options', style: TextStyle(color: Colors.black)),
+        content: const Text('Choose how you want to leave this room.', style: TextStyle(color: Colors.black54)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(dialogContext, 'unjoin'), child: const Text('Unjoin')),
           TextButton(onPressed: () => Navigator.pop(dialogContext, 'both'), child: const Text('Unjoin and Unfollow')),
@@ -10716,7 +10749,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 onPressed: _unjoinRoomFromProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1769AA),
-                  foregroundColor: Colors.white,
+                  foregroundColor: Colors.black,
                   elevation: 8,
                   shadowColor: const Color(0xFF42A5F5),
                   shape: RoundedRectangleBorder(
@@ -10886,7 +10919,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       child: Text(
                         'IN-CHARGE & DEPUTY PERMISSIONS',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
                         ),
@@ -10894,7 +10927,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      icon: const Icon(Icons.close_rounded, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -10904,7 +10937,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     padding: EdgeInsets.only(bottom: 12),
                     child: Text(
                       'Green = ON     Red = OFF',
-                      style: TextStyle(color: Colors.white60, fontSize: 11),
+                      style: TextStyle(color: Colors.black54, fontSize: 11),
                     ),
                   ),
                 ),
@@ -10937,7 +10970,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: Text(
                                 label,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 13,
                                   height: 1.3,
                                   fontWeight: FontWeight.w700,
@@ -10998,7 +11031,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                         child: Text(
                                           enabled ? 'ON' : 'OFF',
                                           style: const TextStyle(
-                                            color: Colors.white,
+                                            color: Colors.black,
                                             fontSize: 10,
                                             fontWeight: FontWeight.w900,
                                           ),
@@ -11015,7 +11048,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                         width: 24,
                                         height: 24,
                                         decoration: const BoxDecoration(
-                                          color: Colors.white,
+                                          color: Colors.black,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -11034,7 +11067,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 const Text(
                   'Permission settings are saved automatically.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white54, fontSize: 10),
+                  style: TextStyle(color: Colors.black45, fontSize: 10),
                 ),
               ],
             ),
@@ -11111,7 +11144,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         backgroundColor: panel,
         title: const Text(
           'ROOM JOIN FEE',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -11119,16 +11152,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           children: [
             const Text(
               'Enter 0 for free entry, or enter 10 to 2000 diamonds.',
-              style: TextStyle(color: Colors.white70, fontSize: 13),
+              style: TextStyle(color: Colors.black54, fontSize: 13),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: feeController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.black),
               decoration: InputDecoration(
                 labelText: 'Diamonds (0 or 10–2000)',
-                labelStyle: const TextStyle(color: Colors.white70),
+                labelStyle: const TextStyle(color: Colors.black54),
                 prefixIcon: const Icon(Icons.diamond, color: gold),
                 enabledBorder: OutlineInputBorder(
                   borderSide: BorderSide(color: gold.withOpacity(.7)),
@@ -11143,7 +11176,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+            child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: gold, foregroundColor: Colors.black),
@@ -11178,10 +11211,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panel,
-        title: const Text('REMOVE MEMBER?', style: TextStyle(color: Colors.white)),
+        title: const Text('REMOVE MEMBER?', style: TextStyle(color: Colors.black)),
         content: Text(
           'Remove $memberName from this room? The action will remain in Room Record for 7 days.',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
@@ -11245,11 +11278,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   children: [
                     const Expanded(
                       child: Text('BLOCKED MEMBERS',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 17)),
+                          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 17)),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(dialogContext),
-                      icon: const Icon(Icons.close, color: Colors.white70),
+                      icon: const Icon(Icons.close, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -11260,7 +11293,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFB32632),
-                        foregroundColor: Colors.white,
+                        foregroundColor: Colors.black,
                       ),
                       onPressed: () async {
                         final user = FirebaseAuth.instance.currentUser;
@@ -11298,13 +11331,13 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     stream: roomRef.collection('blockedMembers').snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
-                        return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.white70)));
+                        return const Center(child: Text('Unable to load the blocked members list.', style: TextStyle(color: Colors.black54)));
                       }
                       if (!snapshot.hasData) {
                         return const Center(child: CircularProgressIndicator());
                       }
                       if (snapshot.data!.docs.isEmpty) {
-                        return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.white60)));
+                        return const Center(child: Text('No blocked members.', style: TextStyle(color: Colors.black54)));
                       }
                       return ListView.builder(
                         itemCount: snapshot.data!.docs.length,
@@ -11325,9 +11358,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text((item['targetName'] ?? 'Member').toString(),
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                          style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                                       Text('Blocked by: ${(item['actorName'] ?? 'Room Staff')}',
-                                          style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                                          style: const TextStyle(color: Colors.black54, fontSize: 11)),
                                     ],
                                   ),
                                 ),
@@ -11391,14 +11424,14 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
 
 
   Widget _roomRecordAvatar(String uid, double size) {
-    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panel, child: Icon(Icons.person, color: Colors.white54, size: size * .55));
+    if (uid.isEmpty) return CircleAvatar(radius: size / 2, backgroundColor: panel, child: Icon(Icons.person, color: Colors.black45, size: size * .55));
     return FutureBuilder<DocumentSnapshot<Map<String, dynamic>>>(
       future: FirebaseFirestore.instance.collection('publicProfiles').doc(uid).get(),
       builder: (context, snapshot) {
         final photo = (snapshot.data?.data()?['photoBase64'] ?? '').toString();
         return CircleAvatar(radius: size / 2, backgroundColor: panel,
           backgroundImage: photo.isNotEmpty ? getCachedProfilePhotoImage(photo) : null,
-          child: photo.isEmpty ? Icon(Icons.person, color: Colors.white54, size: size * .55) : null);
+          child: photo.isEmpty ? Icon(Icons.person, color: Colors.black45, size: size * .55) : null);
       },
     );
   }
@@ -11424,11 +11457,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     children: [
                       const Expanded(
                         child: Text('ROOM RECORD',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
+                            style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w900)),
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(dialogContext),
-                        icon: const Icon(Icons.close, color: Colors.white70),
+                        icon: const Icon(Icons.close, color: Colors.black54),
                       ),
                     ],
                   ),
@@ -11447,7 +11480,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               border: Border.all(color: gold.withOpacity(.7)),
                             ),
                             child: Text(tabs[index].toUpperCase(), textAlign: TextAlign.center,
-                                style: TextStyle(color: selectedTab == index ? Colors.black : Colors.white,
+                                style: TextStyle(color: selectedTab == index ? Colors.black : Colors.black,
                                     fontWeight: FontWeight.w900, fontSize: 10)),
                           ),
                         ),
@@ -11460,7 +11493,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                       stream: _roomActionRecords.orderBy('createdAt', descending: true).snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.hasError) {
-                          return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.white70)));
+                          return const Center(child: Text('Unable to load room records.', style: TextStyle(color: Colors.black54)));
                         }
                         if (!snapshot.hasData) {
                           return const Center(child: CircularProgressIndicator());
@@ -11476,7 +11509,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           return true;
                         }).toList();
                         if (records.isEmpty) {
-                          return Center(child: Text('No $action records.', style: const TextStyle(color: Colors.white60)));
+                          return Center(child: Text('No $action records.', style: const TextStyle(color: Colors.black54)));
                         }
                         return ListView.builder(
                           itemCount: records.length,
@@ -11499,17 +11532,17 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                     _roomRecordAvatar((item['targetUid'] ?? '').toString(), 42),
                                     const SizedBox(width: 9),
                                     Expanded(child: Text('${item['targetName'] ?? 'Member'}',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900))),
+                                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900))),
                                   ]),
                                   const SizedBox(height: 6),
                                   Row(children: [
                                     const SizedBox(width: 6),
                                     Expanded(child: Text('Action: $action  •  By: ${item['actorName'] ?? 'Room Staff'}',
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12))),
+                                      style: const TextStyle(color: Colors.black54, fontSize: 12))),
                                   ]),
                                   if ((item['targetUserId'] ?? '').toString().isNotEmpty)
-                                    Text('UID: ${item['targetUserId']}', style: const TextStyle(color: Colors.white54, fontSize: 11)),
-                                  Text(dateText, style: const TextStyle(color: Colors.white38, fontSize: 10)),
+                                    Text('UID: ${item['targetUserId']}', style: const TextStyle(color: Colors.black45, fontSize: 11)),
+                                  Text(dateText, style: const TextStyle(color: Colors.black38, fontSize: 10)),
                                   if (action == 'Kick')
                                     StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                                       stream: FirebaseFirestore.instance
@@ -11536,10 +11569,10 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 context: context,
                                                 builder: (ctx) => AlertDialog(
                                                   backgroundColor: panel,
-                                                  title: const Text('UN-KICK MEMBER?', style: TextStyle(color: Colors.white)),
-                                                  content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.white70)),
+                                                  title: const Text('UN-KICK MEMBER?', style: TextStyle(color: Colors.black)),
+                                                  content: Text('Allow ${item['targetName'] ?? 'Member'} to enter this room again?', style: const TextStyle(color: Colors.black54)),
                                                   actions: [
-                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL', style: TextStyle(color: Colors.white70))),
+                                                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('CANCEL', style: TextStyle(color: Colors.black54))),
                                                     TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('UN-KICK', style: TextStyle(color: Color(0xFF36D477)))),
                                                   ],
                                                 ),
@@ -11559,7 +11592,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Un-kick failed: $error')));
                                               }
                                             },
-                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.white30, fontWeight: FontWeight.w900)),
+                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.black30, fontWeight: FontWeight.w900)),
                                             ),
                                           ),
                                         );
@@ -11620,11 +11653,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 children: [
                   const Expanded(
                     child: Text('ROOM SETTINGS',
-                        style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
+                        style: TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w900)),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                    icon: const Icon(Icons.close_rounded, color: Colors.black54),
                   ),
                 ],
               ),
@@ -11662,7 +11695,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         children: [
                           Expanded(
                             child: Text(option,
-                                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+                                style: const TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.w800)),
                           ),
                           const Icon(Icons.chevron_right_rounded, color: gold, size: 25),
                         ],
@@ -11699,12 +11732,12 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   Expanded(
                     child: Text(
                       forBlock ? 'SELECT MEMBER TO BLOCK' : 'REMOVE MEMBER',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900),
+                      style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900),
                     ),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    icon: const Icon(Icons.close, color: Colors.white70),
+                    icon: const Icon(Icons.close, color: Colors.black54),
                   ),
                 ],
               ),
@@ -11721,7 +11754,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                         final role = (d['role'] ?? '').toString().toLowerCase();
                         return uid != currentUid && role != 'owner' && role != 'leader';
                       }).toList();
-                      if (docs.isEmpty) return const Center(child: Text('No members available.', style: TextStyle(color: Colors.white70)));
+                      if (docs.isEmpty) return const Center(child: Text('No members available.', style: TextStyle(color: Colors.black54)));
                       return ListView.builder(
                         itemCount: docs.length,
                         itemBuilder: (context, index) {
@@ -11730,8 +11763,8 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                           final uid = (data['firebaseUid'] ?? doc.id).toString();
                           final name = (data['name'] ?? 'PartyNova User').toString();
                           return ListTile(
-                            title: Text(name, style: const TextStyle(color: Colors.white)),
-                            subtitle: Text('UID: ${(data['userId'] ?? '').toString()}', style: const TextStyle(color: Colors.white60)),
+                            title: Text(name, style: const TextStyle(color: Colors.black)),
+                            subtitle: Text('UID: ${(data['userId'] ?? '').toString()}', style: const TextStyle(color: Colors.black54)),
                             trailing: const Icon(Icons.chevron_right, color: gold),
                             onTap: () {
                               Navigator.pop(dialogContext);
@@ -11934,7 +11967,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontWeight: FontWeight.w900,
                   fontSize: 16,
                 ),
@@ -11964,7 +11997,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
               )),
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('CANCEL', style: TextStyle(color: Colors.white70)),
+                child: const Text('CANCEL', style: TextStyle(color: Colors.black54)),
               ),
             ],
           ),
@@ -12033,16 +12066,16 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             final displayCount = count > 1000 ? 1000 : count;
             return Row(
               children: [
-                const Text('Member', style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.bold)),
+                const Text('Member', style: TextStyle(color: Colors.black, fontSize: 19, fontWeight: FontWeight.bold)),
                 const SizedBox(width: 10),
                 Text('$displayCount', style: const TextStyle(color: gold, fontSize: 17, fontWeight: FontWeight.bold)),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 9),
                   width: 1.5,
                   height: 20,
-                  color: Colors.white70,
+                  color: Colors.black54,
                 ),
-                const Text('1000', style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.w800)),
+                const Text('1000', style: TextStyle(color: Colors.black54, fontSize: 15, fontWeight: FontWeight.w800)),
                 const Spacer(),
                 IconButton(
                   tooltip: 'Room Settings',
@@ -12065,11 +12098,11 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
         TextField(
           controller: _memberSearchController,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.black),
           onChanged: (value) => setState(() => _memberSearchQuery = value.trim()),
           decoration: InputDecoration(
             hintText: 'Search member by PartyNova UID',
-            hintStyle: const TextStyle(color: Colors.white54, fontSize: 13),
+            hintStyle: const TextStyle(color: Colors.black45, fontSize: 13),
             prefixIcon: const Icon(Icons.search_rounded, color: pink),
             filled: true,
             fillColor: panel,
@@ -12082,7 +12115,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
           stream: membersRef.snapshots(),
           builder: (context, snapshot) {
             if (snapshot.hasError) {
-              return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.white70)));
+              return const Padding(padding: EdgeInsets.all(12), child: Text('Members could not be loaded.', style: TextStyle(color: Colors.black54)));
             }
             if (!snapshot.hasData) {
               return const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator(color: pink)));
@@ -12121,7 +12154,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
             if (docs.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 28),
-                child: Center(child: Text(query.isEmpty ? 'No members yet.' : 'No member found with this PartyNova UID.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60))),
+                child: Center(child: Text(query.isEmpty ? 'No members yet.' : 'No member found with this PartyNova UID.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.black54))),
               );
             }
             return ListView.separated(
@@ -12158,7 +12191,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                     showDialog<void>(
                       context: context,
                       builder: (dialogContext) => AlertDialog(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.black,
                         title: Text(displayName, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
                         content: Text('PartyNova UID: $displayUid', style: const TextStyle(color: Colors.black87)),
                         actions: [
@@ -12177,7 +12210,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                 ),
                               ));
                             },
-                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFFD780), foregroundColor: const Color(0xFF3A210B)),
+                            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB8E2FF), foregroundColor: const Color(0xFF3A210B)),
                             child: const Text('PROFILE', style: TextStyle(fontWeight: FontWeight.w900)),
                           ),
                         ],
@@ -12189,7 +12222,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                   decoration: BoxDecoration(
                     color: panel,
                     borderRadius: BorderRadius.circular(13),
-                    border: Border.all(color: isLeader ? gold.withOpacity(0.75) : Colors.white12),
+                    border: Border.all(color: isLeader ? gold.withOpacity(0.75) : Colors.black12),
                     boxShadow: isLeader
                         ? [BoxShadow(color: gold.withOpacity(0.16), blurRadius: 12, spreadRadius: 1)]
                         : null,
@@ -12223,7 +12256,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -12254,7 +12287,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
-                                color: Colors.white54,
+                                color: Colors.black45,
                                 fontSize: 10,
                               ),
                             ),
@@ -12332,7 +12365,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: const Text(
                                 'DEPUTY',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.4,
@@ -12369,7 +12402,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               child: const Text(
                                 'INCHARGE',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black,
                                   fontSize: 8,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 0.4,
@@ -12538,7 +12571,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                               ? Container(
                                   padding: const EdgeInsets.all(5),
                                   decoration: const BoxDecoration(color: pink, shape: BoxShape.circle),
-                                  child: const Icon(Icons.edit, color: Colors.white, size: 15),
+                                  child: const Icon(Icons.edit, color: Colors.black, size: 15),
                                 )
                               : const SizedBox.shrink(),
                         ),
@@ -12556,7 +12589,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             const Text(
                               'ID: ',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Colors.black54,
                                 fontSize: 13,
                               ),
                             ),
@@ -13016,10 +13049,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
             side: const BorderSide(color: pink, width: 1.5),
           ),
           title: const Text('ROOM ACCESS RESTRICTED',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
           content: const Text(
             'You have been kicked from this room. You cannot enter until the Room Leader removes your kick from Room Record.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
           actions: [
             TextButton(
@@ -13056,8 +13089,8 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         builder: (dialogContext) => AlertDialog(
           backgroundColor: panelBlue,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: pink, width: 1.5)),
-          title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-          content: const Text('You have been kicked from this room. You must leave now and cannot return until the kick is removed in Room Record.', style: TextStyle(color: Colors.white70)),
+          title: const Text('YOU HAVE BEEN KICKED', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+          content: const Text('You have been kicked from this room. You must leave now and cannot return until the kick is removed in Room Record.', style: TextStyle(color: Colors.black54)),
           actions: [TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('OK', style: TextStyle(color: pink)))],
         ),
       );
@@ -13103,18 +13136,18 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           side: const BorderSide(color: pink, width: 1.5),
         ),
         title: const Text('MIC INVITATION',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
         content: Text(
           '$inviterName ($inviterRole) invited you to take the mic. Do you want to join?',
-          style: const TextStyle(color: Colors.white70),
+          style: const TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: const Text('Cancel', style: TextStyle(color: Colors.black54)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.black),
             onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Yes'),
           ),
@@ -13277,7 +13310,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Widget _buildMembershipFrame(String label, {required bool leader}) {
     final colors = leader
         ? const [Color(0xFFFFE7B0), Color(0xFFB87333), Color(0xFF5B2E0B), Color(0xFFD79A55)]
-        : const [Color(0xFFFFE9A6), Color(0xFFD6A83C), Color(0xFF8A5A12), Color(0xFFFFD780)];
+        : const [Color(0xFFFFE9A6), Color(0xFFD6A83C), Color(0xFF8A5A12), Color(0xFFB8E2FF)];
     return Container(
       width: 58,
       height: 42,
@@ -13287,7 +13320,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         border: Border.all(color: const Color(0xFFFFE6B8), width: 1.3),
         boxShadow: [
           BoxShadow(color: leader ? const Color(0xFFFFB45A) : gold, blurRadius: 13, spreadRadius: 1),
-          BoxShadow(color: Colors.white.withOpacity(0.22), blurRadius: 4, spreadRadius: 1),
+          BoxShadow(color: Colors.black.withOpacity(0.22), blurRadius: 4, spreadRadius: 1),
         ],
       ),
       child: Stack(
@@ -13361,7 +13394,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           child: Text(
             label,
             style: const TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontSize: 9,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.6,
@@ -13470,10 +13503,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           builder: (dialogContext) => AlertDialog(
             backgroundColor: panelBlue,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-            title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-            content: const Text('Leave the Mic?', style: TextStyle(color: Colors.white70)),
+            title: const Text('MIC SEAT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+            content: const Text('Leave the Mic?', style: TextStyle(color: Colors.black54)),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+              TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
               TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Leave the Mic', style: TextStyle(color: pink))),
             ],
           ),
@@ -13498,11 +13531,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panelBlue,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: pink, width: 1.4)),
-        title: const Text('MIC SEAT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-        content: const Text('Take Mic?', style: TextStyle(color: Colors.white70)),
+        title: const Text('MIC SEAT', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
+        content: const Text('Take Mic?', style: TextStyle(color: Colors.black54)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
-          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.white), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Take Mic')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
+          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: pink, foregroundColor: Colors.black), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('Take Mic')),
         ],
       ),
     );
@@ -13569,11 +13602,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 22),
           decoration: BoxDecoration(color: panelBlue, borderRadius: const BorderRadius.vertical(top: Radius.circular(22)), border: Border.all(color: pink, width: 1.3)),
           child: Column(children: [
-            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white54, borderRadius: BorderRadius.circular(5))),
+            Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(5))),
             const SizedBox(height: 18),
-            CircleAvatar(radius: 54, backgroundColor: const Color(0xFF171017), backgroundImage: getCachedProfilePhotoImage(photo), child: getCachedProfilePhotoImage(photo) == null ? const Icon(Icons.person_rounded, size: 56, color: Colors.white70) : null),
+            CircleAvatar(radius: 54, backgroundColor: const Color(0xFFF7F7F8), backgroundImage: getCachedProfilePhotoImage(photo), child: getCachedProfilePhotoImage(photo) == null ? const Icon(Icons.person_rounded, size: 56, color: Colors.black54) : null),
             const SizedBox(height: 12),
-            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 19)),
+            Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 19)),
             const SizedBox(height: 5),
             Text('UID: $partyId', style: const TextStyle(color: gold, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
@@ -13592,7 +13625,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
   Widget _micProfileAction(IconData icon, String label) => Column(mainAxisSize: MainAxisSize.min, children: [
     Container(width: 48, height: 48, decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: pink), color: Colors.black26), child: Icon(icon, color: gold)),
     const SizedBox(height: 6),
-    Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700)),
+    Text(label, style: const TextStyle(color: Colors.black54, fontSize: 11, fontWeight: FontWeight.w700)),
   ]);
 
   Widget _buildSeat(int number, Map<String, dynamic>? occupant) {
@@ -13617,22 +13650,22 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 decoration: BoxDecoration(
                   color: isOccupied ? const Color(0xFF24101F) : Colors.transparent,
                   shape: BoxShape.circle,
-                  border: Border.all(color: isMySeat ? gold : (isOccupied ? pink : Colors.white), width: isOccupied ? 2.2 : 1.8),
-                  boxShadow: [BoxShadow(color: (isOccupied ? pink : Colors.white).withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
+                  border: Border.all(color: isMySeat ? gold : (isOccupied ? pink : Colors.black), width: isOccupied ? 2.2 : 1.8),
+                  boxShadow: [BoxShadow(color: (isOccupied ? pink : Colors.black).withOpacity(0.22), blurRadius: 5, spreadRadius: 0.5)],
                 ),
                 child: isOccupied
                     ? CircleAvatar(
-                        backgroundColor: const Color(0xFF171017),
+                        backgroundColor: const Color(0xFFF7F7F8),
                         backgroundImage: getCachedProfilePhotoImage(photo),
                         child: getCachedProfilePhotoImage(photo) == null
-                            ? Icon(Icons.person_rounded, color: isMySeat ? gold : Colors.white70, size: 39)
+                            ? Icon(Icons.person_rounded, color: isMySeat ? gold : Colors.black54, size: 39)
                             : null,
                       )
                     : const Center(child: Icon(Icons.chair_rounded, color: pink, size: 40)),
               ),
               const SizedBox(height: 5),
               Text(seatLabel, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(color: isMySeat ? gold : Colors.white, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
+                style: TextStyle(color: isMySeat ? gold : Colors.black, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.2)),
             ],
           ),
         ),
@@ -13781,28 +13814,28 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         children: [
           _buildActionIcon(
             icon: _messageOpen ? Icons.close_rounded : Icons.sms_rounded,
-            color: Colors.white,
+            color: Colors.black,
             size: 29,
             tooltip: _messageOpen ? 'Close message box' : 'Open messages',
             onPressed: _messageOpen ? _closeMessageBoard : _openMessageBoard,
           ),
           _buildActionIcon(
             icon: _micMuted ? Icons.mic_off_rounded : Icons.mic_rounded,
-            color: Colors.white,
+            color: Colors.black,
             size: 30,
             tooltip: _micMuted ? 'Unmute microphone' : 'Mute microphone',
             onPressed: () => setState(() => _micMuted = !_micMuted),
           ),
           _buildActionIcon(
             icon: _speakerMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-            color: Colors.white,
+            color: Colors.black,
             size: 29,
             tooltip: _speakerMuted ? 'Unmute speaker' : 'Mute speaker',
             onPressed: () => setState(() => _speakerMuted = !_speakerMuted),
           ),
           _buildActionIcon(
             icon: Icons.emoji_emotions_outlined,
-            color: Colors.white,
+            color: Colors.black,
             size: 29,
             tooltip: 'Emoji',
             onPressed: () {},
@@ -13823,7 +13856,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
           ),
           _buildActionIcon(
             icon: Icons.more_horiz_rounded,
-            color: Colors.white,
+            color: Colors.black,
             size: 31,
             tooltip: 'More',
             onPressed: () {},
@@ -13853,7 +13886,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     .collection('roomMessages').orderBy('createdAt', descending: true).limit(40).snapshots(),
                 builder: (context, snapshot) {
                   final messages = snapshot.data?.docs ?? [];
-                  if (messages.isEmpty) return const Center(child: Text('No messages yet.', style: TextStyle(color: Colors.white54)));
+                  if (messages.isEmpty) return const Center(child: Text('No messages yet.', style: TextStyle(color: Colors.black45)));
                   return ListView.builder(
                     reverse: true,
                     itemCount: messages.length,
@@ -13866,7 +13899,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                           const SizedBox(width: 7),
                           Expanded(child: RichText(text: TextSpan(children: [
                             TextSpan(text: '${data['senderName'] ?? 'User'}: ', style: const TextStyle(color: pink, fontWeight: FontWeight.w800)),
-                            TextSpan(text: (data['text'] ?? '').toString(), style: const TextStyle(color: Colors.white)),
+                            TextSpan(text: (data['text'] ?? '').toString(), style: const TextStyle(color: Colors.black)),
                           ]))),
                         ]),
                       );
@@ -13888,11 +13921,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.done,
                     onSubmitted: (_) => _messageFocusNode.requestFocus(),
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    style: const TextStyle(color: Colors.black, fontSize: 15),
                     cursorColor: pink,
                     decoration: const InputDecoration(
                       hintText: 'Write a message...',
-                      hintStyle: TextStyle(color: Colors.white60, fontSize: 15),
+                      hintStyle: TextStyle(color: Colors.black54, fontSize: 15),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -13909,7 +13942,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                 IconButton(
                   onPressed: _closeMessageBoard,
                   tooltip: 'Close message box',
-                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 22),
+                  icon: const Icon(Icons.close_rounded, color: Colors.black, size: 22),
                 ),
               ],
             ),
@@ -13947,14 +13980,14 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(color: Colors.black, borderRadius: const BorderRadius.vertical(top: Radius.circular(18)), border: Border.all(color: pink, width: 1.5)),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(targetName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16)),
+          Text(targetName, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 16)),
           const SizedBox(height: 10),
           for (final item in <(String, IconData, Color)>[
-            ('Take the Mic', Icons.mic_rounded, Colors.white),
-            ('Kick', Icons.sports_kabaddi_rounded, Colors.white),
+            ('Take the Mic', Icons.mic_rounded, Colors.black),
+            ('Kick', Icons.sports_kabaddi_rounded, Colors.black),
             ('Ban', Icons.block_rounded, Colors.redAccent),
             ('Remove Mic', Icons.mic_off_rounded, pink),
-            ('Profile', Icons.person_rounded, Colors.white),
+            ('Profile', Icons.person_rounded, Colors.black),
           ])
             Container(
               margin: const EdgeInsets.only(bottom: 8),
@@ -13962,11 +13995,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               child: ListTile(
                 dense: true,
                 leading: Icon(item.$2, color: item.$3),
-                title: Text(item.$1, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                title: Text(item.$1, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w700)),
                 onTap: () => Navigator.pop(sheetContext, item.$1),
               ),
             ),
-          TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(sheetContext), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
         ]),
       ),
     );
@@ -14084,10 +14117,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: panelBlue,
-        title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.white)),
-        content: Text('Ban $targetName in this room? The member will remain visible but cannot message or take the mic.', style: const TextStyle(color: Colors.white70)),
+        title: const Text('BAN MEMBER?', style: TextStyle(color: Colors.black)),
+        content: Text('Ban $targetName in this room? The member will remain visible but cannot message or take the mic.', style: const TextStyle(color: Colors.black54)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
           ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent), onPressed: () => Navigator.pop(dialogContext, true), child: const Text('BAN')),
         ],
       ),
@@ -14125,17 +14158,17 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
     if (!['leader', 'deputy', 'incharge'].contains(actorRole)) return;
     final selectedDuration = await showDialog<String>(context: context, builder: (dialogContext) => AlertDialog(
       backgroundColor: panelBlue,
-      title: const Text('KICK MEMBER?', style: TextStyle(color: Colors.white)),
-      content: Text('Choose the kick duration for $targetName.', style: const TextStyle(color: Colors.white70)),
+      title: const Text('KICK MEMBER?', style: TextStyle(color: Colors.black)),
+      content: Text('Choose the kick duration for $targetName.', style: const TextStyle(color: Colors.black54)),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
         TextButton(
           onPressed: isLeader ? null : () => Navigator.pop(dialogContext, 'Two Hours Kick'),
-          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.white30 : pink)),
+          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.black30 : pink)),
         ),
         TextButton(
           onPressed: isLeader ? () => Navigator.pop(dialogContext, 'Twelve Months Kick') : null,
-          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.white30)),
+          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.black30)),
         ),
       ],
     ));
@@ -14227,10 +14260,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                             decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: const Color(0xFFFF4FA3), width: 1.5)),
                             child: CircleAvatar(
                               radius: 16,
-                              backgroundColor: const Color(0xFF171017),
+                              backgroundColor: const Color(0xFFF7F7F8),
                               backgroundImage: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()),
                               child: getCachedProfilePhotoImage((doc.data()['photoBase64'] ?? '').toString()) == null
-                                  ? const Icon(Icons.person_rounded, color: Colors.white70, size: 18) : null,
+                                  ? const Icon(Icons.person_rounded, color: Colors.black54, size: 18) : null,
                             ),
                           ),
                         ),
@@ -14255,10 +14288,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                     height: 34,
                     padding: const EdgeInsets.symmetric(horizontal: 9),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF171017),
+                      color: const Color(0xFFF7F7F8),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: const Color(0xFFFF1688),
+                        color: const Color(0xFFFFC629),
                         width: 1.3,
                       ),
                     ),
@@ -14274,7 +14307,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         Text(
                           'Online ${onlineDocs.length}',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: Colors.black,
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
                           ),
@@ -14393,7 +14426,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         content: const Text(
           'Allow only this room leaders.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.w800),
         ),
         actions: [
           TextButton(
@@ -14535,11 +14568,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
               border: Border(top: BorderSide(color: Color(0xFFFF4FA3), width: 1.4)),
             ),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.white38, borderRadius: BorderRadius.circular(8)))),
+              Center(child: Container(width: 42, height: 4, decoration: BoxDecoration(color: Colors.black38, borderRadius: BorderRadius.circular(8)))),
               const SizedBox(height: 13),
               Row(children: [
                 Expanded(child: Text(title.toUpperCase(), style: const TextStyle(color: Color(0xFFF0DFC3), fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 1))),
-                IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.white70)),
+                IconButton(onPressed: () => Navigator.pop(detailContext), icon: const Icon(Icons.close_rounded, color: Colors.black54)),
               ]),
               const SizedBox(height: 5),
               Expanded(child: _buildRoomToolPreviewContent(
@@ -14608,7 +14641,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
 
     if (title == 'Mic Setting') {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Choose mic layout', style: TextStyle(color: Colors.white70, fontSize: 12)),
+        const Text('Choose mic layout', style: TextStyle(color: Colors.black54, fontSize: 12)),
         const SizedBox(height: 10),
         Wrap(spacing: 7, runSpacing: 7, children: [5, 7, 9, 10, 11, 15].map((n) => ChoiceChip(
           label: Text('$n Mics'), selected: selectedMics == n,
@@ -14644,10 +14677,10 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
       return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance.collection('publicProfiles').limit(100).snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.white70)));
+          if (snapshot.hasError) return const Center(child: Text('Unable to load users.', style: TextStyle(color: Colors.black54)));
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF4FA3)));
           final users = snapshot.data!.docs.where((doc) => doc.id != currentUid).toList();
-          if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white70)));
+          if (users.isEmpty) return const Center(child: Text('No users found.', style: TextStyle(color: Colors.black54)));
           return ListView.builder(
             itemCount: users.length,
             itemBuilder: (context, index) {
@@ -14676,7 +14709,7 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
                         content: const Text('Send a room invitation to this user?', style: TextStyle(color: Color(0xFF241B16))),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('CANCEL', style: TextStyle(color: Color(0xFF5D4A35)))),
-                          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.white), child: const Text('SEND')),
+                          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.black), child: const Text('SEND')),
                         ],
                       ),
                     );
@@ -14810,8 +14843,8 @@ InkWell(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.16),
-                Colors.white.withValues(alpha: 0.07),
+                Colors.black.withValues(alpha: 0.16),
+                Colors.black.withValues(alpha: 0.07),
                 panelBlue,
               ],
               begin: Alignment.centerLeft,
@@ -14823,7 +14856,7 @@ InkWell(
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.white.withValues(alpha: 0.20),
+                color: Colors.black.withValues(alpha: 0.20),
                 blurRadius: 15,
                 spreadRadius: 1,
               ),
@@ -14862,7 +14895,7 @@ InkWell(
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: Colors.white70,
+                        color: Colors.black54,
                         fontSize: 15,
                       ),
                     ),
@@ -14893,7 +14926,7 @@ InkWell(
             ),
             icon: const Icon(
               Icons.more_horiz_rounded,
-              color: Colors.white,
+              color: Colors.black,
               size: 35,
             ),
           ),
@@ -15008,7 +15041,7 @@ InkWell(
                         Text(
                           description.isEmpty ? 'Room rules will appear here.' : description,
                           style: const TextStyle(
-                            color: Colors.white, fontSize: 14,
+                            color: Colors.black, fontSize: 14,
                             fontWeight: FontWeight.w600, height: 1.45,
                           ),
                         ),
@@ -15056,15 +15089,15 @@ InkWell(
                             decoration: BoxDecoration(
                               color: Colors.black,
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFFF1688), width: 3),
+                              border: Border.all(color: const Color(0xFFFFC629), width: 3),
                               boxShadow: const [
                                 BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
                               ],
                             ),
-                            child: const Icon(Icons.file_upload_rounded, color: Colors.white, size: 43),
+                            child: const Icon(Icons.file_upload_rounded, color: Colors.black, size: 43),
                           ),
                           const SizedBox(height: 7),
-                          const Text('Keep', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                          const Text('Keep', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -15088,15 +15121,15 @@ InkWell(
                             decoration: BoxDecoration(
                               color: Colors.black,
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFFF1688), width: 3),
+                              border: Border.all(color: const Color(0xFFFFC629), width: 3),
                               boxShadow: const [
                                 BoxShadow(color: Color(0x66FF1688), blurRadius: 13, spreadRadius: 1),
                               ],
                             ),
-                            child: const Icon(Icons.power_settings_new_rounded, color: Colors.white, size: 43),
+                            child: const Icon(Icons.power_settings_new_rounded, color: Colors.black, size: 43),
                           ),
                           const SizedBox(height: 7),
-                          const Text('Exit', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                          const Text('Exit', style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ),
@@ -15143,7 +15176,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Could not load online users.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -15177,7 +15210,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
             return const Center(
               child: Text(
                 'No users are online right now.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -15225,11 +15258,11 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: Colors.black,
                             shape: BoxShape.circle,
-                            border: Border.all(color: const Color(0xFFFF1688), width: 1.5),
+                            border: Border.all(color: const Color(0xFFFFC629), width: 1.5),
                           ),
                           child: Text(
                             '${index + 1}',
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                            style: const TextStyle(color: Colors.black, fontSize: 13, fontWeight: FontWeight.w900),
                           ),
                         ),
                         const SizedBox(width: 9),
@@ -15238,7 +15271,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                           backgroundColor: const Color(0xFF100810),
                           backgroundImage: photoImage,
                           child: photoImage == null
-                              ? const Icon(Icons.person_rounded, color: Colors.white70)
+                              ? const Icon(Icons.person_rounded, color: Colors.black54)
                               : null,
                         ),
                         const SizedBox(width: 12),
@@ -15248,7 +15281,7 @@ class PartyRoomOnlineUsersPage extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontSize: 15,
                               fontWeight: FontWeight.w800,
                             ),
@@ -15324,7 +15357,7 @@ class _ScrollingRoomNameState
         : widget.text;
 
     const textStyle = TextStyle(
-      color: Color(0xFFFFD780),
+      color: Color(0xFFB8E2FF),
       fontSize: 21,
       fontWeight: FontWeight.w900,
     );
@@ -15563,7 +15596,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Search by PartyNova UID',
-        style: TextStyle(color: Colors.white70, fontSize: 15),
+        style: TextStyle(color: Colors.black54, fontSize: 15),
       ),
     );
   }
@@ -15572,7 +15605,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Enter a valid PartyNova UID.',
-        style: TextStyle(color: Colors.white70, fontSize: 14),
+        style: TextStyle(color: Colors.black54, fontSize: 14),
       ),
     );
   }
@@ -15581,7 +15614,7 @@ Widget _buildSearchResult() {
     return const Center(
       child: Text(
         'Please log in first.',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: Colors.black54),
       ),
     );
   }
@@ -15613,7 +15646,7 @@ Widget _buildSearchResult() {
         return const Center(
           child: Text(
             'No user found with this UID.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -15626,7 +15659,7 @@ Widget _buildSearchResult() {
         return const Center(
           child: Text(
             'This is your profile.',
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(color: Colors.black54),
           ),
         );
       }
@@ -15696,7 +15729,7 @@ Widget _buildSearchResult() {
               vertical: 8,
             ),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Colors.black,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -15853,13 +15886,13 @@ Widget _buildSearchResult() {
                 controller: _searchController,
                 keyboardType: TextInputType.number,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: Colors.black,
                   fontSize: 15,
                 ),
                 cursorColor: pink,
                 decoration: const InputDecoration(
                   hintText: 'Enter PartyNova UID',
-                  hintStyle: TextStyle(color: Colors.white60),
+                  hintStyle: TextStyle(color: Colors.black54),
                   prefixIcon: Icon(
                     Icons.search_rounded,
                     color: gold,
@@ -15901,7 +15934,7 @@ class _SocialBottomNavIcon extends StatelessWidget {
         icon,
         color: selected
             ? const Color(0xFFFFD700)
-            : Colors.white54,
+            : Colors.black45,
       );
     }
 
@@ -15944,7 +15977,7 @@ class _SocialBottomNavIcon extends StatelessWidget {
                   icon,
                   color: selected
                       ? const Color(0xFFFFD700)
-                      : Colors.white54,
+                      : Colors.black45,
                 ),
 
                 if (requestCount > 0)
@@ -15986,7 +16019,7 @@ class _SocialBottomNavLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54));
+      return Text('Social', style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.black45));
     }
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
       stream: FirebaseFirestore.instance
@@ -16011,7 +16044,7 @@ class _SocialBottomNavLabel extends StatelessWidget {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.white54)),
+                Text('Social', maxLines: 1, style: TextStyle(fontSize: 10, color: selected ? const Color(0xFFFFD700) : Colors.black45)),
                 if (count > 0 || hasUnreadMessages) ...[
                   const SizedBox(width: 3),
                   Container(
@@ -16041,7 +16074,7 @@ class _RequestCountBadge extends StatelessWidget {
         child: Center(
           child: Text(
             count > 99 ? '99+' : '$count',
-            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.black, fontSize: 9, fontWeight: FontWeight.bold),
           ),
         ),
       );
@@ -16121,14 +16154,14 @@ class _PartyNovaSocialTabState extends State<PartyNovaSocialTab>
 
   @override
   Widget build(BuildContext context) {
-    const black = Color(0xFF09070B);
+    const black = Color(0xFFF4F5F7);
 
     return Container(
-      color: Colors.white,
+      color: Colors.black,
       child: Column(
         children: [
           Material(
-            color: Colors.white,
+            color: Colors.black,
             child: TabBar(
               controller: _controller,
               indicatorColor: black,
@@ -16255,17 +16288,17 @@ class _SocialEmptySection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(color: Color(0xFF09070B), fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(title, style: const TextStyle(color: Color(0xFFF4F5F7), fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+              decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(14)),
               child: Row(
                 children: [
-                  Icon(icon, color: const Color(0xFFFF1688), size: 32),
+                  Icon(icon, color: const Color(0xFFFFC629), size: 32),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFF09070B), fontSize: 15))),
+                  Expanded(child: Text(subtitle, style: const TextStyle(color: Color(0xFFF4F5F7), fontSize: 15))),
                 ],
               ),
             ),
@@ -16317,7 +16350,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
       stream: _incomingPendingStream(),
       builder: (context, snapshot) {
         if (snapshot.hasError) return const Center(child: Text('Could not load requests. Check Firestore rules.'));
-        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFF1688)));
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Color(0xFFFFC629)));
         final docs = snapshot.data!.docs;
         if (docs.isEmpty) {
           return const _SocialEmptySection(title: 'Friend Requests', subtitle: 'No pending friend requests.', icon: Icons.person_add_alt_1_rounded);
@@ -16339,7 +16372,7 @@ class _IncomingRequestsSectionState extends State<_IncomingRequestsSection> {
                 key: ValueKey<String>(doc.id),
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFF1688).withValues(alpha: 0.35))),
+                decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(13), border: Border.all(color: const Color(0xFFFFC629).withValues(alpha: 0.35))),
                 child: Row(
                   children: [
                     InkWell(
@@ -16397,8 +16430,8 @@ class _BlackRequestAction extends StatelessWidget {
         child: Container(
           width: 34,
           height: 34,
-          decoration: BoxDecoration(color: const Color(0xFF09070B), borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, color: Colors.white, size: 20),
+          decoration: BoxDecoration(color: const Color(0xFFF4F5F7), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: Colors.black, size: 20),
         ),
       );
 }
@@ -16435,7 +16468,7 @@ class _FriendsListSection extends StatelessWidget {
         if (!outgoing.hasData) {
           return const Center(
             child: CircularProgressIndicator(
-              color: Color(0xFFFF1688),
+              color: Color(0xFFFFC629),
             ),
           );
         }
@@ -16456,7 +16489,7 @@ class _FriendsListSection extends StatelessWidget {
             if (!incoming.hasData) {
               return const Center(
                 child: CircularProgressIndicator(
-                  color: Color(0xFFFF1688),
+                  color: Color(0xFFFFC629),
                 ),
               );
             }
@@ -16555,7 +16588,7 @@ class _FriendsListSection extends StatelessWidget {
 
                       return Card(
                         key: ValueKey<String>(friendUid),
-                        color: Colors.white,
+                        color: Colors.black,
                         child: ListTile(
                           leading: CircleAvatar(
                             backgroundImage: photoImage,
@@ -16581,12 +16614,12 @@ class _FriendsListSection extends StatelessWidget {
                               context: context,
                               builder: (dialogContext) {
                                 return AlertDialog(
-                                  backgroundColor: Colors.white,
+                                  backgroundColor: Colors.black,
                                   shape: RoundedRectangleBorder(
                                     borderRadius:
                                         BorderRadius.circular(20),
                                     side: const BorderSide(
-                                      color: Color(0xFFFF1688),
+                                      color: Color(0xFFFFC629),
                                       width: 1.5,
                                     ),
                                   ),
@@ -16612,7 +16645,7 @@ class _FriendsListSection extends StatelessWidget {
                                                   Icons.person_rounded,
                                                   size: 42,
                                                   color:
-                                                      Color(0xFFFF1688),
+                                                      Color(0xFFFFC629),
                                                 )
                                               : null,
                                         ),
@@ -16640,8 +16673,8 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Delete',
                                           background:
-                                              const Color(0xFFFF1688),
-                                          foreground: Colors.white,
+                                              const Color(0xFFFFC629),
+                                          foreground: Colors.black,
                                           onPressed: () async {
                                             final confirm =
                                                 await showDialog<bool>(
@@ -16650,7 +16683,7 @@ class _FriendsListSection extends StatelessWidget {
                                                   (confirmContext) =>
                                                       AlertDialog(
                                                 backgroundColor:
-                                                    Colors.white,
+                                                    Colors.black,
                                                 title: const Text(
                                                   'Remove friend?',
                                                   style: TextStyle(
@@ -16846,8 +16879,8 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Profile',
                                           background:
-                                              const Color(0xFFFF1688),
-                                          foreground: Colors.white,
+                                              const Color(0xFFFFC629),
+                                          foreground: Colors.black,
                                           onPressed: () {
                                             Navigator.pop(
                                               dialogContext,
@@ -16871,8 +16904,8 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Message',
                                           background:
-                                              const Color(0xFFFF1688),
-                                          foreground: Colors.white,
+                                              const Color(0xFFFFC629),
+                                          foreground: Colors.black,
                                           onPressed: () {
                                             Navigator.pop(
                                               dialogContext,
@@ -16904,8 +16937,8 @@ class _FriendsListSection extends StatelessWidget {
                                         _friendPopupButton(
                                           text: 'Cancel',
                                           background:
-                                              const Color(0xFFFF1688),
-                                          foreground: Colors.white,
+                                              const Color(0xFFFFC629),
+                                          foreground: Colors.black,
                                           onPressed: () =>
                                               Navigator.pop(
                                             dialogContext,
@@ -16957,7 +16990,7 @@ Widget _friendPopupButton({
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: const BorderSide(
-            color: Color(0xFFFF1688),
+            color: Color(0xFFFFC629),
             width: 1,
           ),
         ),
@@ -17077,9 +17110,9 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
     this.hideBlockReport = false,
   });
 
-  static const Color _background = Color(0xFF09070B);
-  static const Color _gold = Color(0xFFFFD780);
-  static const Color _pink = Color(0xFFFF1688);
+  static const Color _background = Color(0xFFF4F5F7);
+  static const Color _gold = Color(0xFFB8E2FF);
+  static const Color _pink = Color(0xFFFFC629);
 
   @override
   Widget build(BuildContext context) {
@@ -17106,7 +17139,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Could not load profile. Please check your connection and profile access.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -17123,7 +17156,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
             return const Center(
               child: Text(
                 'Profile not found.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.black54),
               ),
             );
           }
@@ -17177,7 +17210,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     'ID: $userId',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : Colors.white70,
+                      color: isOwnerOrAdmin ? const Color(0xFFFFD58A) : Colors.black54,
                       fontSize: 16,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.8,
@@ -17194,7 +17227,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(
                         colors: [
-                          Color(0xFFFF1688),
+                          Color(0xFFFFC629),
                           Color(0xFF7028A0),
                           Color(0xFF21102F),
                         ],
@@ -17222,7 +17255,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 ? const Icon(
                                     Icons.person_rounded,
                                     size: 64,
-                                    color: Colors.white,
+                                    color: Colors.black,
                                   )
                                 : Image(
                                     image: photoImage,
@@ -17233,7 +17266,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                       return const Icon(
                                         Icons.person_rounded,
                                         size: 64,
-                                        color: Colors.white,
+                                        color: Colors.black,
                                       );
                                     },
                                   ),
@@ -17262,7 +17295,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     name,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.black,
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
@@ -17278,7 +17311,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFFFFE8A6), Color(0xFFD9A43B), Color(0xFFB51F25), Color(0xFF650B16), Color(0xFFFFD780)],
+                          colors: [Color(0xFFFFE8A6), Color(0xFFD9A43B), Color(0xFFB51F25), Color(0xFF650B16), Color(0xFFB8E2FF)],
                         ),
                         borderRadius: BorderRadius.circular(9),
                         border: Border.all(color: const Color(0xFFFFE6B8), width: 1.4),
@@ -17289,7 +17322,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                       ),
                       child: Stack(alignment: Alignment.center, children: [
                         Positioned.fill(child: CustomPaint(painter: _FourCornerFramePainter(color: const Color(0xFFFFF1D2)))),
-                        Text(role.toUpperCase(), style: const TextStyle(color: Color(0xFFFFF4D6), fontWeight: FontWeight.w900, letterSpacing: 1.5, shadows: [Shadow(color: Color(0xFFFFD780), blurRadius: 9), Shadow(color: Color(0xFFFF2424), blurRadius: 12)])),
+                        Text(role.toUpperCase(), style: const TextStyle(color: Color(0xFFFFF4D6), fontWeight: FontWeight.w900, letterSpacing: 1.5, shadows: [Shadow(color: Color(0xFFB8E2FF), blurRadius: 9), Shadow(color: Color(0xFFFF2424), blurRadius: 12)])),
                       ]),
                     )
                   else
@@ -17308,7 +17341,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                         bio,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
-                          color: Colors.white70,
+                          color: Colors.black54,
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
@@ -17319,15 +17352,15 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                     Container(
                       margin: const EdgeInsets.only(top: 8),
                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-                      decoration: BoxDecoration(color: const Color(0xFF17121D), borderRadius: BorderRadius.circular(14), border: Border.all(color: _gold.withValues(alpha: 0.45))),
+                      decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF34275D), Color(0xFF1B2036)], begin: Alignment.topLeft, end: Alignment.bottomRight), borderRadius: BorderRadius.circular(14), border: Border.all(color: _gold.withValues(alpha: 0.45))),
                       child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                         if (dateOfBirth.isNotEmpty) ...[
                           const Icon(Icons.cake_rounded, color: _gold, size: 18), const SizedBox(width: 5),
-                          Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.white70)), const SizedBox(width: 12),
+                          Text(partyNovaFormatDate(dateOfBirth), style: const TextStyle(color: Colors.black54)), const SizedBox(width: 12),
                         ],
                         if (gender.isNotEmpty) ...[
                           const Icon(Icons.person_outline_rounded, color: _gold, size: 18), const SizedBox(width: 5),
-                          Text(gender, style: const TextStyle(color: Colors.white70)), const SizedBox(width: 12),
+                          Text(gender, style: const TextStyle(color: Colors.black54)), const SizedBox(width: 12),
                         ],
                         if (countryCode.isNotEmpty) Text(partyNovaCountryFlag(countryCode), style: const TextStyle(fontSize: 22)),
                       ]),
@@ -17384,7 +17417,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Block',
-                                  style: TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ],
                             ),
@@ -17401,7 +17434,7 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 const Text(
                                   'Report',
-                                  style: TextStyle(color: Colors.white),
+                                  style: TextStyle(color: Colors.black),
                                 ),
                               ],
                             ),
@@ -17491,9 +17524,9 @@ class PartyNovaPublicProfilePage extends StatelessWidget {
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFFD9A43B),
-                              foregroundColor: alreadyFriend ? Colors.white : const Color(0xFF24101F),
+                              foregroundColor: alreadyFriend ? Colors.black : const Color(0xFF24101F),
                               disabledBackgroundColor: alreadyFriend ? const Color(0xFF276B4A) : const Color(0xFF806A43),
-                              disabledForegroundColor: Colors.white,
+                              disabledForegroundColor: Colors.black,
                               elevation: 5,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(13),
@@ -17525,7 +17558,7 @@ String _partyNovaConversationId(String uidA, String uidB) {
   return '${ids[0]}_${ids[1]}';
 }
 
-const Color _chatBackground = Colors.white;
+const Color _chatBackground = Colors.black;
 const Color _chatPink = Colors.black; // Retained name for compatibility; chat accent is black, never pink.
 const Color _chatGold = Color(0xFFB58A2A);
 
@@ -17783,7 +17816,7 @@ void dispose() {
                   roomDocumentId: roomId, autoJoinOnOpen: true,
                 )));
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 7)),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF24101F), foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(vertical: 7)),
               child: const Text('JOIN', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
             )),
           ]),
@@ -17986,8 +18019,8 @@ final messages = snapshot.data!.docs.where((doc) {
                     final text = data['text'] as String? ?? '';
                     final timestamp = data['createdAt'] as Timestamp?;
 
-                    final bubbleColor = isMine ? Colors.white : Colors.black;
-                    final textColor = isMine ? Colors.black : Colors.white;
+                    final bubbleColor = isMine ? Colors.black : Colors.black;
+                    final textColor = isMine ? Colors.black : Colors.black;
                     final senderName = isMine
     ? (_latestMyName.trim().isNotEmpty ? _latestMyName : 'You')
     : (_latestFriendName.trim().isNotEmpty
@@ -18054,7 +18087,7 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
                                         if (text.isNotEmpty) Text(text, style: TextStyle(color: textColor, fontSize: 15)),
                                         const SizedBox(height: 4),
                                         Row(mainAxisSize: MainAxisSize.min, children: [
-                                          Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.white70, fontSize: 10)),
+                                          Text(_chatTimeLabel(timestamp), style: TextStyle(color: isMine ? Colors.black54 : Colors.black54, fontSize: 10)),
                                           if (isMine) ...[
                                             const SizedBox(width: 5),
                                             Text(seenByOther ? 'Seen' : (isLastMessage ? 'Sent' : ''), style: const TextStyle(color: Colors.black54, fontSize: 10)),
@@ -18094,7 +18127,7 @@ final senderPhotoImage = getCachedProfilePhotoImage(senderPhoto);
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: Colors.black,
                 border: Border(
                   top: BorderSide(color: Color(0xFFE0E0E0), width: 0.8),
                 ),
@@ -18133,7 +18166,7 @@ ValueListenableBuilder<bool>(
       onPressed: sending ? null : _sendMessage,
       style: IconButton.styleFrom(
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       icon: const Icon(Icons.send_rounded),
     );
@@ -18316,7 +18349,7 @@ final conversationId =
     vertical: 12,
   ),
   decoration: BoxDecoration(
-    color: Colors.white,
+    color: Colors.black,
     borderRadius: BorderRadius.circular(14),
   ),
   child: Row(
