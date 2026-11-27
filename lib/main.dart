@@ -120,9 +120,10 @@ const Color partyPink = Color(0xFFFF1688);
 const Color partyBlack = Color(0xFF080A12);
 const Color partyGold = Color(0xFFFFD700);
 const Color partyWhite = Color(0xFF17121D);
-const Color partyWhite12 = Colors.white12;
-const Color partyWhite26 = Colors.white24;
-const Color partyWhite87 = Colors.white70;
+// Opacity variants used by the UI.
+const Color partyWhite12 = Color(0x1FFFFFFF);
+const Color partyWhite26 = Color(0x42FFFFFF);
+const Color partyWhite87 = Color(0xDDFFFFFF);
 
 String partyNovaRoleForEmail(String? email) {
   final normalizedEmail = email?.trim().toLowerCase();
