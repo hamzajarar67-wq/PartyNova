@@ -10072,7 +10072,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                             border: Border.all(
                               color: selected
                                   ? pink
-                                  : Colors.black24,
+                                  : Colors.black.withValues(alpha: 0.15),
                             ),
                           ),
                           child: Text(
@@ -10583,9 +10583,9 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                 ],
               ),
             ),
-            Container(width: 1, height: 54, color: Colors.black24),
+            Container(width: 1, height: 54, color: Colors.black.withValues(alpha: 0.15)),
             _buildPoint('Club Point', widget.clubPoint, Icons.stars_rounded),
-            Container(width: 1, height: 54, color: Colors.black24),
+            Container(width: 1, height: 54, color: Colors.black.withValues(alpha: 0.15)),
             _buildPoint('Member Point', widget.memberPoint, Icons.military_tech_rounded),
           ],
         );
@@ -11592,7 +11592,7 @@ class _RoomDetailsOverviewState extends State<RoomDetailsOverview> {
                                                 if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Un-kick failed: $error')));
                                               }
                                             },
-                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.black30, fontWeight: FontWeight.w900)),
+                                            child: Text('UN-KICK', style: TextStyle(color: leaderRoleSnapshot.data == 'leader' ? pink : Colors.black.withValues(alpha: 0.18), fontWeight: FontWeight.w900)),
                                             ),
                                           ),
                                         );
@@ -14164,11 +14164,11 @@ class _PartyRoomScreenState extends State<PartyRoomScreen> {
         TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancel', style: TextStyle(color: Colors.black54))),
         TextButton(
           onPressed: isLeader ? null : () => Navigator.pop(dialogContext, 'Two Hours Kick'),
-          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.black30 : pink)),
+          child: Text('Two Hours Kick', style: TextStyle(color: isLeader ? Colors.black.withValues(alpha: 0.18) : pink)),
         ),
         TextButton(
           onPressed: isLeader ? () => Navigator.pop(dialogContext, 'Twelve Months Kick') : null,
-          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.black30)),
+          child: Text('Twelve Months Kick', style: TextStyle(color: isLeader ? pink : Colors.black.withValues(alpha: 0.18))),
         ),
       ],
     ));
